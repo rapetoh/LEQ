@@ -128,10 +128,11 @@ Simulator (local, free):
 
 ```bash
 cd apps/mobile
-npx expo run:ios                        # first time: prebuild + pod install
-npx expo run:ios --device "iPhone 17"   # pick a simulator
-npx expo prebuild --clean               # regenerate ios/ and android/ from app.json when native config changed
+npx expo run:ios --device "iPhone 17" --port 8082   # first time: prebuild + pod install, then the app opens against the bundler
+npx expo prebuild --clean --platform ios             # regenerate ios/ from app.json when native config changed
 ```
+
+Port 8082 because the Money App's bundler often holds 8081 on this Mac; Expo refuses to reuse a port held by another project. If a prebuild fails halfway, run `prebuild --clean` before the next build, otherwise the half-generated project (template bundle identifier `org.name.LEQ`) is reused. To open a screen by deep link on the simulator, use the app itself: a `leq://` link sent with `simctl openurl` raises an iOS confirmation that cannot be answered from the command line.
 
 `ios/` and `android/` are generated (Continuous Native Generation) and git-ignored. Native configuration lives in `app.json` and Expo config plugins, never by hand in the generated folders.
 

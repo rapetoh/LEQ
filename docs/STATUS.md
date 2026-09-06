@@ -67,7 +67,8 @@ Ticked only when verified on a machine.
    - [x] A1 and A2 implemented, tabs as shells, X1
    - [x] Supabase client with anonymous sign-in at first launch
    - [x] Audio spike (a) as desk research: ADR-007 proposes `react-native-audio-api` for both paths, with a 15-item device checklist for Phase 1
-   - [ ] `npx expo run:ios` boots the shell with four tabs (build started 2026-09-06 once the project existed; result recorded below when known)
+   - [x] `npx expo run:ios --device "iPhone 17" --port 8082` builds, installs and boots the shell on the simulator: A1 renders as in the mockup (screenshot checked 2026-09-06). The tab bar could not be screenshotted: a deep link sent from outside the app triggers an iOS "Open in LEQ?" confirmation the simulator tool cannot answer; the tab logic is covered by the jest test and the manual tap-through is Roch's
+   - [x] Native project regenerated with `prebuild --clean`: bundle identifier `com.leqapp.mobile`, French microphone text in the Info.plist
 6. `apps/admin`
    - [x] Login, role gate, configuration editor, flags, tests
    - [x] Verified through the API against the hosted project: the admin token carries `app_metadata.role = admin`, the admin update returns one row, an anonymous user reads configuration but its update touches zero rows, may insert a `diagnostic` attempt (201) and not a step (403), and the trigger queues the analysis job. First admin account: join.leq@gmail.com (password in the root `.env`)
@@ -100,7 +101,7 @@ Written and reviewed by reading, never run:
 
 - The Dockerfile image itself: the worker ran from this Mac, not from the container.
 - `fly.toml`: no Fly login yet.
-- The mobile shell on a simulator: build in progress at the time of writing; the tab bar logic and the strings are covered by jest-expo tests.
+- The mobile shell beyond A1 on the simulator (tabs, A2, X1): covered by jest-expo tests only; Roch taps through on his phone or the simulator.
 - The admin interface itself in a browser against the project: the RLS round trip was verified through the API, not by clicking through the pages.
 - The end-to-end pipeline against a real bucket and database: the order of writes and the failure paths are covered by tests with injected fakes.
 - The ADR-007 audio decision: desk research with sources; every claim about device behaviour is in the Phase 1 checklist.
@@ -111,6 +112,9 @@ Decisions taken during integration (not in the plan):
 - Word timestamps are rounded to the millisecond before every threshold comparison in the engine (a gap of exactly 0.3 s was reading as 0.30000000000000004).
 - `expo-audio` stays in the mobile app for the microphone permission only, behind `src/services/micro.ts`; ADR-007 forbids using it for capture and it leaves the project when the Phase 1 recorder lands.
 - Node 25 is accepted locally (Vitest warns), CI runs Node 22.
+- Expo's experimental typed routes are off (`app.json`, `experiments.typedRoutes: false`): npm keeps `expo-router` nested under `apps/mobile/node_modules` (a fresh install and a dedupe both leave it there, without a stated conflict), and the typed-routes generator inside `@expo/cli` requires `expo-router/_ctx-shared` from the root, where it is not found. Route strings stay plain strings; nothing else changes. Revisit when Expo fixes the resolution or when npm hoists the package.
+- Native font embedding through the expo-font plugin was dropped: it resolved font files relative to the app folder, which fails in a workspace; the root layout loads Manrope at runtime.
+- The Money App's bundler often occupies port 8081 on this Mac; LEQ runs its bundler on 8082 (`--port 8082`), documented in the runbook.
 
 ## Blocked
 

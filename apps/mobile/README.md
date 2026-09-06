@@ -22,6 +22,8 @@ npm test --workspace @leq/mobile                 # jest-expo: tab bar flag behav
 
 The app needs a Supabase project to start (the shell blocks on the first configuration load, then works from cache). Until the project exists, the tab bar and screens can be reviewed in code and in the test renderer only.
 
+Typed routes (`experiments.typedRoutes`) are off: the generator in Expo's CLI cannot find `expo-router` while npm keeps it nested under this workspace (docs/STATUS.md explains). Route strings are plain strings.
+
 Store builds go through EAS cloud, never this Mac (macOS beta, see docs/RUNBOOK.md). Bundle identifier `com.leqapp.mobile`, awaiting confirmation before the first store upload (docs/OPEN-INPUTS.md).
 
 ## Not here yet

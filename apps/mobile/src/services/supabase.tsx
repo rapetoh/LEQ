@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { createClient, processLock, type Session } from '@supabase/supabase-js'
+import { createClient, type Session } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { AppState, Platform } from 'react-native'
 
@@ -13,8 +13,8 @@ if (!url || !clePubliable) {
 }
 
 // Session persistence per the current Supabase React Native guide: AsyncStorage as the
-// auth storage, processLock to serialise refreshes, and auto refresh only while the app is
-// in the foreground. Encrypting the session (SecureStore + aes-js) is deliberately not done:
+// auth storage and auto refresh only while the app is in the foreground (supabase-js 2.115
+// coordinates refreshes without a lock; the lock option is deprecated). Encrypting the session (SecureStore + aes-js) is deliberately not done:
 // the anonymous session only guards the person's own rows and RLS holds the line.
 export const supabase = createClient(url, clePubliable, {
   auth: {
@@ -22,7 +22,6 @@ export const supabase = createClient(url, clePubliable, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
-    lock: processLock,
   },
 })
 
