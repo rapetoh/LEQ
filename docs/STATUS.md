@@ -6,34 +6,34 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 
 ## State by phase
 
-| Phase | Name                                                        | State                                                                                          |
-| ----- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 0     | Foundations                                                 | Built and green locally; three items wait on Roch (Supabase project, Fly login, device checks) |
-| 1     | Socle: flow A end to end with a stub transcriber            | Not started                                                                                    |
-| 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                    |
-| 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started           |
-| 4     | Path machinery, three formats, entitlements, RevenueCat     | Not started                                                                                    |
-| 5     | Streak, points, shop, bridge to Rebecca                     | Not started                                                                                    |
-| 6     | Admin space, complete                                       | Configuration and flags pages exist; the rest not started                                      |
-| 7     | Arena and duels, shipped off, public web                    | Not started                                                                                    |
-| 8     | Face-à-face                                                 | Not started                                                                                    |
-| 9     | Release                                                     | Not started                                                                                    |
+| Phase | Name                                                        | State                                                                                                     |
+| ----- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 0     | Foundations                                                 | Built, green locally, schema live on the hosted project and verified; Fly deploy and device checks remain |
+| 1     | Socle: flow A end to end with a stub transcriber            | Not started                                                                                               |
+| 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                               |
+| 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                      |
+| 4     | Path machinery, three formats, entitlements, RevenueCat     | Not started                                                                                               |
+| 5     | Streak, points, shop, bridge to Rebecca                     | Not started                                                                                               |
+| 6     | Admin space, complete                                       | Configuration and flags pages exist; the rest not started                                                 |
+| 7     | Arena and duels, shipped off, public web                    | Not started                                                                                               |
+| 8     | Face-à-face                                                 | Not started                                                                                               |
+| 9     | Release                                                     | Not started                                                                                               |
 
 A phase ends when its acceptance list is green and this file says so.
 
 ## What exists today
 
-| Workspace          | Content                                                                                                                                                                                                                                                                                  | Checks                              |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `packages/domaine` | Zod schemas and types for every Phase 0 table, the configuration seed definitions, the grid rule engine (`evaluerRegle`, `evaluerCriteres`), job charges                                                                                                                                 | typecheck, 27 tests                 |
-| `packages/moteur`  | The measurement engine over PCM plus transcript (nine measure families of chapter 5), WAV codec, French WER, deterministic transcriber and prosody stubs, synthetic fixtures; the STT bench harness (`bench/`) with the four provider adapters declared and refusing to run without keys | typecheck, 33 tests                 |
-| `apps/serveur`     | Hono service with `/sante`, the worker loop, the analysis pipeline in the order of the state diagram, the sweep, the anonymous purge and account deletion jobs, ffmpeg decoding, the Praat prosody CLI (Python) with its pytest, Dockerfile, Fly configuration with two process groups   | typecheck, 10 tests, 4 Python tests |
-| `supabase/`        | The socle migration (tables, helpers, triggers, queue functions, RLS, access token hook, buckets, pg_cron), idempotent seed, 96 pgTAP assertions, CLI config                                                                                                                             | read only: never run, see Blocked   |
-| `apps/mobile`      | Expo SDK 57 shell: tokens and Manrope, themes, Bulle placeholder, UI primitives, tab bar honouring the `arene` flag, A1 and A2 implemented, the four tabs as real shells with placeholder cards, X1, anonymous sign-in, configuration and flags cached for offline start                 | typecheck, lint, 6 tests            |
-| `apps/admin`       | Vite + React space: login, role gate, layout, home, configuration editor (typed fields, contract validation, optimistic save), flags with confirmation                                                                                                                                   | typecheck, lint, 10 tests           |
-| `apps/web`         | Placeholder README (Phase 7)                                                                                                                                                                                                                                                             | none                                |
-| `docs/`            | This folder, eight ADRs                                                                                                                                                                                                                                                                  | prettier                            |
-| CI                 | `.github/workflows/check.yml`: typecheck, lint, tests, prettier, Python tests                                                                                                                                                                                                            | not yet run on GitHub               |
+| Workspace          | Content                                                                                                                                                                                                                                                                                  | Checks                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `packages/domaine` | Zod schemas and types for every Phase 0 table, the configuration seed definitions, the grid rule engine (`evaluerRegle`, `evaluerCriteres`), job charges                                                                                                                                 | typecheck, 27 tests                                                         |
+| `packages/moteur`  | The measurement engine over PCM plus transcript (nine measure families of chapter 5), WAV codec, French WER, deterministic transcriber and prosody stubs, synthetic fixtures; the STT bench harness (`bench/`) with the four provider adapters declared and refusing to run without keys | typecheck, 33 tests                                                         |
+| `apps/serveur`     | Hono service with `/sante`, the worker loop, the analysis pipeline in the order of the state diagram, the sweep, the anonymous purge and account deletion jobs, ffmpeg decoding, the Praat prosody CLI (Python) with its pytest, Dockerfile, Fly configuration with two process groups   | typecheck, 10 tests, 4 Python tests                                         |
+| `supabase/`        | The socle migration (tables, helpers, triggers, queue functions, RLS, access token hook, buckets, pg_cron), idempotent seed, 133 pgTAP assertions, CLI config, a remote test runner                                                                                                      | pushed to the hosted project on 2026-09-06; 133 assertions green against it |
+| `apps/mobile`      | Expo SDK 57 shell: tokens and Manrope, themes, Bulle placeholder, UI primitives, tab bar honouring the `arene` flag, A1 and A2 implemented, the four tabs as real shells with placeholder cards, X1, anonymous sign-in, configuration and flags cached for offline start                 | typecheck, lint, 6 tests                                                    |
+| `apps/admin`       | Vite + React space: login, role gate, layout, home, configuration editor (typed fields, contract validation, optimistic save), flags with confirmation                                                                                                                                   | typecheck, lint, 10 tests                                                   |
+| `apps/web`         | Placeholder README (Phase 7)                                                                                                                                                                                                                                                             | none                                                                        |
+| `docs/`            | This folder, eight ADRs                                                                                                                                                                                                                                                                  | prettier                                                                    |
+| CI                 | `.github/workflows/check.yml`: typecheck, lint, tests, prettier, Python tests                                                                                                                                                                                                            | not yet run on GitHub                                                       |
 
 `npm run check` and `npm run format:check` are green at the root on Node 25 (Vitest warns about the engine, nothing more).
 
@@ -56,9 +56,9 @@ Ticked only when verified on a machine.
    - [x] `config.toml` (Postgres 17, anonymous sign-in, manual linking, hook)
    - [x] Migration `20260906000000_socle.sql` written and reviewed by reading; one fix applied (the column-protection trigger now lets a direct database connection change `role`, which the worker and the operator need)
    - [x] Seed written, idempotent
-   - [ ] Database tests run against a local stack (needs Docker) or the hosted project
+   - [x] Database tests run against the hosted project inside a rolled-back transaction: 133 assertions green (`node supabase/tests/executer-distant.mjs supabase/tests/socle.sql`)
    - [x] Project "LEQ" created on a dedicated account (join.leq@gmail.com, org "LEQ's Org"), ref `gnabuebxleogsuhvdgpk`, eu-west-1 (Ireland; Paris was the plan, kept as is)
-   - [ ] Migrations pushed, seed applied, dashboard settings done (anonymous sign-ins, hook registered, pg_cron confirmed)
+   - [x] Migration and seed pushed (`db push --include-seed`, first try clean); auth settings applied with `config push` (anonymous sign-ins, manual linking, access token hook, `leq://auth` redirect); pg_cron confirmed (three `leq_*` schedules active)
 5. `apps/mobile`
    - [x] Package `@leq/mobile`, `app.json` with name LEQ, scheme `leq`, bundle identifier `com.leqapp.mobile` (awaiting confirmation), French microphone text
    - [x] Tokens, Manrope, themes, Bulle placeholder
@@ -67,16 +67,16 @@ Ticked only when verified on a machine.
    - [x] A1 and A2 implemented, tabs as shells, X1
    - [x] Supabase client with anonymous sign-in at first launch
    - [x] Audio spike (a) as desk research: ADR-007 proposes `react-native-audio-api` for both paths, with a 15-item device checklist for Phase 1
-   - [ ] `npx expo run:ios` boots the shell with four tabs (not run: the shell needs a Supabase project to start)
+   - [ ] `npx expo run:ios` boots the shell with four tabs (build started 2026-09-06 once the project existed; result recorded below when known)
 6. `apps/admin`
    - [x] Login, role gate, configuration editor, flags, tests
-   - [ ] A configuration edit round-trips through RLS as admin and is refused as a plain user (needs the project)
+   - [x] Verified through the API against the hosted project: the admin token carries `app_metadata.role = admin`, the admin update returns one row, an anonymous user reads configuration but its update touches zero rows, may insert a `diagnostic` attempt (201) and not a step (403), and the trigger queues the analysis job. First admin account: join.leq@gmail.com (password in the root `.env`)
 7. `apps/serveur`
    - [x] Hono, `/sante`, worker loop, the four job handlers, pipeline tests
    - [x] Dockerfile (ffmpeg, Python, Praat), `prosodie/extraire.py` with 4 passing tests on this Mac
    - [x] `fly.toml` with process groups `worker` and `temps-reel` in `cdg`
    - [ ] Deployed once (blocked on `fly auth login`)
-   - [ ] `fly logs` shows a seeded job claimed and completed
+   - [x] A seeded `balayer_audio` job claimed and completed by the worker running on this Mac against the hosted database (413 ms). The same check on Fly follows the deploy
 8. CI
    - [x] Workflow file present
    - [ ] First green run on GitHub (checked after the push that carries this file)
@@ -98,10 +98,10 @@ Verified on Roch's Mac on 2026-09-06 by running them:
 
 Written and reviewed by reading, never run:
 
-- Everything in `supabase/`: the migration, the seed, the 96 pgTAP assertions. The first `db push` is the first real test.
-- The Dockerfile and `fly.toml`: no Docker on this Mac, no Fly login.
-- The mobile shell on a simulator: it blocks on the first configuration load, which needs a Supabase project. The tab bar logic and the strings are covered by jest-expo tests only.
-- The admin against a real Supabase (login, RLS round trip): tests cover the role gate and the validation logic with fakes.
+- The Dockerfile image itself: the worker ran from this Mac, not from the container.
+- `fly.toml`: no Fly login yet.
+- The mobile shell on a simulator: build in progress at the time of writing; the tab bar logic and the strings are covered by jest-expo tests.
+- The admin interface itself in a browser against the project: the RLS round trip was verified through the API, not by clicking through the pages.
 - The end-to-end pipeline against a real bucket and database: the order of writes and the failure paths are covered by tests with injected fakes.
 - The ADR-007 audio decision: desk research with sources; every claim about device behaviour is in the Phase 1 checklist.
 
@@ -114,15 +114,14 @@ Decisions taken during integration (not in the plan):
 
 ## Blocked
 
-- Supabase: project created; `npx supabase link` and `db push` wait for the database password in the root `.env` (`SUPABASE_DB_PASSWORD`).
 - Fly.io: CLI installed, not logged in. `fly auth login` once, then the first deploy and the job-claim verification.
 - Device checks of ADR-007: run on Roch's iPhone and the simulator first (his testing setup); the Android half waits for an EAS development build on a borrowed or later device, before release.
 
 ## Next
 
-1. Roch: paste the database password into the root `.env`, run `fly auth login`, provide the API keys listed in docs/OPEN-INPUTS.md when convenient.
-2. `npx supabase link --project-ref gnabuebxleogsuhvdgpk`, `npx supabase db push --include-seed`, register the hook, enable anonymous sign-ins, confirm pg_cron. Fix whatever the first push reveals in the migration and note it here.
-3. Fill `apps/mobile/.env`, `apps/admin/.env.local`, `apps/serveur/.env`; boot the shell on the simulator; create Rebecca's admin user and check the configuration round trip; deploy the server and watch a job complete. Tick the boxes above.
+1. Roch: run `fly auth login`, provide the API keys listed in docs/OPEN-INPUTS.md when convenient.
+2. Deploy the server (`fly deploy`), set the three secrets, watch a job complete in `fly logs`.
+3. Finish the simulator check of the shell; then Rebecca's own admin account when she is ready (the first admin is join.leq@gmail.com).
 4. Start Phase 1: the recording screen with the capture stack of ADR-007 (checklist items 1 to 9 on devices), upload, the local queue, A3 to A7, X2 to X4, account conversion, deletion, push. Write the Phase 1 acceptance list here before starting.
 5. In parallel, assemble the bench corpus and run the bench as soon as one key arrives.
 

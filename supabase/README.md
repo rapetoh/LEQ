@@ -11,7 +11,7 @@ The database of record: migrations, seed, database tests and the CLI configurati
 
 ## Status
 
-The project exists since 2026-09-06 (ref `gnabuebxleogsuhvdgpk`, eu-west-1, dedicated account join.leq@gmail.com). Nothing in this folder has run against it yet: the first `db push` is pending the database password. The SQL was reviewed by reading only; the first `db push` is the first real test, and `supabase test db` needs Docker (OrbStack or Docker Desktop) for the local stack.
+The project exists since 2026-09-06 (ref `gnabuebxleogsuhvdgpk`, eu-west-1, dedicated account join.leq@gmail.com). The socle migration and the seed are applied, the auth settings are pushed from `config.toml`, and the 133 assertions of `tests/socle.sql` pass against the hosted database. The SQL was reviewed by reading only; the first `db push` is the first real test, and `supabase test db` needs Docker (OrbStack or Docker Desktop) for the local stack.
 
 ## Apply to the hosted project
 
@@ -21,11 +21,13 @@ npx supabase link --project-ref <ref>
 npx supabase db push --include-seed                      # migrations in order, then seed.sql (idempotent)
 ```
 
-Then in the dashboard:
+Then push the auth settings from `config.toml` (anonymous sign-ins, manual linking, the access token hook, redirect URLs, email confirmations):
 
-1. Authentication > Sign In / Providers: enable anonymous sign-ins; enable manual linking.
-2. Authentication > Hooks: Customize Access Token (JWT) Claims, Postgres function `public.hook_jeton_acces`. The migration already grants `supabase_auth_admin` what it needs.
-3. Database > Extensions: confirm `pg_cron` is on (the migration enables it when available); check Integrations > Cron shows the three `leq_*` schedules.
+```bash
+npx supabase config push --yes
+```
+
+Without a terminal attached, `config push` applies immediately and does not ask; run it only after reading the diff it prints in an interactive shell. It also pushes the `[api]` section, so keep `schemas` to `public` and `graphql_public`. Finally check Database > Extensions shows `pg_cron` on and Integrations > Cron lists the three `leq_*` schedules.
 
 ## Give Rebecca the admin role
 
@@ -37,10 +39,21 @@ update public.profils set role = 'admin' where id = '<her auth user id>';
 
 A trigger refuses that change from any signed-in client; only a direct connection or the service role can make it. She signs out and back in to get a token with the role.
 
-## Local stack and tests
+## Tests
+
+Against the hosted project, inside one transaction that is rolled back (nothing persists, including the `pgtap` extension it creates):
 
 ```bash
-npx supabase start          # needs Docker
+set -a; . ./.env; set +a      # SUPABASE_DB_PASSWORD
+SUPABASE_PROJECT_REF=gnabuebxleogsuhvdgpk node supabase/tests/executer-distant.mjs supabase/tests/socle.sql
+```
+
+The runner tries the direct host, then the session poolers of the region; on this Mac the direct host does not resolve (IPv6 only) and `aws-1-eu-west-1.pooler.supabase.com` works. Hosted projects refuse direct deletes on `storage.objects`, which is why the suite checks policies instead of attempting a delete.
+
+Local stack (needs Docker):
+
+```bash
+npx supabase start
 npx supabase db reset       # migrations then seed
-npx supabase test db        # pgTAP
+npx supabase test db        # the same pgTAP file
 ```

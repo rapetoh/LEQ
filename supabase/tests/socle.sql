@@ -15,7 +15,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(96);
+select plan(133);
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -629,8 +629,17 @@ select throws_ok(
   'A cannot upload to audio-public'
 );
 select is((select count(*) from storage.objects where bucket_id = 'audio-tentatives'), 0::bigint, 'A cannot list own uploads');
-delete from storage.objects where bucket_id = 'audio-tentatives';
 reset role;
+-- A direct delete cannot be exercised here: hosted projects refuse any direct delete on
+-- storage.objects (storage.protect_delete), so the absence of client policies is checked instead.
+select is(
+  (select count(*) from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and cmd in ('SELECT', 'UPDATE', 'DELETE')
+      and policyname like 'audio_%'),
+  0::bigint,
+  'no client select, update or delete policy on audio objects'
+);
 
 select tests_leq.connecter('33333333-3333-4333-8333-333333333333', true, 'utilisateur');
 select lives_ok(
@@ -641,7 +650,7 @@ select lives_ok(
 reset role;
 select tests_leq.deconnecter();
 
-select is((select count(*) from storage.objects where bucket_id = 'audio-tentatives'), 2::bigint, 'client delete did nothing, both objects remain');
+select is((select count(*) from storage.objects where bucket_id = 'audio-tentatives'), 2::bigint, 'both uploads are in the bucket');
 
 select * from finish();
 

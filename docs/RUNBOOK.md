@@ -80,11 +80,7 @@ npx supabase db push --dry-run               # lists what will be applied
 npx supabase db push
 ```
 
-Then three settings that migrations cannot set, in the dashboard:
-
-1. Authentication > Sign In / Providers: enable anonymous sign-ins; set a rate limit per IP.
-2. Authentication > Hooks: register the custom access token hook on the Postgres function `public.hook_jeton_acces` (it copies `profils.role` into `app_metadata.role`).
-3. Database > Extensions: enable `pg_cron` (the migration also runs `create extension if not exists pg_cron`; the dashboard toggle confirms it is allowed on the project).
+Then the auth settings, which migrations cannot set, are pushed from `supabase/config.toml` with `npx supabase config push --yes` (anonymous sign-ins, manual linking, the access token hook on `public.hook_jeton_acces`, redirect URLs). Read the diff in an interactive shell first: without a terminal the command applies without asking. Check in the dashboard that `pg_cron` is enabled and the three `leq_*` schedules exist.
 
 Phase 1 adds the Apple and Google providers and the redirect URL `leq://auth` under Authentication > URL Configuration.
 
