@@ -266,6 +266,13 @@ Expo push tokens, one row per device. Used for the transactional "Ton retour est
 
 Sent by the worker right after `retour_disponible`, to every active token of the user: title "Ton retour est prêt", body "Ta prise a été analysée. Ouvre LEQ pour lire ce que Bulle a entendu.", data `{ "tentative_id": "<uuid>" }`. One attempt, errors logged on the token row, never retried in a loop.
 
+### demandes_export (migration `0003_demandes_export`)
+
+Screen G3 "Recevoir une copie de mes données" files a request; Rebecca answers by hand while volume is low (chapter 2). The Phase 6 admin inbox lists open requests.
+
+- `id uuid pk`, `utilisateur_id uuid not null references profils(id) on delete cascade`, `email text` (the address at the time of the request), `traitee_le timestamptz`, `traitee_par uuid references profils(id)`.
+- RLS: a non-anonymous user inserts for themselves and reads their own; admin reads and updates all.
+
 ## Later phases (names reserved)
 
-`parcours`, `actes`, `etapes`, `exercices`, `series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `abonnements`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `demandes_export`, `moderations`.
+`parcours`, `actes`, `etapes`, `exercices`, `series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `abonnements`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `moderations`.

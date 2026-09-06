@@ -26,7 +26,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "allowBackup": false
+      "allowBackup": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -63,6 +68,13 @@
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "705674fb-72ee-426c-ae36-9dabc28601f1"
+      }
+    },
+    "owner": "rxpetoh"
   }
 }

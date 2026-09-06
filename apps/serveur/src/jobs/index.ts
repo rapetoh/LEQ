@@ -3,11 +3,13 @@ import type { Pool } from 'pg'
 import { creerDecodeur } from '../audio/decoder.js'
 import { ExtracteurProsodiePraat } from '../audio/prosodie.js'
 import type { Config } from '../config.js'
+import { creerLogger } from '../log.js'
 import { evaluerRegle, mesurer } from '../contrat.js'
 import * as db from '../db.js'
 import type { TypeJob } from '../db.js'
 import { BUCKET_AUDIO_TENTATIVES, type Comptes, type Stockage } from '../stockage.js'
 import { choisirTranscripteur } from '../transcription/index.js'
+import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
 import { creerHandlerAnalyserTentative, type DepotAnalyse } from './analyserTentative.js'
 import { creerHandlerBalayerAudio } from './balayerAudio.js'
 import { creerHandlerPurgerAnonymes } from './purgerAnonymes.js'
@@ -48,6 +50,16 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
         telecharger: (chemin) => stockage.telecharger(BUCKET_AUDIO_TENTATIVES, chemin),
         supprimer: (chemin) => stockage.supprimer(BUCKET_AUDIO_TENTATIVES, [chemin]),
       },
+      notifier: (utilisateurId, tentativeId) =>
+        notifierRetourPret(
+          {
+            ex: pool,
+            envoyer: envoyerViaExpo,
+            log: creerLogger(config.logLevel, { module: 'push' }),
+          },
+          utilisateurId,
+          tentativeId,
+        ),
       transcripteur: choisirTranscripteur(config.transcripteur),
       decoder: creerDecodeur({ ffmpegPath: config.ffmpegPath, delaiMs: config.delaiOutilMs }),
       prosodie: new ExtracteurProsodiePraat({

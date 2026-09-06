@@ -140,10 +140,10 @@ Written before the work started, as the rule says. Slices are built in this orde
    - [x] `useSuiviPrise` follows a take from the queue to the server statuses (Realtime on `tentatives`, polling every 15 s)
 5. Server side of the loop
    - [x] `duree_s` written from the decoded audio
-   - [ ] Push "Ton retour est prêt" through Expo's push API to the person's registered tokens; failures logged, never retried into a loop
-   - [ ] Account deletion end to end: RPC queues the job, the worker removes storage objects then the auth user, the phone signs out and wipes its queue and caches
+   - [x] Push "Ton retour est prêt" sent by the worker through Expo's push API after `retour_disponible`, one attempt, `DeviceNotRegistered` switches the token off (3 tests). Phone side: permission asked at "Quitter, on te préviendra", token registered in `jetons_push` (EAS project `@rxpetoh/leq`, id in `app.json`), a tap opens the take's screen. Not verified on a device (push needs a physical phone)
+   - [x] Account deletion written end to end: G3 confirms, calls `demander_suppression_compte()`, cancels the queued takes, signs out, wipes the phone's storage and gets a fresh anonymous session; the worker's `supprimer_compte` job removes objects then the auth user (RPC and job verified by pgTAP; the phone path not yet tapped through)
 6. Settings G3, minimal
-   - [ ] The voice statement (chapter 2 wording, marked for lawyer review), "Supprimer mon compte" with confirmation, "Recevoir une copie de mes données" as a request row (Phase 6 inbox), the four notification toggles stored on the profile (used from Phase 5)
+   - [x] G3 written (`src/app/reglages.tsx`): the voice statement, "Publier sous mon prénom", the export request (table `demandes_export`, migration 0003, 7 pgTAP assertions, anonymous accounts refused), "Supprimer mon compte" with confirmation, the four notification switches and the reminder time (display only until Phase 5), night mode and reduced motion. Reached from the Moi tab
 7. End to end on the simulator, then on Roch's iPhone
    - [x] Server side, on a synthetic 66 s M4A pushed exactly as the phone does (`apps/serveur/scripts/simuler-prise.mjs`): anonymous upload 200, insert 201, job claimed, transcription (stub), ffmpeg, Praat (pitch read at the synthesised 160 Hz), measures, analysis and evaluation written, audio object deleted, `retour_disponible` in 3.9 s, `duree_s` 66.00
    - [ ] Same loop driven from the app on the simulator (A1 to A6): needs taps, Roch or a later automation

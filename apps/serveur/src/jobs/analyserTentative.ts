@@ -52,6 +52,8 @@ export interface StockageAudioTentatives {
 
 export interface DependancesAnalyse {
   depot: DepotAnalyse
+  /** Tells the person their feedback is ready. Must never throw. */
+  notifier: (utilisateurId: string, tentativeId: string) => Promise<unknown>
   stockage: StockageAudioTentatives
   transcripteur: Transcripteur
   decoder: Decodeur
@@ -186,6 +188,7 @@ export async function analyserTentative(
     await depot.marquerAudioSupprime(tentativeId)
     await depot.mettreAJourStatut(tentativeId, 'retour_disponible')
     log.info('retour disponible')
+    await deps.notifier(tentative.utilisateur_id, tentativeId)
     return 'analysee'
   } catch (erreur) {
     const message = messageErreur(erreur)

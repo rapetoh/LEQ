@@ -6,12 +6,13 @@ import {
   useFonts,
 } from '@expo-google-fonts/manrope'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Stack } from 'expo-router'
+import { Stack, useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
+import { rafraichirJeton, surNotificationTouchee } from '@/services/notifications'
 import { definirExpirationFileJours, demarrerFile } from '@/services/prises'
 import { FournisseurSession, useSession } from '@/services/supabase'
 import { FournisseurTheme, useTheme } from '@/theme/ThemeProvider'
@@ -59,10 +60,23 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
     if (policesPretes && sessionPrete) void SplashScreen.hideAsync()
   }, [policesPretes, sessionPrete])
 
-  // The queue of takes loads once a session exists and sends whatever waits.
+  // The queue of takes loads once a session exists and sends whatever waits; a push token
+  // already granted is re-registered so a deleted token comes back to life.
   useEffect(() => {
-    if (session) void demarrerFile()
+    if (!session) return
+    void demarrerFile()
+    void rafraichirJeton()
   }, [session])
+
+  // A tap on "Ton retour est prêt" opens the take's screen.
+  const router = useRouter()
+  useEffect(() => {
+    return surNotificationTouchee((cible) => {
+      if (cible.tentative_id) {
+        router.push({ pathname: '/accueil/analyse', params: { id: cible.tentative_id } })
+      }
+    })
+  }, [router])
 
   if (!policesPretes) return null
 
@@ -79,6 +93,7 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
         <Stack.Screen name="index" />
         <Stack.Screen name="accueil" />
         <Stack.Screen name="(onglets)" />
+        <Stack.Screen name="reglages" />
       </Stack>
     </FournisseurDemarrage>
   )

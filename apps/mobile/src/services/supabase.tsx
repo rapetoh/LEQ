@@ -51,10 +51,10 @@ export function connecterAnonymement(): Promise<Session | null> {
       const anonyme = await supabase.auth.signInAnonymously()
       if (anonyme.error) throw anonyme.error
       return anonyme.data.session
-    })().catch((erreur: unknown) => {
-      // Allow a retry on the next call after a failure (offline first launch).
+    })().finally(() => {
+      // The next call checks again: after a sign-out (account deletion) a new anonymous
+      // session is created; after a failure (offline first launch) a retry is possible.
       promesseConnexion = null
-      throw erreur
     })
   }
   return promesseConnexion

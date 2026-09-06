@@ -33,6 +33,8 @@ Store builds go through EAS cloud, never this Mac (macOS beta, see docs/RUNBOOK.
 - `src/hooks/useSuiviPrise.ts`: follows a take to the server statuses (Realtime, polling fallback).
 - Screens A3 to A7 under `src/app/accueil/`, with X2, X3 and X4 as states.
 
+- `src/services/notifications.ts`: push permission and token registration (`jetons_push`), tap handling; `src/app/reglages.tsx`: G3 with the voice statement, export request, account deletion, notification switches, night mode.
+
 ## Not here yet
 
-Push notifications, settings G3 and account deletion (Phase 1 slices 5 and 6), Apple and Google sign-in (credentials awaited), everything past flow A. The `CLAUDE.md` and `AGENTS.md` files come from the Expo template and document SDK 57 conventions; the LEQ rules are in `docs/`.
+Apple and Google sign-in (credentials awaited), the daily reminder as a local notification (Phase 5), everything past flow A. The `CLAUDE.md` and `AGENTS.md` files come from the Expo template and document SDK 57 conventions; the LEQ rules are in `docs/`.

@@ -92,6 +92,9 @@ function construireFaux(
   }
   const deps: DependancesAnalyse = {
     depot,
+    notifier: async () => {
+      journal.push('notification')
+    },
     stockage: {
       telecharger: async () => {
         echec('telecharger')
@@ -136,6 +139,7 @@ describe('analyserTentative', () => {
       'suppression_audio',
       'statut:audio_supprime',
       'statut:retour_disponible',
+      'notification',
     ])
     expect(faux.ecrits.analyse?.fournisseur_transcription).toBe('faux')
     expect(faux.ecrits.evaluation?.note_totale).toBeNull()

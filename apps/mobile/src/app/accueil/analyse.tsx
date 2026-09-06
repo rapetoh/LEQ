@@ -11,6 +11,7 @@ import { Titre } from '@/components/ui/Titre'
 import { useSuiviPrise } from '@/hooks/useSuiviPrise'
 import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
+import { activerNotifications } from '@/services/notifications'
 import { file } from '@/services/prises'
 import { ecrireProfilLocal } from '@/services/profilLocal'
 import { supabase } from '@/services/supabase'
@@ -65,9 +66,13 @@ export default function Analyse() {
     }
   }, [suivi.phase, id, router])
 
+  // The right moment to ask for notifications: the person is about to leave and wants to
+  // be told. A refusal changes nothing, the screen polls when it is open.
   const quitter = () => {
-    marquerAccueilTermine()
-    router.replace('/(onglets)/aujourdhui')
+    void activerNotifications().finally(() => {
+      marquerAccueilTermine()
+      router.replace('/(onglets)/aujourdhui')
+    })
   }
 
   let titre = t('analyse.enCours')
