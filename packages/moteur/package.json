@@ -1,0 +1,38 @@
+{
+  "name": "@leq/moteur",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Moteur de mesure de LEQ : PCM et transcription en entrée, mesures v1 en sortie. Aucune entrée-sortie.",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./fixtures": {
+      "types": "./dist/src/fixtures/index.d.ts",
+      "import": "./dist/src/fixtures/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check \"src/**/*.ts\" \"bench/**/*.ts\"",
+    "test": "vitest run",
+    "bench": "npm run build && node dist/bench/src/cli.js"
+  },
+  "dependencies": {
+    "@leq/domaine": "*",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.0"
+  }
+}

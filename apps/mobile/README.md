@@ -1,56 +1,29 @@
-# Welcome to your Expo app 👋
+# @leq/mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The LEQ app: Expo SDK 57, Expo Router, React Native, TypeScript. Every string is French and lives in `src/i18n/fr.ts`.
 
-## Get started
+## What exists (Phase 0 shell)
 
-1. Install dependencies
+- Design tokens from the validated mockup (`src/theme/tokens.ts`): bleu nuit, bleu, or, orange, warm neutrals, Manrope 500 to 800, radii, a light and a dark theme.
+- Bulle, the mascot, as a breathing placeholder (`src/components/Bulle.tsx`), and the UI primitives (button, card, title, icon, state screens).
+- The tab bar with Aujourd'hui, Défis, Progrès, Moi, and L'Arène inserted only when the `arene` flag is on (mockup C0: no ghost tab).
+- Screens A1 (welcome) and A2 (the microphone contract) implemented; the four tabs as real shells with placeholder cards where later phases bring content; X1 (empty progress) implemented.
+- Supabase client with anonymous sign-in on first launch and session persistence in AsyncStorage; configuration and flags loaded with TanStack Query and cached on the phone so the app opens offline.
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run
 
 ```bash
-npm run reset-project
+cp apps/mobile/.env.example apps/mobile/.env     # EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+npm run ios --workspace @leq/mobile              # Expo dev server, then the iOS simulator
+npm run typecheck --workspace @leq/mobile
+npm run lint --workspace @leq/mobile
+npm test --workspace @leq/mobile                 # jest-expo: tab bar flag behaviour, string interpolation
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The app needs a Supabase project to start (the shell blocks on the first configuration load, then works from cache). Until the project exists, the tab bar and screens can be reviewed in code and in the test renderer only.
 
-### Other setup steps
+Store builds go through EAS cloud, never this Mac (macOS beta, see docs/RUNBOOK.md). Bundle identifier `com.leqapp.mobile`, awaiting confirmation before the first store upload (docs/OPEN-INPUTS.md).
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Not here yet
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Recording (Phase 1, after the capture decision in docs/decisions/ADR-007-capture-audio.md), the offline queue, notifications, account creation, everything past A2. The `CLAUDE.md` and `AGENTS.md` files come from the Expo template and document SDK 57 conventions; the LEQ rules are in `docs/`.

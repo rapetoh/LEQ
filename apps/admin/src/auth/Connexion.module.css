@@ -1,0 +1,43 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(17, 77, 168, 0.08), transparent 60%), var(--fond);
+}
+
+.boite {
+  width: min(100%, 400px);
+  padding: 32px;
+  display: grid;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-grand);
+  box-shadow: var(--ombre);
+}
+
+.marque {
+  font-weight: 800;
+  color: var(--bleu);
+  letter-spacing: 0.06em;
+  font-size: 12px;
+}
+
+.intro {
+  color: var(--texte-2);
+}
+
+.champs {
+  display: grid;
+  gap: 12px;
+}
+
+.erreur {
+  padding: 10px 12px;
+  border-radius: var(--rayon);
+  background: var(--erreur-fond);
+  color: var(--erreur);
+  font-weight: 600;
+}

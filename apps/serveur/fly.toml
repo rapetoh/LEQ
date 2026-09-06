@@ -1,0 +1,54 @@
+# Fly.io configuration for the LEQ server. One image, two process groups.
+# Deploy from the repository root (the Dockerfile needs the whole monorepo):
+#   fly deploy -c apps/serveur/fly.toml --dockerfile apps/serveur/Dockerfile .
+# Secrets (never in this file): fly secrets set DATABASE_URL=... SUPABASE_URL=... SUPABASE_SECRET_KEY=...
+# PROCESS is not set here: the server falls back to FLY_PROCESS_GROUP, which Fly sets on every machine.
+
+app = "leq-serveur"
+primary_region = "cdg"
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[env]
+  LOG_LEVEL = "info"
+  PORT = "8080"
+  TRANSCRIPTEUR = "stub"
+
+[processes]
+  worker = "node apps/serveur/dist/index.js"
+  temps-reel = "node apps/serveur/dist/index.js"
+
+# Only the real-time process is reachable from the internet (the debate WebSocket).
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["temps-reel"]
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 200
+    hard_limit = 250
+
+[[vm]]
+  processes = ["worker"]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "1gb"
+
+[[vm]]
+  processes = ["temps-reel"]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"
+
+[checks]
+  [checks.sante]
+    type = "http"
+    port = 8080
+    path = "/sante"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"

@@ -1,0 +1,5 @@
+dist/
+bench/corpus/*.wav
+bench/corpus/*.txt
+bench/corpus/metadata.json
+bench/rapports/

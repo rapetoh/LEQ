@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "rootDir": ".",
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src/**/*.ts", "bench/src/**/*.ts", "vitest.config.ts"]
+}

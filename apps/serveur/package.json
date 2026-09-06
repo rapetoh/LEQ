@@ -1,0 +1,41 @@
+{
+  "name": "@leq/serveur",
+  "private": true,
+  "version": "0.0.0",
+  "description": "LEQ server: analysis worker (jobs, pipeline, privileged operations) and real-time process (debate WebSocket), one image, two Fly process groups.",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check \"src/**/*.ts\" \"*.{json,md}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:prosodie": "pytest prosodie"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@leq/domaine": "*",
+    "@leq/moteur": "*",
+    "@supabase/supabase-js": "^2.115.0",
+    "hono": "^4.13.7",
+    "pg": "^8.23.0",
+    "pino": "^9.14.0",
+    "ws": "^8.18.3",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/pg": "^8.23.1",
+    "@types/ws": "^8.18.1",
+    "prettier": "^3.6.2",
+    "tsx": "^4.23.13",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.0"
+  }
+}

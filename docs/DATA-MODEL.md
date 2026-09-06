@@ -15,7 +15,9 @@ Conventions: schema `public`, snake_case, French domain nouns, English plumbing.
 ## Phase 0 tables
 
 ### profils
+
 One row per `auth.users` row, created by trigger `on auth.users insert`.
+
 - `id uuid pk references auth.users(id) on delete cascade`
 - `prenom text`
 - `region text` (code from a fixed list, nullable)
@@ -26,7 +28,9 @@ One row per `auth.users` row, created by trigger `on auth.users insert`.
 - RLS: user selects and updates own row (never `role`, never `suspendu_le`; enforce with a trigger that rejects changes to those columns unless `auth.role() = 'service_role'`); admin selects all.
 
 ### configuration
+
 Typed key/value edited by Rebecca, read by the app at startup.
+
 - `cle text pk`
 - `valeur jsonb not null`
 - `type text not null check (type in ('nombre','texte','booleen','json'))`
@@ -35,38 +39,42 @@ Typed key/value edited by Rebecca, read by the app at startup.
 - RLS: any authenticated user (including anonymous) selects; only admin updates; no client insert/delete (seeded by migration).
 - Seed keys and defaults (all decided by me, all changeable by Rebecca):
 
-| cle | type | valeur | description |
-|---|---|---|---|
-| points_par_defi | nombre | 25 | Points gagnés pour un défi réussi |
-| points_par_vote | nombre | 5 | Points gagnés pour un vote dans l'Arène |
-| duree_diagnostic_min_s | nombre | 60 | Durée minimale de la prise de diagnostic |
-| duree_diagnostic_max_s | nombre | 90 | Durée maximale de la prise de diagnostic |
-| etapes_par_jour_gratuit | nombre | 1 | Étapes validables par jour en formule Gratuit |
-| etapes_par_jour_complet | nombre | 0 | Étapes validables par jour en formule Complet (0 = sans limite) |
-| essais_max_etape_par_jour | nombre | 3 | Essais sur une même étape par jour |
-| quota_face_a_face_complet | nombre | 8 | Face-à-face par mois en formule Complet |
-| plafond_annonces_par_mois | nombre | 2 | Annonces de Rebecca envoyées par mois, maximum |
-| purge_anonymes_heures | nombre | 72 | Délai avant suppression des comptes anonymes sans compte |
-| expiration_file_locale_jours | nombre | 7 | Délai avant suppression d'une prise jamais envoyée |
-| balayage_audio_heures | nombre | 6 | Âge à partir duquel un audio non public est supprimé par sécurité |
-| recuperations_serie_par_mois | nombre | 1 | Récupérations de série par mois |
-| duree_duel_heures | nombre | 48 | Délai pour répondre à un duel |
-| duree_sujet_arene_jours | nombre | 7 | Durée d'un sujet dans l'Arène |
-| plafond_duree_duel_gratuit_s | nombre | 90 | Durée maximale d'une prise de duel (Gratuit) |
-| plafond_duree_duel_complet_s | nombre | 180 | Durée maximale d'une prise de duel (Complet) |
-| duree_face_a_face_gratuit_s | nombre | 180 | Durée maximale d'un face-à-face (Gratuit) |
-| duree_face_a_face_complet_s | nombre | 480 | Durée maximale d'un face-à-face (Complet) |
-| reprise_debat_minutes | nombre | 30 | Fenêtre de reprise d'un débat interrompu |
+| cle                          | type   | valeur | description                                                       |
+| ---------------------------- | ------ | ------ | ----------------------------------------------------------------- |
+| points_par_defi              | nombre | 25     | Points gagnés pour un défi réussi                                 |
+| points_par_vote              | nombre | 5      | Points gagnés pour un vote dans l'Arène                           |
+| duree_diagnostic_min_s       | nombre | 60     | Durée minimale de la prise de diagnostic                          |
+| duree_diagnostic_max_s       | nombre | 90     | Durée maximale de la prise de diagnostic                          |
+| etapes_par_jour_gratuit      | nombre | 1      | Étapes validables par jour en formule Gratuit                     |
+| etapes_par_jour_complet      | nombre | 0      | Étapes validables par jour en formule Complet (0 = sans limite)   |
+| essais_max_etape_par_jour    | nombre | 3      | Essais sur une même étape par jour                                |
+| quota_face_a_face_complet    | nombre | 8      | Face-à-face par mois en formule Complet                           |
+| plafond_annonces_par_mois    | nombre | 2      | Annonces de Rebecca envoyées par mois, maximum                    |
+| purge_anonymes_heures        | nombre | 72     | Délai avant suppression des comptes anonymes sans compte          |
+| expiration_file_locale_jours | nombre | 7      | Délai avant suppression d'une prise jamais envoyée                |
+| balayage_audio_heures        | nombre | 6      | Âge à partir duquel un audio non public est supprimé par sécurité |
+| recuperations_serie_par_mois | nombre | 1      | Récupérations de série par mois                                   |
+| duree_duel_heures            | nombre | 48     | Délai pour répondre à un duel                                     |
+| duree_sujet_arene_jours      | nombre | 7      | Durée d'un sujet dans l'Arène                                     |
+| plafond_duree_duel_gratuit_s | nombre | 90     | Durée maximale d'une prise de duel (Gratuit)                      |
+| plafond_duree_duel_complet_s | nombre | 180    | Durée maximale d'une prise de duel (Complet)                      |
+| duree_face_a_face_gratuit_s  | nombre | 180    | Durée maximale d'un face-à-face (Gratuit)                         |
+| duree_face_a_face_complet_s  | nombre | 480    | Durée maximale d'un face-à-face (Complet)                         |
+| reprise_debat_minutes        | nombre | 30     | Fenêtre de reprise d'un débat interrompu                          |
 
 ### drapeaux
+
 Feature flags. Shipped off.
+
 - `cle text pk check (cle in ('arene','duels','face_a_face'))`
 - `actif boolean not null default false`
 - `modifie_par uuid references profils(id)`
 - RLS: any authenticated user selects; only admin updates.
 
 ### tentatives
+
 One recording sent for analysis. The id is generated on the phone before upload so retries are idempotent. Only server-side states exist here; phone-only states (enregistrement, en attente réseau, annulée, expirée) live in the phone's local queue.
+
 - `id uuid pk` (client-generated)
 - `utilisateur_id uuid not null references profils(id) on delete cascade`
 - `type text not null check (type in ('diagnostic','etape','arene','duel'))`
@@ -86,7 +94,9 @@ One recording sent for analysis. The id is generated on the phone before upload 
 - Trigger `after insert`: insert a job `analyser_tentative` with `charge = {"tentative_id": id}` and `cle_idempotence = 'analyser:' || id`.
 
 ### analyses
+
 Measures and transcript, the only thing kept from the voice.
+
 - `tentative_id uuid pk references tentatives(id) on delete cascade`
 - `version_schema integer not null default 1`
 - `mesures jsonb not null` (shape below)
@@ -95,14 +105,18 @@ Measures and transcript, the only thing kept from the voice.
 - RLS: user selects own (join on tentatives); service role writes.
 
 ### grilles and criteres_grille
+
 Rebecca's grid, versioned. Empty until she provides it. A dev fixture exists only in tests.
+
 - `grilles`: `id uuid pk`, `version integer not null unique`, `publiee_le timestamptz` (null = draft), `notes text`, `cree_par uuid references profils(id)`.
 - `criteres_grille`: `id uuid pk`, `grille_id uuid not null references grilles(id) on delete cascade`, `cle text not null`, `nom text not null`, `definition text not null` (what it means, in French), `regle jsonb not null` (declarative rule, see below), `ordre integer not null`, `unique (grille_id, cle)`.
 - RLS: any non-anonymous authenticated user selects published grids; admin selects and writes all.
 - `regle` shape v1: `{ "version": 1, "score_max": 10, "elements": [ { "mesure": "<dotted path into mesures>", "bandes": [ { "min": number|null, "max": number|null, "score": number } ], "poids": number } ] }`. Score = weighted sum of band scores, normalised to `score_max`. Rebecca may express pure bands (one element, weight 1) or weighted sums.
 
 ### evaluations
+
 Sub-scores and feedback fields, computed from `analyses` with the grid version active at that time. Never rescored.
+
 - `tentative_id uuid pk references tentatives(id) on delete cascade`
 - `grille_id uuid references grilles(id)` (null while no grid exists)
 - `version_grille integer`
@@ -116,7 +130,9 @@ Sub-scores and feedback fields, computed from `analyses` with the grid version a
 - RLS: user selects own; service role writes.
 
 ### jobs
+
 The work queue. pg_cron only inserts jobs; the worker executes them.
+
 - `id bigint generated always as identity pk`
 - `type text not null` (Phase 0 types: `analyser_tentative`, `supprimer_compte`, `balayer_audio`, `purger_anonymes`)
 - `charge jsonb not null default '{}'`
@@ -136,10 +152,12 @@ The work queue. pg_cron only inserts jobs; the worker executes them.
 - RLS: no client access at all (admin reads through a view `jobs_admin` later).
 
 ### Storage
+
 - Bucket `audio-tentatives` (private). Policy: authenticated users insert only at `{auth.uid()}/{uuid}.m4a`; no client select, update or delete; service role does everything. The worker deletes the object after `evaluations` is committed and sets `tentatives.statut = 'audio_supprime'` then `retour_disponible`.
 - Bucket `audio-public` (private, served by signed URL). Phase 7 (Arena and duels), with `date_suppression` on the owning row.
 
 ### Scheduled jobs (pg_cron, Phase 0 definitions)
+
 - every 30 min: insert job `balayer_audio` (idempotence key `balayer:` || date_trunc('hour', now())).
 - every hour: insert job `purger_anonymes`.
 - every 5 min: `select liberer_jobs_bloques(interval '15 minutes')`.
@@ -204,4 +222,5 @@ All numbers are computed deterministically by `packages/moteur` from PCM plus th
 `stabilite` is the coefficient of variation of `mots_par_minute` across 10 s windows. `silences.tenus` counts pauses of at least 1.0 s. `place` is `debut`, `fin_de_phrase` or `milieu_de_phrase`, decided from transcript punctuation and pause length. `volume.chutes_fin_phrase` counts sentence endings where the last 400 ms are at least 6 dB below the sentence mean. Filler word list v1 (French): `euh`, `du coup`, `en fait`, `genre`, `voilà`, `donc`, `bah`, `ben`, `hein`, `tu vois`, `en gros`, `enfin`; Rebecca edits it in Phase 6.
 
 ## Later phases (names reserved)
+
 `parcours`, `actes`, `etapes`, `exercices`, `series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `abonnements`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `demandes_export`, `moderations`.

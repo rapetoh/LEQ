@@ -1,0 +1,254 @@
+/* Tokens: mockup palette (bleu nuit, bleu, or, orange, ink) on warm neutrals. Light theme only. */
+:root {
+  --bleu-nuit: #001636;
+  --bleu: #114da8;
+  --bleu-clair: #e8eef9;
+  --or: #ffbd59;
+  --or-clair: #fff3dd;
+  --orange: #ff5e01;
+  --encre: #33415c;
+
+  --fond: #f6f3ee;
+  --surface: #ffffff;
+  --surface-2: #fbf9f6;
+  --ligne: #e6e0d7;
+  --ligne-forte: #cfc7bb;
+
+  --texte: #1b2436;
+  --texte-2: #5b6472;
+  --texte-3: #8a8f98;
+
+  --succes: #1b7f4b;
+  --succes-fond: #e6f4ec;
+  --erreur: #b3261e;
+  --erreur-fond: #fbeae8;
+
+  --rayon: 8px;
+  --rayon-grand: 12px;
+  --ombre: 0 1px 2px rgba(0, 22, 54, 0.06), 0 4px 16px rgba(0, 22, 54, 0.05);
+
+  --police: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--police);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+
+#racine {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--bleu-nuit);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 14px;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--bleu);
+}
+
+code,
+.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+/* Buttons: verbs, three weights. */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: var(--rayon);
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.bouton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.bouton-principal {
+  background: var(--bleu);
+  color: #ffffff;
+}
+
+.bouton-principal:not(:disabled):hover {
+  background: #0e4392;
+}
+
+.bouton-secondaire {
+  background: var(--surface);
+  color: var(--bleu-nuit);
+  border-color: var(--ligne-forte);
+}
+
+.bouton-secondaire:not(:disabled):hover {
+  background: var(--surface-2);
+}
+
+.bouton-discret {
+  background: transparent;
+  color: var(--texte-2);
+  padding: 0 10px;
+}
+
+.bouton-discret:not(:disabled):hover {
+  background: var(--surface-2);
+  color: var(--bleu-nuit);
+}
+
+/* Fields. */
+.champ {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--ligne-forte);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  color: var(--texte);
+  font: inherit;
+  font-size: 13.5px;
+}
+
+.champ:focus-visible {
+  outline: none;
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 3px var(--bleu-clair);
+}
+
+.champ[aria-invalid='true'] {
+  border-color: var(--erreur);
+}
+
+.champ-mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+textarea.champ {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.etiquette {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--bleu-nuit);
+}
+
+.erreur-champ {
+  margin-top: 4px;
+  color: var(--erreur);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--bleu);
+  outline-offset: 2px;
+}
+
+.bouton:focus-visible {
+  outline: 2px solid var(--bleu);
+  outline-offset: 2px;
+}
+
+/* Page scaffolding. */
+.page {
+  max-width: 1120px;
+}
+
+.page-entete {
+  margin-bottom: 20px;
+}
+
+.page-entete p {
+  margin-top: 6px;
+  color: var(--texte-2);
+  max-width: 64ch;
+}
+
+.carte {
+  background: var(--surface);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-grand);
+  box-shadow: var(--ombre);
+}
+
+.etat {
+  padding: 24px;
+  color: var(--texte-2);
+}
+
+.etat-erreur {
+  color: var(--erreur);
+}
+
+.visuellement-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

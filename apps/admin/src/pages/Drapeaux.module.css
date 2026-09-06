@@ -1,0 +1,52 @@
+.liste {
+  overflow: hidden;
+}
+
+.ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--ligne);
+}
+
+.ligne:last-child {
+  border-bottom: 0;
+}
+
+.nom {
+  font-size: 15px;
+}
+
+.description {
+  margin-top: 3px;
+  color: var(--texte-2);
+  font-size: 13px;
+}
+
+.etat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.badgeAllume,
+.badgeEteint {
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badgeAllume {
+  background: var(--succes-fond);
+  color: var(--succes);
+}
+
+.badgeEteint {
+  background: var(--surface-2);
+  color: var(--texte-3);
+  border: 1px solid var(--ligne);
+}

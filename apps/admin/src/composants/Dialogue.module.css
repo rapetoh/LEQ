@@ -1,0 +1,30 @@
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 22, 54, 0.45);
+}
+
+.boite {
+  width: min(100%, 440px);
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--rayon-grand);
+  box-shadow: 0 12px 40px rgba(0, 22, 54, 0.25);
+}
+
+.message {
+  color: var(--texte-2);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
