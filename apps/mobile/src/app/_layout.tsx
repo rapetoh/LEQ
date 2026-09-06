@@ -13,7 +13,7 @@ import { useEffect } from 'react'
 
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
 import { rafraichirJeton, surNotificationTouchee } from '@/services/notifications'
-import { definirExpirationFileJours, demarrerFile } from '@/services/prises'
+import { definirExpirationFileJours, demarrerFile, routePourRetour } from '@/services/prises'
 import { FournisseurSession, useSession } from '@/services/supabase'
 import { FournisseurTheme, useTheme } from '@/theme/ThemeProvider'
 
@@ -68,12 +68,13 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
     void rafraichirJeton()
   }, [session])
 
-  // A tap on "Ton retour est prêt" opens the take's screen.
+  // A tap on "Ton retour est prêt" opens the take's waiting screen, which opens the
+  // feedback as soon as it is there: A5 for the diagnostic, the step's own screen otherwise.
   const router = useRouter()
   useEffect(() => {
     return surNotificationTouchee((cible) => {
       if (cible.tentative_id) {
-        router.push({ pathname: '/accueil/analyse', params: { id: cible.tentative_id } })
+        void routePourRetour(cible.tentative_id).then((route) => router.push(route))
       }
     })
   }, [router])
@@ -94,6 +95,15 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
         <Stack.Screen name="accueil" />
         <Stack.Screen name="(onglets)" />
         <Stack.Screen name="reglages" />
+        <Stack.Screen name="defi/[etapeId]/index" />
+        <Stack.Screen name="defi/[etapeId]/prise" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="defi/[etapeId]/rattrapage" />
+        <Stack.Screen name="defi/[etapeId]/exercice" />
+        <Stack.Screen name="defi/limite" />
+        <Stack.Screen name="analyse/[id]" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="retour/[tentativeId]" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="acte/[acteId]/index" />
+        <Stack.Screen name="acte/[acteId]/traverse" options={{ gestureEnabled: false }} />
       </Stack>
     </FournisseurDemarrage>
   )

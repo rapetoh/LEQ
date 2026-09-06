@@ -20,6 +20,7 @@ const CLES_PAR_SECTION: Record<Exclude<Section, 'autres'>, readonly string[]> = 
     'etapes_par_jour_gratuit',
     'etapes_par_jour_complet',
     'essais_max_etape_par_jour',
+    'duree_etape_min_s',
     'recuperations_serie_par_mois',
   ],
   arene: [

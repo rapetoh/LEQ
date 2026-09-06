@@ -12,6 +12,7 @@ insert into public.configuration (cle, type, valeur, description) values
   ('etapes_par_jour_gratuit', 'nombre', '1', 'Étapes validables par jour en formule Gratuit'),
   ('etapes_par_jour_complet', 'nombre', '0', 'Étapes validables par jour en formule Complet (0 = sans limite)'),
   ('essais_max_etape_par_jour', 'nombre', '3', 'Essais sur une même étape par jour'),
+  ('duree_etape_min_s', 'nombre', '20', 'Durée minimale d''une prise de défi'),
   ('quota_face_a_face_complet', 'nombre', '8', 'Face-à-face par mois en formule Complet'),
   ('plafond_annonces_par_mois', 'nombre', '2', 'Annonces de Rebecca envoyées par mois, maximum'),
   ('purge_anonymes_heures', 'nombre', '72', 'Délai avant suppression des comptes anonymes sans compte'),

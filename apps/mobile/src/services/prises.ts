@@ -5,6 +5,8 @@ import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network'
 import { File } from 'expo-file-system'
 import { AppState } from 'react-native'
 
+import type { TypeTentative } from '@leq/domaine'
+
 import { FileLocale } from './file'
 import type { EntreeFile } from './fileMachine'
 import { supabase } from './supabase'
@@ -89,4 +91,21 @@ export function horodatageLocal(maintenant: Date = new Date()): {
     fuseau_horaire: fuseau,
     decalage_minutes: -maintenant.getTimezoneOffset(),
   }
+}
+
+/**
+ * Where a tapped "Ton retour est prêt" goes: the diagnostic waits on A5, a step on its
+ * own waiting screen. The type is read from the local queue first, then from the server.
+ */
+export async function routePourRetour(tentativeId: string): Promise<string> {
+  let type: TypeTentative | undefined = file.lire().find((e) => e.id === tentativeId)?.type
+  if (!type) {
+    const { data } = await supabase
+      .from('tentatives')
+      .select('type')
+      .eq('id', tentativeId)
+      .maybeSingle()
+    type = (data?.type as TypeTentative | undefined) ?? undefined
+  }
+  return type === 'diagnostic' ? `/accueil/analyse?id=${tentativeId}` : `/analyse/${tentativeId}`
 }
