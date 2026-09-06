@@ -26,7 +26,7 @@ export interface EntreeMesure {
   prosodie: PisteProsodie
 }
 
-export type FonctionMesurer = (entree: EntreeMesure) => Mesures
+export type FonctionMesurer = (entree: EntreeMesure, listeBequilles?: readonly string[]) => Mesures
 
 export interface SousNote {
   score: number
@@ -35,16 +35,16 @@ export interface SousNote {
 
 export type FonctionEvaluerRegle = (regle: RegleCritere, mesures: Mesures) => SousNote
 
-/**
- * The filler-word list comes from `configuration` in Phase 6; until then the
- * v1 list of the contract applies.
- */
-export const mesurer: FonctionMesurer = (entree) =>
+/** The v1 list of the contract, used when `configuration.mots_bequilles` is missing. */
+export const LISTE_BEQUILLES_PAR_DEFAUT: readonly string[] = MOTS_BEQUILLES_V1
+
+/** The filler-word list comes from `configuration` (Phase 6), the contract's v1 list otherwise. */
+export const mesurer: FonctionMesurer = (entree, listeBequilles = LISTE_BEQUILLES_PAR_DEFAUT) =>
   mesurerMoteur({
     pcm: { echantillons: entree.pcm, frequence_hz: entree.frequence_hz },
     transcription: entree.transcription,
     prosodie: entree.prosodie,
-    listeBequilles: MOTS_BEQUILLES_V1,
+    listeBequilles,
   })
 
 export const evaluerRegle: FonctionEvaluerRegle = (regle, mesures) => {

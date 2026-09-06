@@ -35,6 +35,8 @@ export interface DepotAnalyse {
   mettreAJourStatut(id: string, statut: StatutTentative): Promise<void>
   mettreAJourDuree(id: string, dureeS: number): Promise<void>
   lireGrillePubliee(): Promise<GrillePubliee | null>
+  /** The filler words Rebecca edits in the admin (configuration `mots_bequilles`). */
+  lireMotsBequilles(): Promise<readonly string[]>
   /** Must write both rows in one transaction. */
   enregistrerAnalyseEtEvaluation(
     analyse: NouvelleAnalyse,
@@ -162,12 +164,16 @@ export async function analyserTentative(
     const audio = await deps.decoder(octets)
     await depot.mettreAJourDuree(tentativeId, audio.dureeS)
     const prosodie = await deps.prosodie.extraire(audio.pcm, audio.frequenceHz)
-    const mesures = deps.mesurer({
-      pcm: audio.pcm,
-      frequence_hz: audio.frequenceHz,
-      transcription,
-      prosodie,
-    })
+    const listeBequilles = await depot.lireMotsBequilles()
+    const mesures = deps.mesurer(
+      {
+        pcm: audio.pcm,
+        frequence_hz: audio.frequenceHz,
+        transcription,
+        prosodie,
+      },
+      listeBequilles,
+    )
     log.debug({ duree_s: audio.dureeS }, 'mesures calculees')
 
     // Evaluation

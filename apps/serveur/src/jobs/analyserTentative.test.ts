@@ -74,6 +74,7 @@ function construireFaux(
       journal.push(`duree:${dureeS}`)
     },
     lireGrillePubliee: async () => options.grille ?? null,
+    lireMotsBequilles: async () => ['euh'],
     enregistrerAnalyseEtEvaluation: async (analyse, evaluation) => {
       echec('enregistrer')
       ecrits.analyse = analyse

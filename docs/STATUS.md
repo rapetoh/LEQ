@@ -14,7 +14,7 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 | 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                      |
 | 4     | Path machinery, three formats, entitlements, RevenueCat     | Built and reviewed (seven fixes applied, migrations 0005 and 0007); RevenueCat waits for the account      |
 | 5     | Streak, points, shop, bridge to Rebecca                     | Slices 1 to 3 built (database, mobile, admin); simulator boot and Roch's tap-through remain               |
-| 6     | Admin space, complete                                       | Configuration and flags pages exist; the rest not started                                                 |
+| 6     | Admin space, complete                                       | In progress since 2026-09-06 (checklist below); offers content and moderation queue wait                  |
 | 7     | Arena and duels, shipped off, public web                    | Not started                                                                                               |
 | 8     | Face-à-face                                                 | Not started                                                                                               |
 | 9     | Release                                                     | Not started                                                                                               |
@@ -198,6 +198,28 @@ Written before the work started. Cahier chapters 6 and 7, ADR-009. Slices in ord
    - [x] pgTAP (all suites), server (13), mobile (46) and admin (27) tests green; `npm run check` and `npm run format:check` green
    - [x] Simulator boot with the Phase 5 app: builds (0 errors), installs, bundles 2,274 modules with no runtime warning, A1 renders (screenshot checked 2026-09-06)
    - [ ] Roch: tap through D1, D2, G3 protection and a reminder on his phone
+
+## Phase 6 checklist (admin space, complete)
+
+Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announcements). Offers content waits for Rebecca and RevenueCat; the moderation queue waits for the public takes of Phase 7.
+
+1. Contract and database (migration `0008_admin_phase6`)
+   - [x] `ateliers` (Rebecca's workshops: title, place or online, region, date, places, link, optional reward for the place, published flag), `annonces` (an announcement sent once, optional workshop, optional region list, `envoyee_le`, sent and failed counts), `suspensions` (append-only log); `publier_annonce()` enforces the monthly cap (`plafond_annonces_par_mois`) in the database, not in the SPA, and queues the `envoyer_annonce` job; `suspendre_compte()` and `reactiver_compte()` (admin only); `est_suspendu()`; a suspended person can no longer insert attempts or exchange points; configuration key `mots_bequilles` (json list) so Rebecca edits the filler words
+   - [x] pgTAP `tests/admin_phase6.sql`: 34 assertions green on the hosted project (workshops visible only when published, cap of two announcements a month, empty region list means everyone, one job per announcement, suspension with a reason and its log, a suspended person records and spends nothing, reactivation); every earlier suite green again after the policy change; `@leq/domaine` schemas (`annonces.ts`, job `envoyer_annonce`, key `mots_bequilles`)
+2. Server
+   - [x] Job `envoyer_annonce` (`jobs/envoyerAnnonce.ts`): one push per active token of the people who keep `notif_annonces` on, whose region is in the list (everyone when the list is null), not suspended; batches of 100; tokens marked as for the feedback push; counts written back; idempotent; 4 tests with a fake sender (17 server tests)
+   - [x] The pipeline reads the filler word list from `configuration.mots_bequilles` at each analysis, falling back to the contract's v1 list
+3. Admin
+   - [ ] Grille: versions list, a draft edited criterion by criterion (key, name, definition, score max, elements with a measure path from the contract, bands, weights), publish with confirmation, a new version copied from the published one; the pgTAP and the engine already exist
+   - [ ] Annonces et ateliers: create and edit a workshop, compose an announcement (title, body, workshop, regions), the month's counter against the cap, send; history of what was sent
+   - [ ] Utilisateurs: list and search profiles, suspend with a reason, reactivate; the log of suspensions
+   - [ ] Demandes d'export: the inbox, mark as treated
+4. Mobile
+   - [ ] B1 "Avec Rebecca, ce mois-ci": the next published workshop, "Tout voir" opens B1b (`/aujourdhui/rebecca`) with workshops and announcements; F1 shows the workshop card; a tapped announcement (X6) opens B1b
+   - [ ] G3: the region picker (chapter 3, asked in settings now that announcements exist)
+   - [ ] A suspended account sees one screen saying so, with the two gestures that stay open (copy of data, deletion)
+5. Verification
+   - [ ] pgTAP, server, mobile and admin tests green; `npm run check`; simulator boot
 
 ## Next
 

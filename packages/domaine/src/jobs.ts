@@ -10,6 +10,7 @@ export const TYPES_JOB = [
   'supprimer_compte',
   'balayer_audio',
   'purger_anonymes',
+  'envoyer_annonce',
 ] as const
 export const TypeJobSchema = z.enum(TYPES_JOB)
 export type TypeJob = z.infer<typeof TypeJobSchema>
@@ -47,12 +48,19 @@ export type ChargeBalayerAudio = z.infer<typeof ChargeBalayerAudioSchema>
 export const ChargePurgerAnonymesSchema = z.object({})
 export type ChargePurgerAnonymes = z.infer<typeof ChargePurgerAnonymesSchema>
 
+/** Inserted by `publier_annonce()` (Phase 6): one push campaign. */
+export const ChargeEnvoyerAnnonceSchema = z.object({
+  annonce_id: UuidSchema,
+})
+export type ChargeEnvoyerAnnonce = z.infer<typeof ChargeEnvoyerAnnonceSchema>
+
 /** One charge schema per job type. */
 export const CHARGES_JOB = {
   analyser_tentative: ChargeAnalyserTentativeSchema,
   supprimer_compte: ChargeSupprimerCompteSchema,
   balayer_audio: ChargeBalayerAudioSchema,
   purger_anonymes: ChargePurgerAnonymesSchema,
+  envoyer_annonce: ChargeEnvoyerAnnonceSchema,
 } as const satisfies Record<TypeJob, z.ZodType>
 
 export type ChargeJob<T extends TypeJob = TypeJob> = z.output<(typeof CHARGES_JOB)[T]>
@@ -70,6 +78,9 @@ export function cleIdempotenceAnalyser(tentativeId: string): string {
 
 /** `cle_idempotence` written by pg_cron: `'balayer:' || date_trunc('hour', now())`. */
 export const PREFIXE_IDEMPOTENCE_BALAYAGE = 'balayer:'
+
+/** `cle_idempotence` written by `publier_annonce()`: `'annonce:' || id`. */
+export const PREFIXE_IDEMPOTENCE_ANNONCE = 'annonce:'
 
 /** `cle_idempotence` used by the server for account deletion, one job per person. */
 export const PREFIXE_IDEMPOTENCE_SUPPRESSION = 'supprimer:'
@@ -110,6 +121,10 @@ export const JobSchema = z.discriminatedUnion('type', [
     type: z.literal('purger_anonymes'),
     charge: ChargePurgerAnonymesSchema,
   }),
+  JobBaseSchema.extend({
+    type: z.literal('envoyer_annonce'),
+    charge: ChargeEnvoyerAnnonceSchema,
+  }),
 ])
 export type Job = z.output<typeof JobSchema>
 export type JobDeType<T extends TypeJob> = Extract<Job, { type: T }>
@@ -137,6 +152,10 @@ export const NouveauJobSchema = z.discriminatedUnion('type', [
   NouveauJobBaseSchema.extend({
     type: z.literal('purger_anonymes'),
     charge: ChargePurgerAnonymesSchema,
+  }),
+  NouveauJobBaseSchema.extend({
+    type: z.literal('envoyer_annonce'),
+    charge: ChargeEnvoyerAnnonceSchema,
   }),
 ])
 export type NouveauJob = z.output<typeof NouveauJobSchema>

@@ -39,30 +39,31 @@ Typed key/value edited by Rebecca, read by the app at startup.
 - RLS: any authenticated user (including anonymous) selects; only admin updates; no client insert/delete (seeded by migration).
 - Seed keys and defaults (all decided by me, all changeable by Rebecca):
 
-| cle                          | type   | valeur | description                                                       |
-| ---------------------------- | ------ | ------ | ----------------------------------------------------------------- |
-| points_par_defi              | nombre | 25     | Points gagnés pour un défi réussi                                 |
-| points_par_vote              | nombre | 5      | Points gagnés pour un vote dans l'Arène                           |
-| duree_diagnostic_min_s       | nombre | 60     | Durée minimale de la prise de diagnostic                          |
-| duree_diagnostic_max_s       | nombre | 90     | Durée maximale de la prise de diagnostic                          |
-| etapes_par_jour_gratuit      | nombre | 1      | Étapes validables par jour en formule Gratuit                     |
-| etapes_par_jour_complet      | nombre | 0      | Étapes validables par jour en formule Complet (0 = sans limite)   |
-| essais_max_etape_par_jour    | nombre | 3      | Essais sur une même étape par jour                                |
-| duree_etape_min_s            | nombre | 20     | Durée minimale d'une prise de défi                                |
-| heure_alerte_serie           | nombre | 20     | Heure locale de l'alerte quand la série est en danger             |
-| quota_face_a_face_complet    | nombre | 8      | Face-à-face par mois en formule Complet                           |
-| plafond_annonces_par_mois    | nombre | 2      | Annonces de Rebecca envoyées par mois, maximum                    |
-| purge_anonymes_heures        | nombre | 72     | Délai avant suppression des comptes anonymes sans compte          |
-| expiration_file_locale_jours | nombre | 7      | Délai avant suppression d'une prise jamais envoyée                |
-| balayage_audio_heures        | nombre | 6      | Âge à partir duquel un audio non public est supprimé par sécurité |
-| recuperations_serie_par_mois | nombre | 1      | Récupérations de série par mois                                   |
-| duree_duel_heures            | nombre | 48     | Délai pour répondre à un duel                                     |
-| duree_sujet_arene_jours      | nombre | 7      | Durée d'un sujet dans l'Arène                                     |
-| plafond_duree_duel_gratuit_s | nombre | 90     | Durée maximale d'une prise de duel (Gratuit)                      |
-| plafond_duree_duel_complet_s | nombre | 180    | Durée maximale d'une prise de duel (Complet)                      |
-| duree_face_a_face_gratuit_s  | nombre | 180    | Durée maximale d'un face-à-face (Gratuit)                         |
-| duree_face_a_face_complet_s  | nombre | 480    | Durée maximale d'un face-à-face (Complet)                         |
-| reprise_debat_minutes        | nombre | 30     | Fenêtre de reprise d'un débat interrompu                          |
+| cle                          | type   | valeur   | description                                                       |
+| ---------------------------- | ------ | -------- | ----------------------------------------------------------------- |
+| points_par_defi              | nombre | 25       | Points gagnés pour un défi réussi                                 |
+| points_par_vote              | nombre | 5        | Points gagnés pour un vote dans l'Arène                           |
+| duree_diagnostic_min_s       | nombre | 60       | Durée minimale de la prise de diagnostic                          |
+| duree_diagnostic_max_s       | nombre | 90       | Durée maximale de la prise de diagnostic                          |
+| etapes_par_jour_gratuit      | nombre | 1        | Étapes validables par jour en formule Gratuit                     |
+| etapes_par_jour_complet      | nombre | 0        | Étapes validables par jour en formule Complet (0 = sans limite)   |
+| essais_max_etape_par_jour    | nombre | 3        | Essais sur une même étape par jour                                |
+| duree_etape_min_s            | nombre | 20       | Durée minimale d'une prise de défi                                |
+| heure_alerte_serie           | nombre | 20       | Heure locale de l'alerte quand la série est en danger             |
+| mots_bequilles               | json   | liste v1 | Mots béquilles repérés par l'analyse (liste, minuscules)          |
+| quota_face_a_face_complet    | nombre | 8        | Face-à-face par mois en formule Complet                           |
+| plafond_annonces_par_mois    | nombre | 2        | Annonces de Rebecca envoyées par mois, maximum                    |
+| purge_anonymes_heures        | nombre | 72       | Délai avant suppression des comptes anonymes sans compte          |
+| expiration_file_locale_jours | nombre | 7        | Délai avant suppression d'une prise jamais envoyée                |
+| balayage_audio_heures        | nombre | 6        | Âge à partir duquel un audio non public est supprimé par sécurité |
+| recuperations_serie_par_mois | nombre | 1        | Récupérations de série par mois                                   |
+| duree_duel_heures            | nombre | 48       | Délai pour répondre à un duel                                     |
+| duree_sujet_arene_jours      | nombre | 7        | Durée d'un sujet dans l'Arène                                     |
+| plafond_duree_duel_gratuit_s | nombre | 90       | Durée maximale d'une prise de duel (Gratuit)                      |
+| plafond_duree_duel_complet_s | nombre | 180      | Durée maximale d'une prise de duel (Complet)                      |
+| duree_face_a_face_gratuit_s  | nombre | 180      | Durée maximale d'un face-à-face (Gratuit)                         |
+| duree_face_a_face_complet_s  | nombre | 480      | Durée maximale d'un face-à-face (Complet)                         |
+| reprise_debat_minutes        | nombre | 30       | Fenêtre de reprise d'un débat interrompu                          |
 
 ### drapeaux
 
@@ -374,6 +375,37 @@ The streak, the points and the shop (cahier chapters 6 and 7), as ledgers, never
 - `traiter_echange(echange uuid, statut text, note text)` (admin): `honore` or `annule`; cancelling refunds through a `remboursement` movement keyed by the exchange id.
 - `resume_progres_de(uid, aujourdhui)` (internal) and `resume_progres()` (authenticated): `{serie, points, mois {prises, duree_parole_s, defis_releves}, premiere, derniere, bequilles_semaines[]}` for D1 and D1b. `premiere` and `derniere` are the first and last analysed takes (`debit`, `bequilles_par_minute`, `silences_tenus`); `bequilles_semaines` sums `mots_bequilles.par_type` per ISO week over the last six weeks.
 
+## Phase 6 additions (migration `0008_admin_phase6`)
+
+Rebecca's space, completed (cahier chapters 8 and 12): workshops and announcements, suspension. The cap and the region filter of announcements live in the database, not in the admin's interface (plan, decision 11).
+
+### ateliers
+
+- `id`, `titre`, `sous_titre`, `description`, `lieu text not null` (the city, or "En ligne"), `en_ligne boolean` (concerns everyone, whatever the region), `region text` (a code of the fixed list, null when online), `date_debut timestamptz`, `places integer > 0 nullable`, `lien text` (booking outside the app), `recompense_id fk recompenses on delete set null` (the reward that gives a place), `publie boolean`, `cree_par`, timestamps.
+- RLS: authenticated read published rows, admin everything.
+
+### annonces
+
+- `id`, `titre`, `corps`, `atelier_id fk ateliers nullable`, `regions text[]` (null = everyone), `envoyee_le`, `destinataires`, `envoyes`, `echecs` (written back by the worker), `cree_par`, `cree_le`.
+- Created only by `publier_annonce()`; RLS: authenticated read (B1b lists them), nobody inserts directly.
+
+### suspensions
+
+- `id`, `utilisateur_id`, `motif text not null`, `cree_par`, `cree_le`, `levee_le`, `levee_par`. Append-only log; RLS: own rows or admin.
+
+### Functions
+
+- `est_suspendu()` (authenticated): whether the caller's profile carries `suspendu_le`.
+- `suspendre_compte(uid, motif)` and `reactiver_compte(uid)` (admin): set or clear `profils.suspendu_le` (the protection trigger lets the security definer through) and write the log. An admin account is never suspended here; a reason is required.
+- A suspended person can no longer insert attempts (`tentatives_insert_propre`) nor exchange points (`echanger_recompense` raises `42501 compte_suspendu`). Reading stays open so the phone can show one screen saying so.
+- `annonces_du_mois()` (authenticated): announcements sent this month (Europe/Paris).
+- `publier_annonce(titre, corps, atelier uuid, regions text[]) returns uuid` (admin): under an advisory lock, refuses with `P0001 plafond_annonces_atteint` when the month's count reaches `plafond_annonces_par_mois`; an empty region list means everyone; inserts the announcement and queues one `envoyer_annonce` job (`cle_idempotence 'annonce:' || id`).
+- Job `envoyer_annonce` `{annonce_id}` (worker): one push per active token of the people who keep `notif_annonces` on, whose `profils.region` is in the list (every region when the list is null), not suspended; tokens marked as for the feedback push; `destinataires`, `envoyes` and `echecs` written back. The notification's title and body are Rebecca's words; its data carries `annonce_id`, which opens B1b.
+
+### configuration, added key
+
+- `mots_bequilles` (json, the v1 list): the filler words the analysis looks for. The worker reads it at each analysis and falls back to the contract's list when the value is missing or invalid.
+
 ## Later phases (names reserved)
 
-`sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `moderations`.
+`sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `moderations`.

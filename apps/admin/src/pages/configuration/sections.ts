@@ -16,7 +16,7 @@ export type Section = (typeof SECTIONS)[number]
 
 const CLES_PAR_SECTION: Record<Exclude<Section, 'autres'>, readonly string[]> = {
   points: ['points_par_defi', 'points_par_vote'],
-  diagnostic: ['duree_diagnostic_min_s', 'duree_diagnostic_max_s'],
+  diagnostic: ['duree_diagnostic_min_s', 'duree_diagnostic_max_s', 'mots_bequilles'],
   parcours: [
     'etapes_par_jour_gratuit',
     'etapes_par_jour_complet',

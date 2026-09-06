@@ -4,6 +4,7 @@
  * migration; the row in the database wins over the default once it exists.
  */
 import { z } from 'zod'
+import { MOTS_BEQUILLES_V1 } from './mesures.js'
 import { IsoTimestampSchema, JsonSchema, UuidSchema } from './primitives.js'
 
 export const CLES_CONFIGURATION = [
@@ -16,6 +17,7 @@ export const CLES_CONFIGURATION = [
   'essais_max_etape_par_jour',
   'duree_etape_min_s',
   'heure_alerte_serie',
+  'mots_bequilles',
   'quota_face_a_face_complet',
   'plafond_annonces_par_mois',
   'purge_anonymes_heures',
@@ -92,6 +94,12 @@ export const DEFINITIONS_CONFIGURATION = {
     "Heure locale de l'alerte quand la série est en danger",
     z.int().min(0).max(23),
   ),
+  mots_bequilles: {
+    type: 'json',
+    valeur: [...MOTS_BEQUILLES_V1],
+    description: "Mots béquilles repérés par l'analyse (liste, minuscules)",
+    schema: z.array(z.string().trim().min(1)).min(1),
+  },
   quota_face_a_face_complet: nombre(8, 'Face-à-face par mois en formule Complet'),
   plafond_annonces_par_mois: nombre(2, 'Annonces de Rebecca envoyées par mois, maximum'),
   purge_anonymes_heures: nombre(72, 'Délai avant suppression des comptes anonymes sans compte'),

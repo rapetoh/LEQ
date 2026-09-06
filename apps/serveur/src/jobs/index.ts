@@ -4,7 +4,7 @@ import { creerDecodeur } from '../audio/decoder.js'
 import { ExtracteurProsodiePraat } from '../audio/prosodie.js'
 import type { Config } from '../config.js'
 import { creerLogger } from '../log.js'
-import { evaluerRegle, mesurer } from '../contrat.js'
+import { evaluerRegle, LISTE_BEQUILLES_PAR_DEFAUT, mesurer } from '../contrat.js'
 import * as db from '../db.js'
 import type { TypeJob } from '../db.js'
 import { BUCKET_AUDIO_TENTATIVES, type Comptes, type Stockage } from '../stockage.js'
@@ -12,6 +12,7 @@ import { choisirTranscripteur } from '../transcription/index.js'
 import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
 import { creerHandlerAnalyserTentative, type DepotAnalyse } from './analyserTentative.js'
 import { creerHandlerBalayerAudio } from './balayerAudio.js'
+import { creerHandlerEnvoyerAnnonce } from './envoyerAnnonce.js'
 import { creerHandlerPurgerAnonymes } from './purgerAnonymes.js'
 import { creerHandlerSupprimerCompte } from './supprimerCompte.js'
 import type { HandlerJob } from './types.js'
@@ -31,6 +32,7 @@ export function creerDepotAnalyse(pool: Pool): DepotAnalyse {
     mettreAJourStatut: (id, statut) => db.mettreAJourStatut(pool, id, statut),
     mettreAJourDuree: (id, dureeS) => db.mettreAJourDuree(pool, id, dureeS),
     lireGrillePubliee: () => db.lireGrillePubliee(pool),
+    lireMotsBequilles: () => db.lireListeMotsBequilles(pool, LISTE_BEQUILLES_PAR_DEFAUT),
     enregistrerAnalyseEtEvaluation: (analyse, evaluation) =>
       db.enregistrerAnalyseEtEvaluation(pool, analyse, evaluation),
     marquerAudioSupprime: (id) => db.marquerAudioSupprime(pool, id),
@@ -73,5 +75,6 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     supprimer_compte: creerHandlerSupprimerCompte(suppression),
     balayer_audio: creerHandlerBalayerAudio({ ex: pool, stockage }),
     purger_anonymes: creerHandlerPurgerAnonymes(suppression),
+    envoyer_annonce: creerHandlerEnvoyerAnnonce({ ex: pool, envoyer: envoyerViaExpo }),
   }
 }

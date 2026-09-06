@@ -77,6 +77,7 @@ export const TYPES_JOB = [
   'supprimer_compte',
   'balayer_audio',
   'purger_anonymes',
+  'envoyer_annonce',
 ] as const
 export type TypeJob = (typeof TYPES_JOB)[number]
 
@@ -268,6 +269,99 @@ export async function lireConfigurationNombre(
   const valeur = rows[0]?.['valeur']
   const n = nombreOuNull(typeof valeur === 'string' ? JSON.parse(valeur) : valeur)
   return n ?? defaut
+}
+
+/**
+ * The filler-word list Rebecca edits (`configuration.mots_bequilles`, Phase 6). Anything
+ * missing or malformed falls back to the list given by the caller (the contract's v1 list).
+ */
+export async function lireListeMotsBequilles(
+  ex: Executeur,
+  defaut: readonly string[],
+): Promise<readonly string[]> {
+  const { rows } = await ex.query(
+    "select valeur from public.configuration where cle = 'mots_bequilles'",
+  )
+  const brut = rows[0]?.['valeur']
+  const valeur: unknown = typeof brut === 'string' ? JSON.parse(brut) : brut
+  if (!Array.isArray(valeur)) return defaut
+  const mots = valeur
+    .filter((m): m is string => typeof m === 'string')
+    .map((m) => m.trim().toLowerCase())
+    .filter((m) => m.length > 0)
+  return mots.length > 0 ? mots : defaut
+}
+
+// ---------------------------------------------------------------------------
+// annonces (Phase 6)
+// ---------------------------------------------------------------------------
+
+export interface Annonce {
+  id: string
+  titre: string
+  corps: string
+  regions: string[] | null
+  destinataires: number | null
+  envoyes: number
+  echecs: number
+}
+
+export async function lireAnnonce(ex: Executeur, id: string): Promise<Annonce | null> {
+  const { rows } = await ex.query(
+    'select id, titre, corps, regions, destinataires, envoyes, echecs from public.annonces where id = $1',
+    [id],
+  )
+  const row = rows[0]
+  if (!row) return null
+  return {
+    id: String(row['id']),
+    titre: String(row['titre']),
+    corps: String(row['corps']),
+    regions: Array.isArray(row['regions']) ? (row['regions'] as string[]) : null,
+    destinataires: nombreOuNull(row['destinataires']),
+    envoyes: nombre(row['envoyes'], 'envoyes'),
+    echecs: nombre(row['echecs'], 'echecs'),
+  }
+}
+
+export interface JetonDestinataire {
+  id: string
+  jeton: string
+}
+
+/**
+ * Active tokens of the people an announcement concerns: switch `notif_annonces` on, region
+ * in the list (every region when the list is null), account not suspended.
+ */
+export async function listerJetonsPourAnnonce(
+  ex: Executeur,
+  regions: string[] | null,
+): Promise<JetonDestinataire[]> {
+  const { rows } = await ex.query(
+    `select j.id, j.jeton
+       from public.jetons_push j
+       join public.profils p on p.id = j.utilisateur_id
+      where j.desactive_le is null
+        and p.notif_annonces
+        and p.suspendu_le is null
+        and ($1::text[] is null or p.region = any ($1::text[]))
+      order by j.cree_le`,
+    [regions],
+  )
+  return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
+}
+
+export async function ecrireResultatAnnonce(
+  ex: Executeur,
+  id: string,
+  destinataires: number,
+  envoyes: number,
+  echecs: number,
+): Promise<void> {
+  await ex.query(
+    'update public.annonces set destinataires = $2, envoyes = $3, echecs = $4 where id = $1',
+    [id, destinataires, envoyes, echecs],
+  )
 }
 
 // ---------------------------------------------------------------------------
