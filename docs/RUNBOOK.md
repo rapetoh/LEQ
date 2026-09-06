@@ -120,7 +120,7 @@ fly status -a leq-serveur
 fly logs -a leq-serveur
 ```
 
-`--remote-only` builds on Fly's builders, so Docker is not needed locally. `fly scale count worker=1 temps-reel=1 -a leq-serveur` sets one machine per group; `min_machines_running = 1` in `fly.toml` keeps them up. `fly ssh console -a leq-serveur` opens a shell in a machine (useful to run `ffmpeg -version` and `python3 -c "import parselmouth"`).
+`--remote-only` builds on Fly's builders, so Docker is not needed locally. Add `--ha=false`: without it Fly creates two `temps-reel` machines and a standby `worker`, and `fly scale count worker=1` may keep the standby (which stays stopped) instead of the running one; that happened on the first deploy and was fixed with `fly machine destroy <standby> --force` then `fly scale count worker=1`. First deploy done on 2026-09-06 (Roch's Fly account, org personal). `fly scale count worker=1 temps-reel=1 -a leq-serveur` sets one machine per group; `min_machines_running = 1` in `fly.toml` keeps them up. `fly ssh console -a leq-serveur` opens a shell in a machine (useful to run `ffmpeg -version` and `python3 -c "import parselmouth"`).
 
 Verify a deploy: `curl https://leq-serveur.fly.dev/sante` answers, then insert a job in the dashboard SQL editor (`insert into public.jobs (type, charge, cle_idempotence) values ('balayer_audio', '{}', 'test:' || now())`) and watch `fly logs` show it claimed and finished.
 

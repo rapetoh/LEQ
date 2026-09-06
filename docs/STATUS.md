@@ -6,18 +6,18 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 
 ## State by phase
 
-| Phase | Name                                                        | State                                                                                                     |
-| ----- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 0     | Foundations                                                 | Built, green locally, schema live on the hosted project and verified; Fly deploy and device checks remain |
-| 1     | Socle: flow A end to end with a stub transcriber            | Built (slices 1 to 6), server loop verified; the device walkthrough (slice 7) waits for Roch              |
-| 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                               |
-| 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                      |
-| 4     | Path machinery, three formats, entitlements, RevenueCat     | Built and reviewed (seven fixes applied, migrations 0005 and 0007); RevenueCat waits for the account      |
-| 5     | Streak, points, shop, bridge to Rebecca                     | Slices 1 to 3 built (database, mobile, admin); simulator boot and Roch's tap-through remain               |
-| 6     | Admin space, complete                                       | In progress since 2026-09-06 (checklist below); offers content and moderation queue wait                  |
-| 7     | Arena and duels, shipped off, public web                    | Not started                                                                                               |
-| 8     | Face-à-face                                                 | Not started                                                                                               |
-| 9     | Release                                                     | Not started                                                                                               |
+| Phase | Name                                                        | State                                                                                                |
+| ----- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 0     | Foundations                                                 | Built, green, schema live and verified, server deployed on Fly and verified; device checks remain    |
+| 1     | Socle: flow A end to end with a stub transcriber            | Built (slices 1 to 6), server loop verified; the device walkthrough (slice 7) waits for Roch         |
+| 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                          |
+| 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                 |
+| 4     | Path machinery, three formats, entitlements, RevenueCat     | Built and reviewed (seven fixes applied, migrations 0005 and 0007); RevenueCat waits for the account |
+| 5     | Streak, points, shop, bridge to Rebecca                     | Slices 1 to 3 built (database, mobile, admin); simulator boot and Roch's tap-through remain          |
+| 6     | Admin space, complete                                       | In progress since 2026-09-06 (checklist below); offers content and moderation queue wait             |
+| 7     | Arena and duels, shipped off, public web                    | Not started                                                                                          |
+| 8     | Face-à-face                                                 | Not started                                                                                          |
+| 9     | Release                                                     | Not started                                                                                          |
 
 A phase ends when its acceptance list is green and this file says so.
 
@@ -76,7 +76,7 @@ Ticked only when verified on a machine.
    - [x] Hono, `/sante`, worker loop, the four job handlers, pipeline tests
    - [x] Dockerfile (ffmpeg, Python, Praat), `prosodie/extraire.py` with 4 passing tests on this Mac
    - [x] `fly.toml` with process groups `worker` and `temps-reel` in `cdg`
-   - [ ] Deployed once (blocked on `fly auth login`)
+   - [x] Deployed on 2026-09-06 (Roch ran `fly auth login`): app `leq-serveur`, region cdg, one `worker` and one `temps-reel` machine, `/sante` answers, a `balayer_audio` job inserted on the hosted database was claimed and finished by the Fly worker in 59 ms (`fly logs`)
    - [x] A seeded `balayer_audio` job claimed and completed by the worker running on this Mac against the hosted database (413 ms). The same check on Fly follows the deploy
 8. CI
    - [x] Workflow file present
@@ -118,7 +118,7 @@ Decisions taken during integration (not in the plan):
 
 ## Blocked
 
-- Fly.io: CLI installed, not logged in. `fly auth login` once, then the first deploy and the job-claim verification.
+- Fly.io: resolved on 2026-09-06 (deployed and verified). Redeploy with `--ha=false` so Fly does not add a standby worker (docs/RUNBOOK.md).
 - Device checks of ADR-007: run on Roch's iPhone and the simulator first (his testing setup); the Android half waits for an EAS development build on a borrowed or later device, before release.
 
 ## Phase 1 checklist (socle)
@@ -225,7 +225,7 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.
-2. Roch, any time: `fly auth login` (server on Fly instead of this Mac), Apple and Google credentials (docs/OPEN-INPUTS.md), the API keys for the bench.
+2. Roch, any time: Apple and Google credentials (docs/OPEN-INPUTS.md), the API keys for the bench, the RevenueCat account. The server now runs on Fly: the worker no longer needs to run on this Mac for the walkthrough.
 3. Me, without waiting: Phase 6 (admin space complete: grid editor, offers content, workshops and announcements, moderation, suspension, export inbox) or Phase 7 (Arena and duels, shipped off). RevenueCat (`abonnements` writer) waits for the account; the offers screen E1 waits for RevenueCat and Rebecca's offer content. The bench corpus layout is ready and the harness runs on the stub; Phase 3 wording and the calibration tool need the Anthropic key and real transcripts.
 
 ## Acceptance lists of later phases (from the plan, expanded before each phase starts)
