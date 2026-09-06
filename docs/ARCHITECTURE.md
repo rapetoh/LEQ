@@ -171,7 +171,7 @@ The process is selected by `PROCESS` (falls back to Fly's `FLY_PROCESS_GROUP`). 
 ## Security model
 
 - Row Level Security on every table; the service role (server only) bypasses it.
-- `profils.role` is copied into `app_metadata.role` by the custom access token hook `hook_jeton_acces`; policies check `public.est_admin()`. Only the service role can change `role` or `suspendu_le` (trigger).
+- `profils.role` is copied into `app_metadata.role` by the custom access token hook `hook_jeton_acces`; policies check `public.est_admin()`. Only the service role or a direct database connection (the worker, an operator) can change `role` or `suspendu_le`; a trigger refuses every signed-in client.
 - Anonymous users are recognised with `public.est_anonyme()` (the `is_anonymous` claim) and limited to the diagnostic (ADR-004).
 - Storage: clients may only insert at `{auth.uid()}/{uuid}.m4a` in `audio-tentatives`; no client read, update or delete. `audio-public` is served by signed URLs (Phase 7).
 - Clients never hold provider keys. The publishable Supabase key and the RevenueCat public SDK key are the only keys in the app, both public by design.
@@ -180,7 +180,7 @@ The process is selected by `PROCESS` (falls back to Fly's `FLY_PROCESS_GROUP`). 
 
 ## Configuration and flags
 
-`configuration` is a typed key/value table (`nombre`, `texte`, `booleen`, `json`) with a French description per key, seeded by migration with the defaults listed in DATA-MODEL.md, read once at app startup and cached, editable by Rebecca. `drapeaux` holds three flags shipped off: `arene`, `duels`, `face_a_face`. The tab bar and every entry point read them; when off, the feature does not appear at all (screens C0, B5b, H5b). Trial length is not configuration: it is defined in the stores.
+`configuration` is a typed key/value table (`nombre`, `texte`, `booleen`, `json`) with a French description per key, seeded by `supabase/seed.sql` with the defaults listed in DATA-MODEL.md (never overwriting a value Rebecca changed), read once at app startup and cached, editable by Rebecca. `drapeaux` holds three flags shipped off: `arene`, `duels`, `face_a_face`. The tab bar and every entry point read them; when off, the feature does not appear at all (screens C0, B5b, H5b). Trial length is not configuration: it is defined in the stores.
 
 ## Big choices and why
 

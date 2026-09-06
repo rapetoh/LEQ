@@ -4,11 +4,11 @@ Every string a person can read in LEQ is French, and it is written to one standa
 
 ## Where strings live
 
-- One typed module per application: `apps/mobile/src/i18n/fr.ts`, `apps/admin/src/i18n/fr.ts`, `apps/web/src/i18n/fr.ts`. No string literal shown to a person anywhere else in the application code.
-- The module exports a single frozen object, nested by screen id from docs/SCREENS.md (`fr.A1.titre`, `fr.B5.boutons.refaire`). Keys are French, camelCase, no accents.
-- Strings that take values are functions, never templates with string concatenation in the component: `fr.B1.defiDuJour(dureeMin)` returns the full sentence, so word order and plural rules stay in one place.
+- One typed module per application: `apps/mobile/src/i18n/fr.ts`, `apps/admin/src/fr.ts`, later `apps/web/src/fr.ts`. No string literal shown to a person anywhere else in the application code.
+- The module exports a single frozen object nested by feature (`fr.accueil.bienvenue.titre`, `fr.envoi.echec.corps`). Keys are French, camelCase, no accents.
+- Mobile: strings with values carry `{{nom}}` placeholders and are read through `t('accueil.micro.note', { systeme })`; the key type is derived from the object, so a typo fails the typecheck, and a missing key renders the key itself so the gap is visible on screen. Admin: strings with values are functions (`fr.configuration.toasts.succes(cle)`). Both keep word order and plural rules inside `fr.ts`, never in a component.
 - Server-generated text (feedback wording, debrief, Rétor's lines) is content, not UI strings; it comes from the pipeline and is reviewed through the tone examples Rebecca provides. Content authored by Rebecca (challenge briefs, conseil du jour, theses, subjects) lives in the database and is written by her in the admin.
-- There is no second language and no i18n library. `fr.ts` is a plain module so that strings are typed, greppable and reviewable in a diff.
+- There is no second language and no i18n library. `fr.ts` is a plain module so that strings are typed, greppable and reviewable in a diff. A test asserts the module contains no em dash.
 - Numbers, dates and durations are formatted with `Intl` under `fr-FR` (thin space thousands separator, comma decimal, "14,99 €"), never by hand.
 
 ## Writing rules
