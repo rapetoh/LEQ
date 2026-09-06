@@ -9,7 +9,7 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 | Phase | Name                                                        | State                                                                                                     |
 | ----- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | 0     | Foundations                                                 | Built, green locally, schema live on the hosted project and verified; Fly deploy and device checks remain |
-| 1     | Socle: flow A end to end with a stub transcriber            | Not started                                                                                               |
+| 1     | Socle: flow A end to end with a stub transcriber            | Built (slices 1 to 6), server loop verified; the device walkthrough (slice 7) waits for Roch              |
 | 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                               |
 | 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                      |
 | 4     | Path machinery, three formats, entitlements, RevenueCat     | Not started                                                                                               |
@@ -157,9 +157,9 @@ Phase 1 acceptance: every box above, plus the privacy text sent for lawyer revie
 
 ## Next
 
-1. Build slice 1 (contract, migration, schemas), then slices 2 to 7 in order.
-2. Roch, any time: `fly auth login` (server on Fly instead of this Mac), Apple and Google sign-in credentials (slice 4, A7), a session on his iPhone for slice 7.
-3. In parallel, assemble the bench corpus and run the bench as soon as one key arrives.
+1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.
+2. Roch, any time: `fly auth login` (server on Fly instead of this Mac), Apple and Google credentials (docs/OPEN-INPUTS.md), the API keys for the bench.
+3. Me, without waiting: the bench corpus layout is ready and the harness runs on the stub; Phase 3 wording and the calibration tool need the Anthropic key and real transcripts; Phase 4 path machinery can start next (schema, static seed path, daily rhythm).
 
 ## Acceptance lists of later phases (from the plan, expanded before each phase starts)
 
