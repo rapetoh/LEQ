@@ -146,6 +146,7 @@ Written before the work started, as the rule says. Slices are built in this orde
    - [x] G3 written (`src/app/reglages.tsx`): the voice statement, "Publier sous mon prénom", the export request (table `demandes_export`, migration 0003, 7 pgTAP assertions, anonymous accounts refused), "Supprimer mon compte" with confirmation, the four notification switches and the reminder time (display only until Phase 5), night mode and reduced motion. Reached from the Moi tab
 7. End to end on the simulator, then on Roch's iPhone
    - [x] Server side, on a synthetic 66 s M4A pushed exactly as the phone does (`apps/serveur/scripts/simuler-prise.mjs`): anonymous upload 200, insert 201, job claimed, transcription (stub), ffmpeg, Praat (pitch read at the synthesised 160 Hz), measures, analysis and evaluation written, audio object deleted, `retour_disponible` in 3.9 s, `duree_s` 66.00
+   - [x] The Phase 1 build (audio, notifications, network, crypto modules) boots on the simulator and renders A1 with no runtime warning
    - [ ] Same loop driven from the app on the simulator (A1 to A6): needs taps, Roch or a later automation
    - [ ] Offline: airplane mode during A4, the take waits, sends when the network returns, the streak day is the recording day (checked in the row)
    - [ ] Failure injection in the worker: X3 shows, no `resultat`, nothing consumed
