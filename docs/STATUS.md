@@ -121,13 +121,42 @@ Decisions taken during integration (not in the plan):
 - Fly.io: CLI installed, not logged in. `fly auth login` once, then the first deploy and the job-claim verification.
 - Device checks of ADR-007: run on Roch's iPhone and the simulator first (his testing setup); the Android half waits for an EAS development build on a borrowed or later device, before release.
 
+## Phase 1 checklist (socle)
+
+Written before the work started, as the rule says. Slices are built in this order; each ends with its checks green, `npm run check` green, docs updated, a commit pushed. Boxes are ticked when verified on a machine.
+
+1. Contract and database (migration `0002_socle_phase1`)
+   - [ ] `reponses_accueil` (the three onboarding answers, fixed option codes), `jetons_push` (Expo push tokens per device), `profils.prenom` set at A7, `demander_suppression_compte()` RPC that queues the `supprimer_compte` job for the caller, `tentatives` added to the Realtime publication
+   - [ ] `@leq/domaine` schemas and option lists; pgTAP additions green against the hosted project
+2. Recording stack on the phone (ADR-007)
+   - [ ] `react-native-audio-api` installed with its config plugin; a development build runs on the simulator; recording to `.m4a` 16 kHz mono in the cache directory; level meter; interruption ends the take
+   - [ ] Fallback documented and exercised only if the build fails (ADR-007, expo-audio recorder plus a session module)
+3. Local queue and upload
+   - [ ] Queue with the phone-only states (enregistrement, en attente réseau, envoi, envoyée, annulée, expirée), index persisted on the phone, files in the cache directory, Android backup disabled, 7-day expiry, retry with backoff on foreground and on network return, upload idempotent by attempt id (an object already there counts as sent), insert of the `tentatives` row idempotent
+   - [ ] Unit tests of the queue state machine
+4. Screens of flow A and the X states
+   - [ ] A3 three questions (touch, never type), A4 diagnostic take (60 to 90 s, Refaire, Terminer), A5 analysis in progress, X2 sending with Bulle, X3 failure (challenge and streak untouched, retry, keep on phone), X4 offline banner while recording
+   - [ ] A6 profile from measures only (rate, fillers, silences, no grid text, no archetype title), A7 account (email code, Apple and Google buttons wired to `linkIdentity` behind credentials, "Plus tard" keeps the local profile)
+   - [ ] The feedback screen updates by itself when the row reaches `retour_disponible` (Realtime, polling fallback)
+5. Server side of the loop
+   - [ ] `duree_s` written from the decoded audio; push "Ton retour est prêt" through Expo's push API to the person's registered tokens; failures logged, never retried into a loop
+   - [ ] Account deletion end to end: RPC queues the job, the worker removes storage objects then the auth user, the phone signs out and wipes its queue and caches
+6. Settings G3, minimal
+   - [ ] The voice statement (chapter 2 wording, marked for lawyer review), "Supprimer mon compte" with confirmation, "Recevoir une copie de mes données" as a request row (Phase 6 inbox), the four notification toggles stored on the profile (used from Phase 5)
+7. End to end on the simulator, then on Roch's iPhone
+   - [ ] A1 to A6 with the worker running on this Mac: the take uploads, the job runs, the audio object is gone, the measures show on A6
+   - [ ] Offline: airplane mode during A4, the take waits, sends when the network returns, the streak day is the recording day (checked in the row)
+   - [ ] Failure injection in the worker: X3 shows, no `resultat`, nothing consumed
+   - [ ] Deletion leaves no row and no object for the test user
+   - [ ] ADR-007 checklist items 1 to 9 on Roch's iPhone (needs him)
+
+Phase 1 acceptance: every box above, plus the privacy text sent for lawyer review (docs/OPEN-INPUTS.md).
+
 ## Next
 
-1. Roch: run `fly auth login`, provide the API keys listed in docs/OPEN-INPUTS.md when convenient.
-2. Deploy the server (`fly deploy`), set the three secrets, watch a job complete in `fly logs`.
-3. Finish the simulator check of the shell; then Rebecca's own admin account when she is ready (the first admin is join.leq@gmail.com).
-4. Start Phase 1: the recording screen with the capture stack of ADR-007 (checklist items 1 to 9 on devices), upload, the local queue, A3 to A7, X2 to X4, account conversion, deletion, push. Write the Phase 1 acceptance list here before starting.
-5. In parallel, assemble the bench corpus and run the bench as soon as one key arrives.
+1. Build slice 1 (contract, migration, schemas), then slices 2 to 7 in order.
+2. Roch, any time: `fly auth login` (server on Fly instead of this Mac), Apple and Google sign-in credentials (slice 4, A7), a session on his iPhone for slice 7.
+3. In parallel, assemble the bench corpus and run the bench as soon as one key arrives.
 
 ## Acceptance lists of later phases (from the plan, expanded before each phase starts)
 
