@@ -69,6 +69,13 @@ export const ProfilSchema = z.object({
   publier_sous_prenom: z.boolean(),
   role: RoleProfilSchema,
   suspendu_le: IsoTimestampSchema.nullable(),
+  notif_rappel: z.boolean(),
+  notif_serie: z.boolean(),
+  notif_social: z.boolean(),
+  notif_annonces: z.boolean(),
+  /** Local time of the daily reminder, `HH:MM` or `HH:MM:SS` as Postgres returns it. */
+  heure_rappel: z.string(),
+  suppression_demandee_le: IsoTimestampSchema.nullable(),
   cree_le: IsoTimestampSchema,
   modifie_le: IsoTimestampSchema,
 })
@@ -80,6 +87,14 @@ export const MiseAJourProfilSchema = z.object({
   region: CodeRegionSchema.nullable().optional(),
   fuseau_horaire: IanaTimezoneSchema.nullable().optional(),
   publier_sous_prenom: z.boolean().optional(),
+  notif_rappel: z.boolean().optional(),
+  notif_serie: z.boolean().optional(),
+  notif_social: z.boolean().optional(),
+  notif_annonces: z.boolean().optional(),
+  heure_rappel: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional(),
 })
 export type MiseAJourProfil = z.infer<typeof MiseAJourProfilSchema>
 

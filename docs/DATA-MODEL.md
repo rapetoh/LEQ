@@ -221,6 +221,51 @@ All numbers are computed deterministically by `packages/moteur` from PCM plus th
 
 `stabilite` is the coefficient of variation of `mots_par_minute` across 10 s windows. `silences.tenus` counts pauses of at least 1.0 s. `place` is `debut`, `fin_de_phrase` or `milieu_de_phrase`, decided from transcript punctuation and pause length. `volume.chutes_fin_phrase` counts sentence endings where the last 400 ms are at least 6 dB below the sentence mean. Filler word list v1 (French): `euh`, `du coup`, `en fait`, `genre`, `voilà`, `donc`, `bah`, `ben`, `hein`, `tu vois`, `en gros`, `enfin`; Rebecca edits it in Phase 6.
 
+## Phase 1 additions (migration `0002_socle_phase1`)
+
+### reponses_accueil
+
+The three onboarding answers (cahier chapter 3: context, what to improve first, what blocks the most; answered by touch, never typed). One row per user, anonymous users included since the diagnostic needs it. Codes are fixed here; the French labels live in `@leq/domaine` and in the app's `fr.ts` (Rebecca may reword labels in Phase 6, never codes).
+
+- `utilisateur_id uuid pk references profils(id) on delete cascade`
+- `contexte text not null check (contexte in ('travail','etudes','public','quotidien'))`
+- `blocage text not null check (blocage in ('trac','mots','regard','notes'))`
+- `objectif text not null check (objectif in ('stress','clarte','rythme','presence'))`
+- RLS: user selects, inserts and updates own row; admin selects all; no client delete (cascade only).
+
+Question order in the app follows the mockup: contexte (1 of 3), blocage (2 of 3), objectif (3 of 3). The optional region question of chapter 3 is asked later, in settings, when announcements exist (Phase 6).
+
+### jetons_push
+
+Expo push tokens, one row per device. Used for the transactional "Ton retour est prêt" notification (always on: it answers the person's own action) and, from Phase 5, for the four categories of chapter 12.
+
+- `id uuid pk`
+- `utilisateur_id uuid not null references profils(id) on delete cascade`
+- `jeton text not null unique` (an `ExponentPushToken[...]`)
+- `plateforme text not null check (plateforme in ('ios','android'))`
+- `derniere_erreur text`
+- `desactive_le timestamptz` (set by the worker when Expo answers `DeviceNotRegistered`; the row is kept so a re-registration reactivates it)
+- Index on `utilisateur_id`.
+- RLS: user selects, inserts, updates and deletes own rows (upsert on `jeton`); service role writes `desactive_le`.
+
+### profils, added columns
+
+- `notif_rappel boolean not null default true`, `notif_serie boolean not null default true`, `notif_social boolean not null default true`, `notif_annonces boolean not null default true`: the four independent switches of chapter 12, stored now, used from Phase 5.
+- `heure_rappel time not null default '21:30'`: the daily reminder time the person chooses (local notification, timezone from the phone).
+- `suppression_demandee_le timestamptz`: set by the RPC below; protected like `role` (only a privileged connection may change it).
+
+### demander_suppression_compte()
+
+`security definer`, executable by `authenticated` (anonymous included). For `auth.uid()`: sets `profils.suppression_demandee_le = now()` and inserts a `supprimer_compte` job with `cle_idempotence = 'supprimer:' || uid` (`on conflict do nothing`). The worker then removes the storage objects and the auth user (cascade removes every row). The phone signs out and wipes its queue and caches right after the call.
+
+### Realtime
+
+`tentatives` is added to the `supabase_realtime` publication so the phone can follow its own rows (RLS applies): the feedback screen refreshes itself when `statut` reaches `retour_disponible`. Polling every 15 s is the fallback.
+
+### Push message
+
+Sent by the worker right after `retour_disponible`, to every active token of the user: title "Ton retour est prêt", body "Ta prise a été analysée. Ouvre LEQ pour lire ce que Bulle a entendu.", data `{ "tentative_id": "<uuid>" }`. One attempt, errors logged on the token row, never retried in a loop.
+
 ## Later phases (names reserved)
 
 `parcours`, `actes`, `etapes`, `exercices`, `series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `abonnements`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `demandes_export`, `moderations`.
