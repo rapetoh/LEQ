@@ -92,6 +92,8 @@ Types: `npx supabase gen types --lang typescript --linked > packages/domaine/src
 
 Making the first admin: as `postgres` in the SQL editor, `update public.profils set role = 'admin' where id = '<uid>'`. A trigger refuses that change from any signed-in client. The role reaches the token at the next sign-in.
 
+The admin's pages today: Configuration, Drapeaux, Défis (the bank act by act; a défi's title and consigne change for everyone at once, its order and threshold only for paths created afterwards; "Marquer comme validé" turns `provisoire` off so the phone stops saying the consigne awaits Rebecca), Exercices (the remediation bank, matched to défis by `competence`).
+
 ## Deploy the server
 
 `apps/serveur` is one Docker image with two process groups (`worker`, `temps-reel`) declared in `apps/serveur/fly.toml`, region `cdg`. The build context is the repository root because the image needs `packages/domaine` and `packages/moteur`.

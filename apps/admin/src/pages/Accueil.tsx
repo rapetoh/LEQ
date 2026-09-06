@@ -5,11 +5,13 @@ import styles from './Accueil.module.css'
 const DISPONIBLES = [
   { vers: '/configuration', ...fr.accueil.cartes.configuration },
   { vers: '/drapeaux', ...fr.accueil.cartes.drapeaux },
+  { vers: '/defis', ...fr.accueil.cartes.defis },
+  { vers: '/exercices', ...fr.accueil.cartes.exercices },
 ] as const
 
-const A_VENIR = [fr.accueil.aVenir.grille, fr.accueil.aVenir.defis, fr.accueil.aVenir.banques]
+const A_VENIR = [fr.accueil.aVenir.grille, fr.accueil.aVenir.banques]
 
-/** Home: what Rebecca can do today, and the three spaces that come next. No fake data. */
+/** Home: what Rebecca can do today, and the two spaces that come next. No fake data. */
 export function Accueil() {
   return (
     <div className="page">

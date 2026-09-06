@@ -90,6 +90,7 @@ export const ExerciceEditableSchema = ExerciceSchema.omit({
   cree_le: true,
   modifie_le: true,
 })
+export type ExerciceEditable = z.output<typeof ExerciceEditableSchema>
 
 export const ParcoursSchema = z.object({
   id: UuidSchema,

@@ -136,5 +136,25 @@ select is((select count(*) from public.etapes where parcours_id = (select parcou
 -- nothing applies without a note or for a diagnostic ----------------------------------------------
 select is(public.appliquer_resultat((select id from public.tentatives where statut = 'envoyee' limit 1)), null, 'no evaluation, nothing applies');
 
+-- the admin reorders défis of one act; a user cannot; two acts never mix -----------------------
+select tests_leq.creer_utilisateur('44444444-4444-4444-8444-444444444444', 'admin@test.leq', false);
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select throws_ok(
+  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'premier_bonjour'), (select id from public.defis where cle = 'se_presenter')) $$,
+  '42501', null, 'a user cannot reorder défis');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');
+select lives_ok(
+  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'premier_bonjour'), (select id from public.defis where cle = 'se_presenter')) $$,
+  'the admin swaps two défis of acte I');
+select is((select ordre from public.defis where cle = 'premier_bonjour'), 2, 'premier_bonjour is now second');
+select is((select ordre from public.defis where cle = 'se_presenter'), 1, 'se_presenter is now first');
+select throws_ok(
+  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'premier_bonjour'), (select id from public.defis where cle = 'trois_phrases')) $$,
+  '23514', null, 'défis of two acts cannot be swapped');
+select lives_ok($$ update public.defis set provisoire = false where cle = 'se_presenter' $$, 'the admin marks a défi as validated');
+select is((select provisoire from public.defis where cle = 'se_presenter'), false, 'provisoire is off');
+reset role; select tests_leq.deconnecter();
+
 select * from finish();
 rollback;
