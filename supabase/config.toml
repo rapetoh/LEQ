@@ -62,6 +62,17 @@ enable_manual_linking = true
 minimum_password_length = 8
 
 [auth.email]
+# The app verifies a six-digit code (verifyOtp), so every template carries {{ .Token }}.
+[auth.email.template.email_change]
+subject = "Ton code LEQ"
+content_path = "./supabase/templates/changement-email.html"
+[auth.email.template.magic_link]
+subject = "Ton code LEQ"
+content_path = "./supabase/templates/code-connexion.html"
+[auth.email.template.confirmation]
+subject = "Ton code LEQ"
+content_path = "./supabase/templates/code-connexion.html"
+
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true

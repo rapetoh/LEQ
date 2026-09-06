@@ -42,7 +42,7 @@ Prices and plan limits were read on 2026-09-06 and change; the note says where t
 
 - Purpose: EAS Build (store binaries, development builds), EAS Submit (TestFlight and Play), Expo push service (relays notifications to APNs and FCM).
 - Account: `rxpetoh`, logged in on this Mac.
-- Status: no EAS project yet (`eas init` in `apps/mobile` creates it and writes the project id into `app.json`).
+- Status: EAS project `@rxpetoh/leq` created on 2026-09-06 (id `705674fb-72ee-426c-ae36-9dabc28601f1` in `app.json`), needed for push tokens. No build has been run on EAS yet.
 - Region: builds run on Expo's infrastructure, US. Push tokens and notification payloads transit through Expo's push service.
 - Data protection: the push relay sees device push tokens and the notification text ("Ton retour est prêt", workshop announcements); it never sees audio or transcripts. Keep payloads free of measures. DPA: Expo has a privacy policy and offers a DPA on request for production plans (verify at https://expo.dev/privacy). Build artifacts contain the app bundle, no user data.
 - Cost (pricing page read on 2026-09-06): Free plan, 15 iOS and 15 Android builds a month; Starter $19 a month with $45 of build credit; Production $199 a month with $225 of credit. Builds are manual and counted, which is why CI never triggers them. Push notifications are not priced on the page; treat them as included and verify when volumes grow.
