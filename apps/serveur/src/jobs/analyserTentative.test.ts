@@ -79,6 +79,7 @@ function construireFaux(
       ecrits.analyse = analyse
       ecrits.evaluation = evaluation
       journal.push('ecriture')
+      return null
     },
     marquerAudioSupprime: async () => {
       journal.push('statut:audio_supprime')

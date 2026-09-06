@@ -12,7 +12,7 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 | 1     | Socle: flow A end to end with a stub transcriber            | Built (slices 1 to 6), server loop verified; the device walkthrough (slice 7) waits for Roch              |
 | 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                               |
 | 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                      |
-| 4     | Path machinery, three formats, entitlements, RevenueCat     | Not started                                                                                               |
+| 4     | Path machinery, three formats, entitlements, RevenueCat     | In progress since 2026-09-06 (checklist below); RevenueCat waits for the account                          |
 | 5     | Streak, points, shop, bridge to Rebecca                     | Not started                                                                                               |
 | 6     | Admin space, complete                                       | Configuration and flags pages exist; the rest not started                                                 |
 | 7     | Arena and duels, shipped off, public web                    | Not started                                                                                               |
@@ -154,6 +154,25 @@ Written before the work started, as the rule says. Slices are built in this orde
    - [ ] ADR-007 checklist items 1 to 9 on Roch's iPhone (needs him)
 
 Phase 1 acceptance: every box above, plus the privacy text sent for lawyer review (docs/OPEN-INPUTS.md).
+
+## Phase 4 checklist (path machinery)
+
+Built while the device walkthrough of Phase 1 waits for Roch. The generator itself is not written: its rules do not exist yet (cahier chapter 4). A static path, seeded from the validated mockup and marked provisional, exercises everything.
+
+1. Contract and database (migration `0004_parcours`)
+   - [x] Banks, per-person path, `abonnements`, the four functions (`obtenir_parcours`, `etape_du_jour`, `marquer_rattrapage_vu`, `appliquer_resultat`): migration 0004 applied on the hosted project
+   - [x] Seed from the mockup applied (3 acts, 13 défis, 5 exercices, all `provisoire`); acte III empty until Rebecca's content. Note: `db push --include-seed` reported the seed applied without inserting it; `supabase/scripts/appliquer-seed.mjs` applies it directly
+   - [x] pgTAP `tests/parcours.sql`: 43 assertions green on the hosted project (path creation for a user and an anonymous user, RLS, failure and remediation, validation and unlock, daily limit in gratuit lifted by complet, tries limit, abandoned attempt not counted, act closing); socle suite made robust to real jobs on the database
+2. Server
+   - [x] The pipeline calls `appliquer_resultat()` inside the transaction that writes the evaluation and logs the result; without a published grid the step stays open (13 server tests green)
+3. Mobile
+   - [ ] B1 shows the real step of the day (title, act, position, points, rhythm), "Je me lance" opens B3
+   - [ ] B3 brief for the three formats (standard, texte with reading time, long with preparation), B4 recording for a step (the diagnostic screen parameterised), B5 feedback from measures (grid text arrives with Phase 3), H2 and H3 when a result exists
+   - [ ] H1 map of acts, H4 folded act with past results, H5 and H5b daily limit, X5 remediation after two failures
+4. Admin
+   - [ ] Défis and exercices pages: list, edit, create, mark validated (provisoire off), reorder
+5. Verification
+   - [ ] pgTAP green on the hosted project; server tests; mobile tests for the rhythm and brief logic; simulator boot
 
 ## Next
 

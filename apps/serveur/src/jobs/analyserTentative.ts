@@ -14,6 +14,7 @@ import type {
   GrillePubliee,
   NouvelleAnalyse,
   NouvelleEvaluation,
+  ResultatTentative,
   StatutTentative,
   Tentative,
 } from '../db.js'
@@ -38,7 +39,7 @@ export interface DepotAnalyse {
   enregistrerAnalyseEtEvaluation(
     analyse: NouvelleAnalyse,
     evaluation: NouvelleEvaluation,
-  ): Promise<void>
+  ): Promise<ResultatTentative | null>
   marquerAudioSupprime(id: string): Promise<void>
   marquerEchecTechnique(id: string, erreur: string): Promise<void>
   marquerAbandonTechnique(id: string, audioSupprime: boolean, erreur?: string): Promise<void>
@@ -180,8 +181,11 @@ export async function analyserTentative(
       transcription,
       fournisseur_transcription: deps.transcripteur.nom,
     }
-    await depot.enregistrerAnalyseEtEvaluation(analyse, evaluation)
-    log.info({ grille_version: evaluation.version_grille }, 'analyse et evaluation enregistrees')
+    const resultat = await depot.enregistrerAnalyseEtEvaluation(analyse, evaluation)
+    log.info(
+      { grille_version: evaluation.version_grille, resultat },
+      'analyse et evaluation enregistrees',
+    )
 
     // AudioSupprime, then RetourDisponible
     await stockage.supprimer(cheminAudio)

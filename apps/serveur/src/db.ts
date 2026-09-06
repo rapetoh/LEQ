@@ -394,15 +394,17 @@ export async function lireGrillePubliee(ex: Executeur): Promise<GrillePubliee | 
 // ---------------------------------------------------------------------------
 
 /**
- * Writes the analysis and the evaluation atomically. Upserts, so a retry of a
- * job that crashed after the commit (for example on storage deletion) rewrites
- * the same content instead of failing on the primary key.
+ * Writes the analysis and the evaluation atomically, then applies the result to the
+ * path (`appliquer_resultat`: validates or fails a step, unlocks the next one). Upserts,
+ * so a retry of a job that crashed after the commit (for example on storage deletion)
+ * rewrites the same content instead of failing on the primary key. Returns the step
+ * result, or null when nothing applied (no grid yet, not a step attempt).
  */
 export async function enregistrerAnalyseEtEvaluation(
   pool: pg.Pool,
   analyse: NouvelleAnalyse,
   evaluation: NouvelleEvaluation,
-): Promise<void> {
+): Promise<ResultatTentative | null> {
   const client = await pool.connect()
   try {
     await client.query('begin')
@@ -440,7 +442,11 @@ export async function enregistrerAnalyseEtEvaluation(
         evaluation.seuil_reussite,
       ],
     )
+    const resultat = await client.query('select public.appliquer_resultat($1) as resultat', [
+      analyse.tentative_id,
+    ])
     await client.query('commit')
+    return (resultat.rows[0]?.['resultat'] as ResultatTentative | null) ?? null
   } catch (erreur) {
     await client.query('rollback').catch(() => undefined)
     throw erreur

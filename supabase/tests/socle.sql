@@ -347,7 +347,7 @@ select is(
   'analyser_tentative',
   'job type is analyser_tentative'
 );
-select is((select count(*) from public.jobs where type = 'analyser_tentative'), 4::bigint, 'one job per accepted tentative');
+select is((select count(*) from public.jobs where type = 'analyser_tentative' and cle_idempotence ~ '^analyser:(aaaaaaaa|bbbbbbbb|cccccccc)-'), 4::bigint, 'one job per accepted tentative');
 
 -- ---------------------------------------------------------------------------
 -- analyses and evaluations (service writes, users read own)

@@ -273,6 +273,60 @@ Screen G3 "Recevoir une copie de mes données" files a request; Rebecca answers 
 - `id uuid pk`, `utilisateur_id uuid not null references profils(id) on delete cascade`, `email text` (the address at the time of the request), `traitee_le timestamptz`, `traitee_par uuid references profils(id)`.
 - RLS: a non-anonymous user inserts for themselves and reads their own; admin reads and updates all.
 
+## Phase 4 additions (migration `0004_parcours`)
+
+The path (cahier chapter 4): acts and steps, three challenge formats, per-step thresholds, the daily rhythm by offer, remediation after two failures. The generator is not part of this migration; a static path built from the banks stands in until its rules exist.
+
+### modeles_actes
+
+The acts of the path, in order. Seeded from the mockup, editable by Rebecca.
+
+- `ordre integer pk`, `titre text not null`, `sous_titre text` (the "contrée" name shown on the map), `cree_le`, `modifie_le`.
+- RLS: authenticated read; admin write.
+
+### defis
+
+The challenge bank. Every step of a path points at one défi.
+
+- `id uuid pk`, `cle text not null unique` (slug), `ordre_acte integer not null references modeles_actes(ordre)`, `ordre integer not null` (position in the act; `unique (ordre_acte, ordre)`)
+- `format text not null check (format in ('standard','texte','long'))`
+- `titre text not null` (short, on the card), `consigne text not null` (Rebecca's words, quoted as such), `focus text` ("tes silences": what the feedback looks at), `plan jsonb not null default '[]'` (the three supports of a brief, `[{ "titre": string, "detail": string }]`)
+- `texte_a_lire text`, `duree_lecture_s integer` (format texte), `duree_preparation_s integer` (format long)
+- `duree_max_s integer not null`, `points integer not null`, `competence text not null` (the skill code the step introduces), `seuil_reussite numeric(5,2) not null` (the score of the grid that validates the step; rises along the path)
+- `provisoire boolean not null default true` (content from the mockup, awaiting Rebecca; the admin turns it off), `actif boolean not null default true`
+- RLS: authenticated read where `actif`; admin read and write everything.
+
+### exercices
+
+Remediation bank (screen X5): a shorter exercise proposed after two failures on a step, matched by `competence`.
+
+- `id uuid pk`, `cle text not null unique`, `titre text not null`, `consigne text not null`, `duree_s integer not null`, `competence text not null`, `provisoire boolean not null default true`, `actif boolean not null default true`.
+- RLS: authenticated read where `actif`; admin write.
+
+### parcours, actes, etapes
+
+One path per person, built once (`obtenir_parcours()`), never rewritten behind the person's back.
+
+- `parcours`: `id uuid pk`, `utilisateur_id uuid not null unique references profils(id) on delete cascade`, `source text not null check (source in ('statique','genere'))`, `version_regles text`, `genere_le timestamptz not null default now()`.
+- `actes`: `id uuid pk`, `parcours_id uuid not null references parcours(id) on delete cascade`, `ordre integer not null`, `titre text not null`, `sous_titre text`, `statut text not null check (statut in ('a_venir','en_cours','traverse'))`, `traverse_le timestamptz`, `unique (parcours_id, ordre)`.
+- `etapes`: `id uuid pk`, `parcours_id uuid not null references parcours(id) on delete cascade`, `acte_id uuid not null references actes(id) on delete cascade`, `ordre_global integer not null`, `ordre integer not null`, `defi_id uuid not null references defis(id)`, `seuil_reussite numeric(5,2) not null` (copied from the défi at creation, so a later edit of the bank does not move a person's threshold), `statut text not null check (statut in ('verrouillee','disponible','validee'))`, `nombre_echecs integer not null default 0`, `rattrapage_propose boolean not null default false`, `validee_le timestamptz`, `tentative_validante_id uuid references tentatives(id)`, `unique (parcours_id, ordre_global)`.
+- `tentatives.etape_id` now references `etapes(id)`; a step attempt is `type = 'etape'` with its `etape_id`. Anonymous users may create a path and step attempts too (the mockup's "Plus tard" leads to the daily challenge); the purge removes everything.
+- RLS: the person reads own rows; no client write on any of the three (functions only).
+
+### abonnements
+
+The offer a person is on. Absence of a row means Gratuit. RevenueCat writes it in a later slice.
+
+- `utilisateur_id uuid pk references profils(id) on delete cascade`, `formule text not null check (formule in ('gratuit','complet'))`, `source text not null check (source in ('manuel','revenuecat'))`, `actif_jusqu_a timestamptz`, `cree_le`, `modifie_le`.
+- `formule_de(uid) returns text`: `complet` when a row says so and `actif_jusqu_a` is null or in the future, else `gratuit`.
+- RLS: the person reads own row; service role writes.
+
+### Functions
+
+- `obtenir_parcours() returns uuid` (security definer, authenticated): returns the caller's path id, building it on first call from `modeles_actes` and the active `defis` in order: the first act `en_cours`, its first step `disponible`, everything else locked or `a_venir`. An act with no défi is `a_venir` with no step.
+- `etape_du_jour() returns table(...)` (security definer, authenticated): the caller's first `disponible` step joined with its défi and act, plus the rhythm: `etapes_validees_aujourdhui`, `essais_aujourdhui` (step attempts recorded today in the person's timezone, `profils.fuseau_horaire`, default `Europe/Paris`), `limite_etapes` and `limite_essais` (configuration `etapes_par_jour_gratuit` or `etapes_par_jour_complet`, `essais_max_etape_par_jour`; 0 means no limit), `peut_enregistrer`, `raison` in (`ok`, `limite_jour`, `limite_essais`, `aucune_etape`, `parcours_termine`).
+- `appliquer_resultat(p_tentative_id uuid) returns text` (security definer, service role only): for a `type = 'etape'` attempt with an evaluation whose `note_totale` is not null: at or above the step's `seuil_reussite` the step becomes `validee` (with `validee_le`, `tentative_validante_id`), the next step `disponible`, the act `traverse` when it was its last step and the next act `en_cours`; below, `nombre_echecs + 1` and `rattrapage_propose = true` from the second failure. Writes `tentatives.resultat`. Returns the result or `null` when nothing applies (no grid yet, not a step, already validated).
+
 ## Later phases (names reserved)
 
-`parcours`, `actes`, `etapes`, `exercices`, `series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `abonnements`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `moderations`.
+`series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `moderations`.

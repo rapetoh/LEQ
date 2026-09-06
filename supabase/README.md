@@ -6,7 +6,7 @@ The database of record: migrations, seed, database tests and the CLI configurati
 
 - `migrations/20260906000000_socle.sql`: Phase 0 schema, helpers, triggers, the job queue functions, Row Level Security on every table, the access token hook, the two storage buckets and their policies, the pg_cron schedules (guarded when pg_cron is absent).
 - `seed.sql`: configuration defaults (idempotent: description and type are refreshed, values never overwritten) and the three flags off.
-- `tests/socle.sql`: pgTAP, 96 assertions covering RLS as user, anonymous user, admin and service role, the queue functions, the hook and the storage policy. Runs with `supabase test db` on a local stack.
+- `tests/socle.sql`, `tests/socle_phase1.sql`, `tests/demandes_export.sql`, `tests/parcours.sql`: pgTAP, 205 assertions covering RLS as user, anonymous user, admin and service role, the queue functions, the hook and the storage policy. Runs with `supabase test db` on a local stack.
 - `config.toml`: local stack settings, anonymous sign-in on, manual identity linking on, the hook registered for local runs.
 
 ## Status
@@ -38,6 +38,10 @@ update public.profils set role = 'admin' where id = '<her auth user id>';
 ```
 
 A trigger refuses that change from any signed-in client; only a direct connection or the service role can make it. She signs out and back in to get a token with the role.
+
+## Seed
+
+`npx supabase db push --include-seed` is supposed to apply `seed.sql`; on 2026-09-06 it reported the seed applied without inserting the new rows. `node supabase/scripts/appliquer-seed.mjs` (with `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD` in the environment) applies it directly and prints the row counts. The seed is idempotent.
 
 ## Tests
 
