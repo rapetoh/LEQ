@@ -9,6 +9,8 @@ const LIENS = [
   { vers: '/drapeaux', libelle: fr.navigation.drapeaux, fin: false },
   { vers: '/defis', libelle: fr.navigation.defis, fin: false },
   { vers: '/exercices', libelle: fr.navigation.exercices, fin: false },
+  { vers: '/recompenses', libelle: fr.navigation.recompenses, fin: false },
+  { vers: '/echanges', libelle: fr.navigation.echanges, fin: false },
 ] as const
 
 /** The shell: a left navigation, Rebecca's identity and sign-out, and the current page. */

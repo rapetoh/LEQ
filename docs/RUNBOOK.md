@@ -84,6 +84,8 @@ Then the auth settings, which migrations cannot set, are pushed from `supabase/c
 
 Phase 1 adds the Apple and Google providers and the redirect URL `leq://auth` under Authentication > URL Configuration.
 
+Database tests against the hosted project: `node supabase/tests/executer-distant.mjs <fichier.sql>` runs a pgTAP file as one transaction that the file itself rolls back. When a file fails, the whole-file runner cannot say where: `node supabase/tests/pas-a-pas.mjs <fichier.sql>` runs it statement by statement inside a transaction that is always rolled back and prints the first failing statement. To try a new migration with its tests before pushing, concatenate `begin;`, the migration, the test body and `rollback;` into a scratch file and run that. Rule learned the hard way on 2026-09-06: never send statements to the hosted database outside a transaction (a first version of the step runner did, and committed test users, attempts and a changed reward cap that had to be removed by hand).
+
 Later migrations: `npx supabase migration new <nom>` creates the timestamped file; write SQL; `npx supabase db reset` locally (needs Docker) to replay everything; `npx supabase db push` to the linked project. `npx supabase migration list` compares local and remote history.
 
 Seeding the hosted project: `npx supabase db push --include-seed` (safe to repeat: the seed never overwrites a value Rebecca changed).

@@ -315,11 +315,10 @@ select lives_ok(
      values ('cccccccc-0000-4000-8000-000000000001', '33333333-3333-4333-8333-333333333333', 'diagnostic', now(), 'Europe/Paris', 120, 'envoyee') $$,
   'anonymous C inserts a diagnostic tentative'
 );
-select throws_ok(
+select lives_ok(
   $$ insert into public.tentatives (id, utilisateur_id, type, enregistre_le, fuseau_horaire, decalage_minutes, statut)
      values ('cccccccc-0000-4000-8000-000000000002', '33333333-3333-4333-8333-333333333333', 'etape', now(), 'Europe/Paris', 120, 'envoyee') $$,
-  '42501', null,
-  'anonymous C cannot insert an etape tentative'
+  'anonymous C inserts an etape tentative (the path is open before the account, migration 0005)'
 );
 select throws_ok(
   $$ insert into public.tentatives (id, utilisateur_id, type, enregistre_le, fuseau_horaire, decalage_minutes, statut)
@@ -327,7 +326,7 @@ select throws_ok(
   '42501', null,
   'anonymous C cannot insert an arene tentative'
 );
-select is((select count(*) from public.tentatives), 1::bigint, 'anonymous C sees own tentative');
+select is((select count(*) from public.tentatives), 2::bigint, 'anonymous C sees own tentatives (the diagnostic and the step)');
 reset role;
 select tests_leq.deconnecter();
 
@@ -347,7 +346,7 @@ select is(
   'analyser_tentative',
   'job type is analyser_tentative'
 );
-select is((select count(*) from public.jobs where type = 'analyser_tentative' and cle_idempotence ~ '^analyser:(aaaaaaaa|bbbbbbbb|cccccccc)-'), 4::bigint, 'one job per accepted tentative');
+select is((select count(*) from public.jobs where type = 'analyser_tentative' and cle_idempotence ~ '^analyser:(aaaaaaaa|bbbbbbbb|cccccccc)-'), 5::bigint, 'one job per accepted tentative');
 
 -- ---------------------------------------------------------------------------
 -- analyses and evaluations (service writes, users read own)
@@ -410,8 +409,8 @@ select throws_ok(
 reset role;
 
 select tests_leq.connecter('33333333-3333-4333-8333-333333333333', true, 'utilisateur');
-select is((select count(*) from public.grilles), 0::bigint, 'anonymous C sees no grille');
-select is((select count(*) from public.criteres_grille), 0::bigint, 'anonymous C sees no critere');
+select is((select count(*) from public.grilles), 1::bigint, 'anonymous C reads the published grille (migration 0007)');
+select is((select count(*) from public.criteres_grille), 1::bigint, 'anonymous C reads the criteres of the published grille (migration 0005)');
 reset role;
 
 select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');

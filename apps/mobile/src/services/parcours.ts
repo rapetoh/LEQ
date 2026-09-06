@@ -295,7 +295,7 @@ export async function chargerRetour(tentativeId: string): Promise<Retour | null>
   const { data, error } = await supabase
     .from('tentatives')
     .select(
-      'id, type, statut, resultat, enregistre_le, analyses(mesures), evaluations(grille_id, note_totale, seuil_reussite, sous_notes, points_forts, axes_travail), etapes(*, defis(*), actes(*))',
+      'id, type, statut, resultat, enregistre_le, analyses(mesures), evaluations(grille_id, note_totale, seuil_reussite, sous_notes, points_forts, axes_travail), etapes!tentatives_etape_id_fkey(*, defis(*), actes(*))',
     )
     .eq('id', tentativeId)
     .maybeSingle()

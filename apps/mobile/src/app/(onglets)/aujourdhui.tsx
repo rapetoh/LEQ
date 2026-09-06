@@ -1,18 +1,20 @@
 import { useRouter } from 'expo-router'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteDefi } from '@/components/EnteteDefi'
 import { EnteteEcran } from '@/components/EnteteEcran'
+import { formaterEntier } from '@/app/(onglets)/moi'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useDrapeaux } from '@/services/configuration'
 import { useEtapeDuJour } from '@/services/parcours'
+import { usePoints, useSerie } from '@/services/progres'
 import { etatAujourdhui, minutesDe, positionDefi, rythmeDeFormule } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
-import { espaces, typographie } from '@/theme/tokens'
+import { espaces, rayons, typographie } from '@/theme/tokens'
 
 // B1 · Aujourd'hui (C0 variant while the Arena is off). The step of the day IS the next
 // step of the path: title, act, position, points, and the rhythm of the formula. The tip,
@@ -29,12 +31,36 @@ function dateDuJour(): string {
 
 export default function Aujourdhui() {
   const theme = useTheme()
+  const router = useRouter()
   const drapeaux = useDrapeaux()
   const areneActive = drapeaux.data?.arene === true
+  const serie = useSerie()
+  const points = usePoints()
 
   return (
     <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
-      <EnteteEcran surtitre={dateDuJour()} titre={t('aujourdhui.salutationSansPrenom')} />
+      <EnteteEcran
+        surtitre={dateDuJour()}
+        titre={t('aujourdhui.salutationSansPrenom')}
+        droite={
+          serie.data ? (
+            <View
+              accessibilityLabel={`${serie.data.courante} ${t('aujourdhui.serieLibelle')}`}
+              style={[
+                styles.serie,
+                { backgroundColor: serie.data.validee_aujourdhui ? theme.voix : theme.carteDouce },
+              ]}
+            >
+              <Text style={[typographie.corpsFort, { color: theme.texte }]}>
+                {t('aujourdhui.serieJours', { jours: serie.data.courante })}
+              </Text>
+              <Text style={[typographie.etiquette, { color: theme.texteSecondaire }]}>
+                {t('aujourdhui.serieLibelle')}
+              </Text>
+            </View>
+          ) : undefined
+        }
+      />
 
       <View style={styles.sections}>
         <CarteDuJour />
@@ -44,10 +70,29 @@ export default function Aujourdhui() {
           <CartePlaceholder phrase={t('aujourdhui.placeholderConseil')} />
         </View>
 
-        <CartePlaceholder
-          titre={t('aujourdhui.pointsLibelle')}
-          phrase={t('aujourdhui.placeholderPoints')}
-        />
+        <Pressable accessibilityRole="button" onPress={() => router.push('/recompenses')}>
+          <Carte style={styles.ligne}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[typographie.titreCarte, { color: theme.texte }]}>
+                {points.data
+                  ? t('aujourdhui.pointsSolde', { points: formaterEntier(points.data.solde) })
+                  : t('aujourdhui.pointsLibelle')}
+              </Text>
+              <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+                {points.data
+                  ? points.data.cette_semaine > 0
+                    ? t('aujourdhui.pointsSemaine', {
+                        points: formaterEntier(points.data.cette_semaine),
+                      })
+                    : t('aujourdhui.pointsAucun')
+                  : t('commun.chargement')}
+              </Text>
+            </View>
+            <Text style={[typographie.etiquette, { color: theme.lien }]}>
+              {t('aujourdhui.mesRecompenses')}
+            </Text>
+          </Carte>
+        </Pressable>
 
         {areneActive ? (
           <CartePlaceholder
@@ -112,7 +157,7 @@ export function CarteDuJour() {
   const etat = etatAujourdhui(donnees)
   const rythme = t(`defi.${rythmeDeFormule(donnees.formule, donnees.rythme.limite_etapes)}`)
   const formule = t('defi.formule', {
-    formule: donnees.formule === 'complet' ? 'Complet' : 'Gratuit',
+    formule: t(`formules.${donnees.formule}`),
     rythme,
   })
 
@@ -183,4 +228,12 @@ const styles = StyleSheet.create({
   section: { gap: espaces.s },
   defi: { gap: espaces.m },
   espaceHaut: { marginTop: espaces.xs },
+  serie: {
+    alignItems: 'center',
+    paddingHorizontal: espaces.s,
+    paddingVertical: espaces.xs,
+    borderRadius: rayons.l,
+    minWidth: 56,
+  },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
 })

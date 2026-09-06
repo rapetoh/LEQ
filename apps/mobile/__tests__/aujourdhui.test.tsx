@@ -11,6 +11,10 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn() }),
 }))
 jest.mock('@/services/parcours', () => ({ useEtapeDuJour: jest.fn() }))
+jest.mock('@/services/progres', () => ({
+  useSerie: jest.fn(() => ({ data: undefined })),
+  usePoints: jest.fn(() => ({ data: undefined })),
+}))
 // The screen module also imports the flags hook, whose client needs the environment.
 jest.mock('@/services/configuration', () => ({ useDrapeaux: jest.fn(() => ({ data: undefined })) }))
 

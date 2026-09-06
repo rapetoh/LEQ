@@ -26,6 +26,8 @@ export const fr = {
     drapeaux: 'Drapeaux',
     defis: 'Défis',
     exercices: 'Exercices',
+    recompenses: 'Récompenses',
+    echanges: 'Échanges',
     seDeconnecter: 'Se déconnecter',
   },
 
@@ -74,6 +76,16 @@ export const fr = {
         texte: 'Les exercices de rattrapage, proposés après deux échecs sur un défi.',
         action: 'Ouvrir les exercices',
       },
+      recompenses: {
+        titre: 'Les récompenses',
+        texte: 'La boutique : ce que les points achètent, à quel prix, et combien par mois.',
+        action: 'Ouvrir les récompenses',
+      },
+      echanges: {
+        titre: 'Les échanges',
+        texte: 'Les points échangés par les utilisateurs, à honorer ou à annuler.',
+        action: 'Ouvrir les échanges',
+      },
     },
     aVenir: {
       grille: {
@@ -101,6 +113,7 @@ export const fr = {
       points: 'Points',
       diagnostic: 'Diagnostic',
       parcours: 'Rythme du parcours',
+      serie: 'Série et points',
       arene: 'Arène et duels',
       faceAFace: 'Face-à-face',
       annonces: 'Annonces',
@@ -152,7 +165,7 @@ export const fr = {
       duels: {
         nom: 'Les duels',
         objet: 'les duels',
-        description: 'Les défis entre deux personnes, avec un verdict rendu par l’analyse.',
+        description: "Les défis entre deux personnes, avec un verdict rendu par l'analyse.",
         confirmation: 'Allumer les duels les rend visibles à tous les utilisateurs. Continuer ?',
       },
       face_a_face: {
@@ -231,7 +244,7 @@ export const fr = {
     edition: {
       titreCreation: 'Nouveau défi',
       titreModification: 'Modifier le défi',
-      introuvable: 'Ce défi n’existe pas.',
+      introuvable: "Ce défi n'existe pas.",
       retour: 'Retour aux défis',
       acte: 'Acte',
       ordre: "Ordre dans l'acte",
@@ -287,5 +300,62 @@ export const fr = {
     enregistre: 'Exercice enregistré.',
     erreur: 'Enregistrement impossible.',
     erreurDoublon: 'Un exercice porte déjà cette clé.',
+  },
+
+  recompenses: {
+    titre: 'Les récompenses',
+    intro:
+      "La boutique du chapitre 7. Un coût en points par récompense ; un plafond par mois pour ce qui te coûte de l'argent réel : au-delà, elle attend le mois suivant. Une distinction ne s'achète pas.",
+    creer: 'Créer une récompense',
+    nouvelle: 'Nouvelle récompense',
+    vide: 'Aucune récompense dans la base. Lance le seed, ou crée la première.',
+    erreurChargement: 'Impossible de charger les récompenses.',
+    modifier: 'Modifier',
+    cout: (points: number) => `${new Intl.NumberFormat('fr-FR').format(points)} pts`,
+    sansCout: 'sans coût',
+    plafond: (n: number) => (n === 1 ? '1 par mois' : `${n} par mois`),
+    sansPlafond: 'sans plafond',
+    cree: 'Récompense créée.',
+    enregistre: 'Récompense enregistrée.',
+    erreur: 'Enregistrement impossible.',
+    erreurDoublon: 'Une récompense porte déjà cette clé.',
+    champs: {
+      type: 'Type',
+      typeAide:
+        "Contenu, réduction, atelier : s'échangent contre des points. Distinction : se gagne, ne s'achète pas.",
+      ordre: 'Ordre dans la boutique',
+      sousTitre: 'Sous-titre',
+      description: 'Description',
+      cout: 'Coût en points',
+      plafond: 'Plafond par mois',
+      plafondAide: "Vide = sans limite. À remplir dès que la récompense te coûte de l'argent réel.",
+      distinctionAide:
+        "Une distinction n'a ni coût ni plafond : elle se gagne, par exemple pour le n°1 du mois.",
+      provisoireAide: "Tant que c'est coché, l'application dit que la récompense attend Rebecca.",
+      actifAide: "Une récompense inactive n'apparaît plus dans la boutique.",
+    },
+  },
+
+  echanges: {
+    titre: 'Les échanges',
+    intro:
+      "Chaque ligne est une personne qui a dépensé ses points. Honorer : tu l'as contactée et la récompense est donnée. Annuler : les points lui reviennent.",
+    tous: 'Tous',
+    vide: 'Aucun échange dans cette liste.',
+    erreurChargement: 'Impossible de charger les échanges.',
+    par: (prenom: string) => `par ${prenom}`,
+    sansPrenom: 'une personne sans prénom',
+    honorer: 'Honorer',
+    annuler: 'Annuler',
+    annulerTitre: 'Annuler cet échange',
+    annulerMessage: (titre: string, points: number) =>
+      `${titre} : les ${new Intl.NumberFormat('fr-FR').format(points)} points reviennent à la personne. Continuer ?`,
+    traite: 'Échange mis à jour.',
+    erreur: "L'échange n'a pas pu être mis à jour.",
+    statuts: {
+      a_traiter: 'À traiter',
+      honore: 'Honoré',
+      annule: 'Annulé',
+    },
   },
 } as const

@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
+import { Rappels } from '@/components/Rappels'
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
 import { rafraichirJeton, surNotificationTouchee } from '@/services/notifications'
 import { definirExpirationFileJours, demarrerFile, routePourRetour } from '@/services/prises'
@@ -84,6 +85,7 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
   return (
     <FournisseurDemarrage>
       <ReglagesFile />
+      <Rappels />
       <StatusBar style={theme.sombre ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -104,6 +106,8 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
         <Stack.Screen name="retour/[tentativeId]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="acte/[acteId]/index" />
         <Stack.Screen name="acte/[acteId]/traverse" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="recompenses" />
+        <Stack.Screen name="rebecca" />
       </Stack>
     </FournisseurDemarrage>
   )

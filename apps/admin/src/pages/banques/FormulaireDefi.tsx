@@ -20,6 +20,8 @@ type Props = {
   /** The key cannot change once a défi exists: paths and tests refer to it. */
   creation: boolean
   enregistrement: boolean
+  /** The next free order in an act, so a new défi lands after the others when the act changes. */
+  prochainOrdrePour?: (ordreActe: number) => number
   onEnregistrer: (valeur: DefiEditable) => void
 }
 
@@ -29,12 +31,25 @@ export function FormulaireDefi({
   actes,
   creation,
   enregistrement,
+  prochainOrdrePour,
   onEnregistrer,
 }: Props) {
   const id = useId()
   const [saisie, setSaisie] = useState<SaisieDefi>(initiale)
   const [erreurs, setErreurs] = useState<Erreurs>({})
   const [dureeTouchee, setDureeTouchee] = useState(!creation)
+  const [ordreTouche, setOrdreTouche] = useState(!creation)
+
+  function changerActe(ordreActe: string) {
+    setSaisie((courante) => ({
+      ...courante,
+      ordre_acte: ordreActe,
+      ordre:
+        !ordreTouche && prochainOrdrePour
+          ? String(prochainOrdrePour(Number(ordreActe)))
+          : courante.ordre,
+    }))
+  }
 
   function changer<K extends keyof SaisieDefi>(champ: K, valeur: SaisieDefi[K]) {
     setSaisie((courante) => ({ ...courante, [champ]: valeur }))
@@ -92,7 +107,7 @@ export function FormulaireDefi({
             id={`${id}-acte`}
             className="champ"
             value={saisie.ordre_acte}
-            onChange={(e) => changer('ordre_acte', e.target.value)}
+            onChange={(e) => changerActe(e.target.value)}
           >
             {actes.map((acte) => (
               <option key={acte.ordre} value={String(acte.ordre)}>
@@ -107,7 +122,10 @@ export function FormulaireDefi({
             className="champ"
             inputMode="numeric"
             value={saisie.ordre}
-            onChange={(e) => changer('ordre', e.target.value)}
+            onChange={(e) => {
+              setOrdreTouche(true)
+              changer('ordre', e.target.value)
+            }}
             aria-invalid={erreurs.ordre ? 'true' : undefined}
           />
         </Champ>
@@ -315,34 +333,38 @@ export function FormulaireDefi({
         </Champ>
       </div>
 
-      <div className={styles.interrupteurLigne}>
-        <Interrupteur
-          id={`${id}-provisoire`}
-          actif={saisie.provisoire}
-          libelle={c.provisoire}
-          onChange={(v) => changer('provisoire', v)}
-        />
-        <div>
-          <label htmlFor={`${id}-provisoire`} className="etiquette" style={{ marginBottom: 0 }}>
-            {c.provisoire}
-          </label>
-          <p className={styles.aide}>{c.provisoireAide}</p>
-        </div>
-      </div>
-      <div className={styles.interrupteurLigne}>
-        <Interrupteur
-          id={`${id}-actif`}
-          actif={saisie.actif}
-          libelle={c.actif}
-          onChange={(v) => changer('actif', v)}
-        />
-        <div>
-          <label htmlFor={`${id}-actif`} className="etiquette" style={{ marginBottom: 0 }}>
-            {c.actif}
-          </label>
-          <p className={styles.aide}>{c.actifAide}</p>
-        </div>
-      </div>
+      {creation ? (
+        <>
+          <div className={styles.interrupteurLigne}>
+            <Interrupteur
+              id={`${id}-provisoire`}
+              actif={saisie.provisoire}
+              libelle={c.provisoire}
+              onChange={(v) => changer('provisoire', v)}
+            />
+            <div>
+              <label htmlFor={`${id}-provisoire`} className="etiquette" style={{ marginBottom: 0 }}>
+                {c.provisoire}
+              </label>
+              <p className={styles.aide}>{c.provisoireAide}</p>
+            </div>
+          </div>
+          <div className={styles.interrupteurLigne}>
+            <Interrupteur
+              id={`${id}-actif`}
+              actif={saisie.actif}
+              libelle={c.actif}
+              onChange={(v) => changer('actif', v)}
+            />
+            <div>
+              <label htmlFor={`${id}-actif`} className="etiquette" style={{ marginBottom: 0 }}>
+                {c.actif}
+              </label>
+              <p className={styles.aide}>{c.actifAide}</p>
+            </div>
+          </div>
+        </>
+      ) : null}
 
       <div className={styles.piedFormulaire}>
         <div>

@@ -18,8 +18,10 @@ describe('t', () => {
     expect(t('envoi.echec.serieIntacte')).toBe('Série de {{jours}} jours : intacte')
   })
 
-  it('contains no em dash anywhere', () => {
+  it('contains no em dash, no en dash and no curly apostrophe anywhere', () => {
     const tout = JSON.stringify(fr)
-    expect(tout.includes('—')).toBe(false)
+    expect(tout.includes('\u2014')).toBe(false)
+    expect(tout.includes('\u2013')).toBe(false)
+    expect(tout.includes('\u2019')).toBe(false)
   })
 })

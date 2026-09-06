@@ -5,6 +5,7 @@ export const SECTIONS = [
   'points',
   'diagnostic',
   'parcours',
+  'serie',
   'arene',
   'faceAFace',
   'annonces',
@@ -21,8 +22,8 @@ const CLES_PAR_SECTION: Record<Exclude<Section, 'autres'>, readonly string[]> = 
     'etapes_par_jour_complet',
     'essais_max_etape_par_jour',
     'duree_etape_min_s',
-    'recuperations_serie_par_mois',
   ],
+  serie: ['recuperations_serie_par_mois', 'heure_alerte_serie'],
   arene: [
     'duree_sujet_arene_jours',
     'duree_duel_heures',

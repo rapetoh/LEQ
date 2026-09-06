@@ -6,20 +6,27 @@ import { EnteteEcran } from '@/components/EnteteEcran'
 import { Carte } from '@/components/ui/Carte'
 import { t } from '@/i18n/fr'
 import { useDrapeaux } from '@/services/configuration'
+import { usePoints, useSerie } from '@/services/progres'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
 // G1 · Moi. The speaker identity first, administration after. Settings live in G3 (/reglages).
+// The three numbers are replayed from the ledgers (ADR-009), never counted here.
 
 export default function Moi() {
   const theme = useTheme()
   const router = useRouter()
   const drapeaux = useDrapeaux()
+  const serie = useSerie()
+  const points = usePoints()
 
-  const lignes: { libelle: string; action?: () => void }[] = [
+  const lignes: { libelle: string; detail?: string; action?: () => void }[] = [
     ...(drapeaux.data?.face_a_face === true ? [{ libelle: t('moi.faceAFace') }] : []),
-    { libelle: t('moi.mesRecompenses') },
-    { libelle: t('moi.monAbonnement') },
+    { libelle: t('moi.mesRecompenses'), action: () => router.push('/recompenses') },
+    {
+      libelle: t('moi.monAbonnement'),
+      ...(points.data ? { detail: t(`formules.${points.data.formule}`) } : {}),
+    },
     { libelle: t('moi.reglages'), action: () => router.push('/reglages') },
   ]
 
@@ -29,6 +36,26 @@ export default function Moi() {
 
       <View style={styles.sections}>
         <CartePlaceholder phrase={t('moi.placeholderProfil')} />
+
+        <View style={styles.chiffres}>
+          <Chiffre
+            valeur={serie.data ? String(serie.data.courante) : '·'}
+            libelle={serie.data?.courante === 1 ? t('moi.jourDeSuite') : t('moi.joursDeSuite')}
+            teinte="voix"
+          />
+          <Chiffre
+            valeur={points.data ? formaterEntier(points.data.solde) : '·'}
+            libelle={t('moi.points')}
+            teinte="orange"
+          />
+          <Chiffre
+            valeur={serie.data ? String(serie.data.semaines_gagnees) : '·'}
+            libelle={
+              serie.data?.semaines_gagnees === 1 ? t('moi.semaineGagnee') : t('moi.semainesGagnees')
+            }
+            teinte="douce"
+          />
+        </View>
 
         <Carte style={styles.liste}>
           {lignes.map((ligne, index) => (
@@ -48,9 +75,14 @@ export default function Moi() {
               <Text style={[typographie.corpsFort, { color: theme.texte, flex: 1 }]}>
                 {ligne.libelle}
               </Text>
+              {ligne.detail ? (
+                <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+                  {ligne.detail}
+                </Text>
+              ) : null}
               {ligne.action ? (
                 <Text style={[typographie.corpsFort, { color: theme.texteTertiaire }]}>›</Text>
-              ) : (
+              ) : ligne.detail ? null : (
                 <View style={[styles.puce, { backgroundColor: theme.carteDouce }]}>
                   <Text style={[typographie.etiquette, { color: theme.texteSecondaire }]}>
                     {t('commun.bientot')}
@@ -61,18 +93,47 @@ export default function Moi() {
           ))}
         </Carte>
 
-        <Carte teinte="voix">
-          <Text style={[typographie.corpsFort, { color: theme.texte }]}>{t('moi.ateliers')}</Text>
-        </Carte>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/rebecca')}>
+          <Carte teinte="voix" style={styles.ligne}>
+            <Text style={[typographie.corpsFort, { color: theme.texte, flex: 1 }]}>
+              {t('moi.ateliers')}
+            </Text>
+            <Text style={[typographie.corpsFort, { color: theme.texteTertiaire }]}>›</Text>
+          </Carte>
+        </Pressable>
       </View>
     </ScrollView>
+  )
+}
+
+/** "1 240": French thousands separator through Intl. */
+export function formaterEntier(valeur: number): string {
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(valeur)
+}
+
+function Chiffre({
+  valeur,
+  libelle,
+  teinte,
+}: {
+  valeur: string
+  libelle: string
+  teinte: 'voix' | 'orange' | 'douce'
+}) {
+  const theme = useTheme()
+  return (
+    <Carte teinte={teinte} style={styles.chiffre}>
+      <Text style={[typographie.chiffre, { color: theme.texte }]}>{valeur}</Text>
+      <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{libelle}</Text>
+    </Carte>
   )
 }
 
 const styles = StyleSheet.create({
   contenu: { paddingBottom: espaces.xxl },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
-  section: { gap: espaces.s },
+  chiffres: { flexDirection: 'row', gap: espaces.xs },
+  chiffre: { flex: 1, alignItems: 'center', gap: espaces.xxs, paddingHorizontal: espaces.xs },
   liste: { paddingVertical: 0 },
   ligne: {
     flexDirection: 'row',
@@ -80,18 +141,9 @@ const styles = StyleSheet.create({
     gap: espaces.s,
     paddingVertical: espaces.m,
   },
-  sansMarge: { paddingBottom: 0 },
   puce: {
     paddingHorizontal: espaces.xs,
     paddingVertical: espaces.xxs,
-    borderRadius: rayons.pilule,
-  },
-  confort: { gap: espaces.m },
-  segments: { flexDirection: 'row', padding: 3, borderRadius: rayons.pilule },
-  segment: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: espaces.xs,
     borderRadius: rayons.pilule,
   },
 })

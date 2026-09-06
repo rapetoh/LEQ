@@ -49,6 +49,7 @@ Typed key/value edited by Rebecca, read by the app at startup.
 | etapes_par_jour_complet      | nombre | 0      | Étapes validables par jour en formule Complet (0 = sans limite)   |
 | essais_max_etape_par_jour    | nombre | 3      | Essais sur une même étape par jour                                |
 | duree_etape_min_s            | nombre | 20     | Durée minimale d'une prise de défi                                |
+| heure_alerte_serie           | nombre | 20     | Heure locale de l'alerte quand la série est en danger             |
 | quota_face_a_face_complet    | nombre | 8      | Face-à-face par mois en formule Complet                           |
 | plafond_annonces_par_mois    | nombre | 2      | Annonces de Rebecca envoyées par mois, maximum                    |
 | purge_anonymes_heures        | nombre | 72     | Délai avant suppression des comptes anonymes sans compte          |
@@ -329,6 +330,50 @@ The offer a person is on. Absence of a row means Gratuit. RevenueCat writes it i
 - `appliquer_resultat(p_tentative_id uuid) returns text` (security definer, service role only): for a `type = 'etape'` attempt with an evaluation whose `note_totale` is not null: at or above the step's `seuil_reussite` the step becomes `validee` (with `validee_le`, `tentative_validante_id`), the next step `disponible`, the act `traverse` when it was its last step and the next act `en_cours`; below, `nombre_echecs + 1` and `rattrapage_propose = true` from the second failure. Writes `tentatives.resultat`. Returns the result or `null` when nothing applies (no grid yet, not a step, already validated).
 - `echanger_ordre_defis(p_a uuid, p_b uuid)` (security definer, admin only, migration `0005_echanger_ordre_defis`): swaps the `ordre` of two défis of the same act atomically. `defis (ordre_acte, ordre)` is unique and PostgreSQL checks uniqueness row by row, so a single UPDATE cannot swap; the function parks one row on a negative order first. Used by the admin's arrows.
 
+## Phase 4 corrections (migrations `0005_correctifs_parcours`, `0007_grilles_anonymes`)
+
+Found by the review of the Phase 4 code against the schema, on 2026-09-06.
+
+- `tentatives_insert_propre` accepts `type in ('diagnostic', 'etape')` from an anonymous person: the path is open before the account (ADR-004 only closes the Arena, duels, shop and debate).
+- `defis_select` also returns a défi referenced by one of the caller's own steps, so a défi Rebecca deactivates keeps its title on the map of the people whose path already holds it.
+- `grilles_select` and `criteres_grille_select` no longer exclude anonymous people from a published grid: its criteria are Rebecca's public wording, shown on the feedback of a step.
+- `etapes.ordre` is a dense rank inside the act (1..n) assigned by `obtenir_parcours`, not the bank position; `defis.ordre` has `check (ordre > 0)`; `echanger_ordre_defis` parks a row on the first free order of the act instead of a negative one.
+
+## Phase 5 additions (migration `0006_serie_points`)
+
+The streak, the points and the shop (cahier chapters 6 and 7), as ledgers, never as counters (ADR-009). Nothing here stores a total: the balance is a sum, the streak is a replay.
+
+### mouvements_points
+
+- `id uuid pk`, `utilisateur_id uuid fk profils on delete cascade`, `montant integer not null <> 0`, `motif text in (defi_valide, vote, echange, remboursement, ajustement)`, `reference text`, `cree_le`; `unique (motif, reference)` makes every credit idempotent (the attempt id for a défi, the exchange id for a spend or a refund).
+- Written only by security definer functions (`appliquer_resultat` credits `defis.points` on validation; `echanger_recompense` debits; `traiter_echange` refunds). RLS: own rows or admin, read only.
+
+### recuperations_serie
+
+- `id`, `utilisateur_id`, `jour_couvert date`, `cree_le`; `unique (utilisateur_id, jour_couvert)`.
+- One row per recovery the person activated (G3 "Protéger ma série"). RLS: own rows or admin, read only.
+
+### recompenses
+
+- `id`, `cle unique`, `ordre`, `type in (contenu, reduction, atelier, distinction)`, `titre`, `sous_titre`, `description`, `cout_points integer > 0 nullable`, `plafond_par_mois integer > 0 nullable` (the quantity cap of chapter 7 for what costs Rebecca real money), `echangeable boolean` (false for a distinction such as the hour with Rebecca), `provisoire`, `actif`, timestamps. Check: an exchangeable reward has a cost.
+- Seeded from the mockup (D2), all `provisoire`. RLS: authenticated read active rows, admin everything.
+
+### echanges_recompenses
+
+- `id`, `utilisateur_id`, `recompense_id`, `cout_points` (snapshot), `statut in (a_traiter, honore, annule)`, `note`, `cree_le`, `traite_le`.
+- Created only by `echanger_recompense()`; Rebecca honours or cancels in the admin. RLS: own rows or admin, read only.
+
+### Functions
+
+- `jour_local(timestamptz, text) returns date`: the calendar day in the given IANA zone, Europe/Paris when the zone is missing or invalid. `fuseau_de(uuid)`: the person's zone, Europe/Paris by default.
+- `calculer_serie(uid, aujourdhui) returns jsonb` (internal) and `ma_serie()` (authenticated): replays the distinct local days with a `tentatives` row (any state: recording is what counts, chapter 6) plus the covered days. Answers `courante` (the run ending on the last active day, alive while that day is today or yesterday), `record` (longest run ever), `semaines_gagnees` (`courante / 7`), `derniere_journee`, `validee_aujourdhui`, `semaine` (seven `{jour, actif}` ending today), `recuperation {par_mois, utilisees_ce_mois, restantes, jour_reparable, jour_a_couvrir}`. `jour_reparable` is yesterday when the last active day is the day before yesterday (one recovery repairs exactly one missed day); `jour_a_couvrir` is the same day when a recovery is left this month, else null.
+- `activer_recuperation(uid, aujourdhui)` (internal) and `activer_recuperation_serie()` (authenticated): inserts the covered day, or raises `P0001` with message `quota_epuise` or `rien_a_couvrir`.
+- `solde_points(uid)`, `points_de(uid)` (internal) and `mes_points()` (authenticated): `{solde, cumul, cette_semaine, formule}`.
+- `mes_recompenses()` (authenticated): `{points, recompenses[...] with restantes_ce_mois and mes_echanges, echanges[...]}`. The shop's month is Europe/Paris (Rebecca's).
+- `echanger_recompense(recompense uuid) returns uuid` (authenticated, not anonymous): under an advisory lock per person and per capped reward, checks active, exchangeable, balance, cap; inserts the exchange and the debit in one transaction. Raises `P0001` with `points_insuffisants`, `plafond_atteint`, `recompense_indisponible`, `recompense_non_echangeable`; `42501` with `compte_requis` for an anonymous person.
+- `traiter_echange(echange uuid, statut text, note text)` (admin): `honore` or `annule`; cancelling refunds through a `remboursement` movement keyed by the exchange id.
+- `resume_progres_de(uid, aujourdhui)` (internal) and `resume_progres()` (authenticated): `{serie, points, mois {prises, duree_parole_s, defis_releves}, premiere, derniere, bequilles_semaines[]}` for D1 and D1b. `premiere` and `derniere` are the first and last analysed takes (`debit`, `bequilles_par_minute`, `silences_tenus`); `bequilles_semaines` sums `mots_bequilles.par_type` per ISO week over the last six weeks.
+
 ## Later phases (names reserved)
 
-`series`, `mouvements_points`, `recompenses`, `echanges_recompenses`, `sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `moderations`.
+`sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `ateliers`, `annonces`, `moderations`.

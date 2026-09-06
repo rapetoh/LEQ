@@ -13,6 +13,7 @@ insert into public.configuration (cle, type, valeur, description) values
   ('etapes_par_jour_complet', 'nombre', '0', 'Étapes validables par jour en formule Complet (0 = sans limite)'),
   ('essais_max_etape_par_jour', 'nombre', '3', 'Essais sur une même étape par jour'),
   ('duree_etape_min_s', 'nombre', '20', 'Durée minimale d''une prise de défi'),
+  ('heure_alerte_serie', 'nombre', '20', 'Heure locale de l''alerte quand la série est en danger'),
   ('quota_face_a_face_complet', 'nombre', '8', 'Face-à-face par mois en formule Complet'),
   ('plafond_annonces_par_mois', 'nombre', '2', 'Annonces de Rebecca envoyées par mois, maximum'),
   ('purge_anonymes_heures', 'nombre', '72', 'Délai avant suppression des comptes anonymes sans compte'),
@@ -104,4 +105,16 @@ insert into public.exercices (cle, titre, consigne, duree_s, competence) values
   ('trois_phrases_lentes', 'Trois phrases lentes', 'Lis trois phrases de ton choix en marquant chaque virgule d''un souffle.', 30, 'debit'),
   ('fin_de_phrase_basse', 'La fin qui descend', 'Dis cinq phrases courtes sur ta journée. Chaque dernière syllabe descend, comme un point.', 30, 'presence'),
   ('un_souffle_une_idee', 'Un souffle, une idée', 'Respire par le ventre, puis dis une idée. Recommence cinq fois, sans presser.', 30, 'souffle')
+on conflict (cle) do nothing;
+
+-- recompenses (Phase 5) --------------------------------------------------------
+-- From the validated mockup (D2), provisional until Rebecca sets her own. The place in a
+-- workshop costs her real money: capped in quantity per month (cahier chapter 7). The hour
+-- with Rebecca is a distinction and never buys.
+
+insert into public.recompenses (cle, ordre, type, titre, sous_titre, description, cout_points, plafond_par_mois, echangeable) values
+  ('masterclass', 1, 'contenu', 'La masterclass exclusive', 'Vidéo de Rebecca, 40 min', null, 300, null, true),
+  ('reduction_pack', 2, 'reduction', '10 % sur un pack', 'Les cours de Rebecca', null, 600, null, true),
+  ('place_atelier', 3, 'atelier', 'Une place d''atelier de groupe', null, 'Une journée en petit groupe, avec Rebecca.', 1200, 10, true),
+  ('heure_rebecca', 4, 'distinction', 'Une heure avec Rebecca', 'Le prix du n°1 du mois. Ça ne s''achète pas.', null, null, null, false)
 on conflict (cle) do nothing;

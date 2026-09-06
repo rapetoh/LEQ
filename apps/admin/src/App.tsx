@@ -8,7 +8,9 @@ import { Configuration } from './pages/configuration/Configuration'
 import { Drapeaux } from './pages/Drapeaux'
 import { Defis } from './pages/banques/Defis'
 import { EditionDefi } from './pages/banques/EditionDefi'
+import { Echanges } from './pages/banques/Echanges'
 import { Exercices } from './pages/banques/Exercices'
+import { Recompenses } from './pages/banques/Recompenses'
 
 /** Every page except the login sits behind a session and the admin role. */
 export function App() {
@@ -31,6 +33,8 @@ export function App() {
         <Route path="defis/nouveau" element={<EditionDefi />} />
         <Route path="defis/:id" element={<EditionDefi />} />
         <Route path="exercices" element={<Exercices />} />
+        <Route path="recompenses" element={<Recompenses />} />
+        <Route path="echanges" element={<Echanges />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

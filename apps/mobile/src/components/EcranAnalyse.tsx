@@ -14,6 +14,7 @@ import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
 import { activerNotifications } from '@/services/notifications'
 import { CLE_CARTE, CLE_ETAPE_DU_JOUR } from '@/services/parcours'
+import { invaliderProgres } from '@/services/progres'
 import { file } from '@/services/prises'
 import { ecrireProfilLocal } from '@/services/profilLocal'
 import { supabase } from '@/services/supabase'
@@ -47,6 +48,7 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
     void (async () => {
       void clientRequetes.invalidateQueries({ queryKey: CLE_ETAPE_DU_JOUR })
       void clientRequetes.invalidateQueries({ queryKey: CLE_CARTE })
+      invaliderProgres(clientRequetes)
       if (suite === 'retour') {
         router.replace({ pathname: '/retour/[tentativeId]', params: { tentativeId: id } })
         return

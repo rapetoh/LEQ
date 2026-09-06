@@ -7,6 +7,8 @@ const DISPONIBLES = [
   { vers: '/drapeaux', ...fr.accueil.cartes.drapeaux },
   { vers: '/defis', ...fr.accueil.cartes.defis },
   { vers: '/exercices', ...fr.accueil.cartes.exercices },
+  { vers: '/recompenses', ...fr.accueil.cartes.recompenses },
+  { vers: '/echanges', ...fr.accueil.cartes.echanges },
 ] as const
 
 const A_VENIR = [fr.accueil.aVenir.grille, fr.accueil.aVenir.banques]

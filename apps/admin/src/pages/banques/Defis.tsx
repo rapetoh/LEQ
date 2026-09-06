@@ -35,18 +35,21 @@ export function Defis() {
     onSuccess: () => notifier({ type: 'succes', message: fr.defis.ordreEchange }),
     onError: (erreur: Error) =>
       notifier({ type: 'erreur', message: fr.defis.erreurOrdre, details: erreur.message }),
-    onSettled: () => void clientRequetes.invalidateQueries({ queryKey: cleRequeteDefis }),
+    // The promise is returned so the arrows stay disabled until the list is fresh.
+    onSettled: () => clientRequetes.invalidateQueries({ queryKey: cleRequeteDefis }),
   })
 
+  const [renommage, setRenommage] = useState<number | null>(null)
   const acte = useMutation({
     mutationFn: enregistrerModeleActe,
     onSuccess: () => {
       notifier({ type: 'succes', message: fr.defis.acteEnregistre })
       setNouvelActe(false)
+      setRenommage(null)
     },
     onError: (erreur: Error) =>
       notifier({ type: 'erreur', message: fr.defis.edition.erreur, details: erreur.message }),
-    onSettled: () => void clientRequetes.invalidateQueries({ queryKey: cleRequeteActes }),
+    onSettled: () => clientRequetes.invalidateQueries({ queryKey: cleRequeteActes }),
   })
 
   function deplacer(defi: Defi, direction: 'haut' | 'bas') {
@@ -97,7 +100,11 @@ export function Defis() {
             <Acte
               key={groupe.acte.ordre}
               groupe={groupe}
-              enCours={echange.isPending}
+              enCours={echange.isPending || defis.isFetching}
+              renommage={renommage === groupe.acte.ordre}
+              enregistrement={acte.isPending}
+              onOuvrirRenommage={() => setRenommage(groupe.acte.ordre)}
+              onFermerRenommage={() => setRenommage(null)}
               onDeplacer={deplacer}
               onRenommer={(valeur) => acte.mutate(valeur)}
             />
@@ -127,15 +134,22 @@ export function Defis() {
 function Acte({
   groupe,
   enCours,
+  renommage,
+  enregistrement,
+  onOuvrirRenommage,
+  onFermerRenommage,
   onDeplacer,
   onRenommer,
 }: {
   groupe: GroupeActe
   enCours: boolean
+  renommage: boolean
+  enregistrement: boolean
+  onOuvrirRenommage: () => void
+  onFermerRenommage: () => void
   onDeplacer: (defi: Defi, direction: 'haut' | 'bas') => void
   onRenommer: (valeur: ModeleActeEditable) => void
 }) {
-  const [renommage, setRenommage] = useState(false)
   const { acte, defis } = groupe
   return (
     <section className={styles.acte} aria-labelledby={`acte-${acte.ordre}`}>
@@ -144,12 +158,9 @@ function Acte({
           <FormulaireActe
             acte={acte}
             ordre={acte.ordre}
-            enregistrement={false}
-            onEnregistrer={(valeur) => {
-              onRenommer(valeur)
-              setRenommage(false)
-            }}
-            onAnnuler={() => setRenommage(false)}
+            enregistrement={enregistrement}
+            onEnregistrer={onRenommer}
+            onAnnuler={onFermerRenommage}
           />
         ) : (
           <>
@@ -161,11 +172,7 @@ function Acte({
               ) : null}
               <span className={styles.compte}>{fr.defis.nombreDefis(defis.length)}</span>
             </div>
-            <button
-              type="button"
-              className="bouton bouton-discret"
-              onClick={() => setRenommage(true)}
-            >
+            <button type="button" className="bouton bouton-discret" onClick={onOuvrirRenommage}>
               {fr.defis.renommer}
             </button>
           </>

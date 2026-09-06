@@ -16,6 +16,7 @@ Status values: Proposed, Accepted, Superseded by ADR-nnn.
 | [ADR-006](ADR-006-structured-feedback-and-versioned-grid.md) | Structured feedback first, versioned grid                   | Accepted                                             | 2026-09-05 |
 | ADR-007                                                      | Audio capture stack for attempts and for the debate         | Reserved: written by the Phase 0 audio capture spike |            |
 | [ADR-008](ADR-008-praat-prosody.md)                          | Prosody extraction in Praat, everything else in TypeScript  | Accepted                                             | 2026-09-05 |
+| [ADR-009](ADR-009-ledgers-not-counters.md)                   | Ledgers, not counters                                       | Accepted                                             | 2026-09-06 |
 
 ## Reserved numbers
 
@@ -25,7 +26,6 @@ ADR-007 is reserved for the result of the audio capture spike (plan, Phase 0, sp
 
 The approved plan takes more decisions than the eight above. They are summarised in [docs/ARCHITECTURE.md](../ARCHITECTURE.md) and get an ADR when the phase that implements them starts, numbered from ADR-009 in the order they are written:
 
-- Ledgers, not counters (points, debate quota, streak replay): Phase 5.
 - Scheduled work goes through the `jobs` table, pg_cron only inserts: implemented in Phase 0, ADR written with the first cron-driven feature (Phase 1 sweeps).
 - No hard-coded tunables (`configuration` and `drapeaux`): Phase 0, ADR with the admin editor (Phase 6).
 - Admin role via a custom access token hook: Phase 0, ADR with the admin space (Phase 6).

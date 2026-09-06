@@ -152,11 +152,12 @@ export function EditionDefi() {
       </header>
 
       <FormulaireDefi
-        key={defi?.modifie_le ?? 'nouveau'}
+        key={defi?.id ?? 'nouveau'}
         initiale={initiale}
         actes={listeActes}
         creation={creation}
         enregistrement={enregistrement}
+        prochainOrdrePour={(ordreActe) => prochainOrdre(listeDefis, ordreActe)}
         onEnregistrer={enregistrer}
       />
 

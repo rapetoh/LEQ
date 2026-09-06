@@ -146,9 +146,12 @@ export function validerDefi(saisie: SaisieDefi): ResultatValidation<DefiEditable
     duree_max_s: { requis: true, entier: true, minimum: 1 },
     points: { requis: true, entier: true, minimum: 0 },
     seuil_reussite: { requis: true, entier: false, minimum: 0 },
-    duree_lecture_s: { requis: saisie.format === 'texte', entier: true, minimum: 1 },
-    duree_preparation_s: { requis: saisie.format === 'long', entier: true, minimum: 1 },
   }
+  // The fields of another format are dropped, never validated: a stale value left by a format
+  // switch must not block the save with an error the form does not show.
+  if (saisie.format === 'texte') regles.duree_lecture_s = { requis: true, entier: true, minimum: 1 }
+  if (saisie.format === 'long')
+    regles.duree_preparation_s = { requis: true, entier: true, minimum: 1 }
   for (const [champ, regle] of Object.entries(regles)) {
     const lu = lireNombre(saisie[champ as keyof SaisieDefi] as string, regle)
     if (lu.ok) nombres[champ] = lu.valeur
@@ -160,7 +163,7 @@ export function validerDefi(saisie: SaisieDefi): ResultatValidation<DefiEditable
   const texte = texteOuNull(saisie.texte_a_lire)
   if (saisie.format === 'texte' && texte === null) erreurs.texte_a_lire = 'texteRequis'
 
-  const plan = saisie.plan
+  const plan = (saisie.format === 'long' ? saisie.plan : [])
     .map((appui) => ({ titre: appui.titre.trim(), detail: appui.detail.trim() }))
     .filter((appui) => appui.titre !== '' || appui.detail !== '')
   if (plan.some((appui) => appui.titre === '')) erreurs.plan = 'requis'
@@ -177,8 +180,8 @@ export function validerDefi(saisie: SaisieDefi): ResultatValidation<DefiEditable
     focus: texteOuNull(saisie.focus),
     plan,
     texte_a_lire: saisie.format === 'texte' ? texte : null,
-    duree_lecture_s: saisie.format === 'texte' ? nombres.duree_lecture_s : null,
-    duree_preparation_s: saisie.format === 'long' ? nombres.duree_preparation_s : null,
+    duree_lecture_s: saisie.format === 'texte' ? (nombres.duree_lecture_s ?? null) : null,
+    duree_preparation_s: saisie.format === 'long' ? (nombres.duree_preparation_s ?? null) : null,
     duree_max_s: nombres.duree_max_s,
     points: nombres.points,
     competence: saisie.competence.trim(),

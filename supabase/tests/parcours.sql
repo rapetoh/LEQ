@@ -53,7 +53,7 @@ select is((select statut from public.actes where ordre = 1), 'en_cours', 'acte I
 select is((select statut from public.actes where ordre = 3), 'a_venir', 'acte III à venir');
 select is((select public.obtenir_parcours()), (select id from public.parcours), 'a second call returns the same path');
 select is((select (public.etape_du_jour()) #>> '{rythme,raison}'), 'ok', 'the day is open');
-select is((select (public.etape_du_jour()) #>> '{defi,cle}'), 'premier_bonjour', 'the step of the day is the first défi');
+select is((select (public.etape_du_jour()) #>> '{defi,cle}'), (select cle from public.defis where ordre_acte = 1 and actif order by ordre limit 1), 'the step of the day is the first active défi of acte I');
 select is((select (public.etape_du_jour()) #>> '{formule}'), 'gratuit', 'no subscription row means gratuit');
 select is((select ((public.etape_du_jour()) #>> '{rythme,limite_etapes}')::int), 1, 'one step a day in gratuit');
 select throws_ok(
@@ -137,23 +137,52 @@ select is((select count(*) from public.etapes where parcours_id = (select parcou
 select is(public.appliquer_resultat((select id from public.tentatives where statut = 'envoyee' limit 1)), null, 'no evaluation, nothing applies');
 
 -- the admin reorders défis of one act; a user cannot; two acts never mix -----------------------
+-- Two throwaway défis under acte III, so the suite never depends on the live order of the bank.
+insert into public.defis (cle, ordre_acte, ordre, format, titre, consigne, duree_max_s, points, competence, seuil_reussite)
+values ('test_x', 3, 1, 'standard', 'X', 'x', 120, 10, 'test', 10), ('test_y', 3, 2, 'standard', 'Y', 'y', 120, 10, 'test', 10);
 select tests_leq.creer_utilisateur('44444444-4444-4444-8444-444444444444', 'admin@test.leq', false);
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select throws_ok(
-  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'premier_bonjour'), (select id from public.defis where cle = 'se_presenter')) $$,
+  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'test_x'), (select id from public.defis where cle = 'test_y')) $$,
   '42501', null, 'a user cannot reorder défis');
 reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');
 select lives_ok(
-  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'premier_bonjour'), (select id from public.defis where cle = 'se_presenter')) $$,
-  'the admin swaps two défis of acte I');
-select is((select ordre from public.defis where cle = 'premier_bonjour'), 2, 'premier_bonjour is now second');
-select is((select ordre from public.defis where cle = 'se_presenter'), 1, 'se_presenter is now first');
+  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'test_x'), (select id from public.defis where cle = 'test_y')) $$,
+  'the admin swaps two défis of acte III');
+select is((select ordre from public.defis where cle = 'test_x'), 2, 'test_x is now second');
+select is((select ordre from public.defis where cle = 'test_y'), 1, 'test_y is now first');
 select throws_ok(
-  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'premier_bonjour'), (select id from public.defis where cle = 'trois_phrases')) $$,
+  $$ select public.echanger_ordre_defis((select id from public.defis where cle = 'test_x'), (select id from public.defis where cle = 'trois_phrases')) $$,
   '23514', null, 'défis of two acts cannot be swapped');
-select lives_ok($$ update public.defis set provisoire = false where cle = 'se_presenter' $$, 'the admin marks a défi as validated');
-select is((select provisoire from public.defis where cle = 'se_presenter'), false, 'provisoire is off');
+select lives_ok($$ update public.defis set provisoire = false where cle = 'test_y' $$, 'the admin marks a défi as validated');
+select is((select provisoire from public.defis where cle = 'test_y'), false, 'provisoire is off');
+select throws_ok($$ update public.defis set ordre = 0 where cle = 'test_y' $$, '23514', null, 'a défi order must be positive');
+reset role; select tests_leq.deconnecter();
+
+-- Phase 4 review: anonymous step attempts, deactivated défis, dense ranks -----------------------
+select tests_leq.connecter('33333333-3333-4333-8333-333333333333', true, 'utilisateur');
+select lives_ok($$ select public.obtenir_parcours() $$, 'the anonymous person has a path');
+select lives_ok(
+  $$ insert into public.tentatives (id, utilisateur_id, type, etape_id, enregistre_le, fuseau_horaire, decalage_minutes, statut)
+     values (gen_random_uuid(), '33333333-3333-4333-8333-333333333333', 'etape',
+             (select id from public.etapes where statut = 'disponible' limit 1), now(), 'Europe/Paris', 120, 'envoyee') $$,
+  'an anonymous person records a step attempt');
+reset role; select tests_leq.deconnecter();
+-- A's path holds every acte I défi; deactivating one hides it from newcomers, not from A.
+create temp table desactive as select d.cle from public.defis d where d.ordre_acte = 1 and d.actif order by d.ordre offset 2 limit 1;
+grant select on desactive to authenticated;
+update public.defis set actif = false where cle = (select cle from desactive);
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select is((select count(*) from public.defis d where d.cle = (select cle from desactive)), 1::bigint, 'A still reads the deactivated défi of a step in the path');
+reset role; select tests_leq.deconnecter();
+select tests_leq.creer_utilisateur('55555555-5555-4555-8555-555555555555', 'e@test.leq', false);
+select tests_leq.connecter('55555555-5555-4555-8555-555555555555', false, 'utilisateur');
+select is((select count(*) from public.defis d where d.cle = (select cle from desactive)), 0::bigint, 'a newcomer does not see it');
+select lives_ok($$ select public.obtenir_parcours() $$, 'E builds a path without it');
+select is((select count(*) from public.etapes e join public.actes a on a.id = e.acte_id where a.ordre = 1), 6::bigint, 'E has six steps in acte I');
+select is((select bool_and(e.ordre = e.rang) from (select ordre, row_number() over (partition by acte_id order by ordre_global) as rang from public.etapes) e), true, 'step orders are a dense rank inside each act');
+select is((select max(e.ordre) from public.etapes e join public.actes a on a.id = e.acte_id where a.ordre = 1), 6, 'the last step of acte I is number six');
 reset role; select tests_leq.deconnecter();
 
 select * from finish();

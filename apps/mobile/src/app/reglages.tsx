@@ -11,6 +11,12 @@ import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { file } from '@/services/prises'
+import {
+  ErreurRecuperation,
+  activerRecuperation,
+  invaliderProgres,
+  useSerie,
+} from '@/services/progres'
 import { supabase, useSession } from '@/services/supabase'
 import { useContexteTheme, type ModeNuit } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
@@ -51,6 +57,20 @@ export default function Reglages() {
   const mouvementReduit = useReducedMotion()
   const [message, setMessage] = useState<string | null>(null)
   const [suppression, setSuppression] = useState(false)
+  const serie = useSerie()
+
+  const recuperation = useMutation({
+    mutationFn: activerRecuperation,
+    onSuccess: () => {
+      setMessage(t('serie.couvert'))
+      invaliderProgres(clientRequetes)
+    },
+    onError: (erreur: Error) => {
+      const refus = erreur instanceof ErreurRecuperation ? erreur.refus : null
+      setMessage(t(`serie.refus.${refus ?? 'inconnu'}`))
+      invaliderProgres(clientRequetes)
+    },
+  })
 
   const utilisateurId = session?.user.id ?? null
   const anonyme = session?.user.is_anonymous === true
@@ -87,7 +107,10 @@ export default function Reglages() {
       if (contexte?.precedent) clientRequetes.setQueryData(CLE_PROFIL, contexte.precedent)
       setMessage(t('reglages.erreur'))
     },
-    onSuccess: () => setMessage(null),
+    onSuccess: () => {
+      setMessage(null)
+      void clientRequetes.invalidateQueries({ queryKey: ['profil_rappels'] })
+    },
   })
 
   const demanderExport = async () => {
@@ -240,8 +263,36 @@ export default function Reglages() {
             p ? interrupteur('notif_annonces', p.notif_annonces) : null,
           )}
         </Carte>
+        <Carte style={styles.liste}>
+          {ligne(
+            t('serie.proteger'),
+            serie.data
+              ? serie.data.recuperation.restantes === 0
+                ? t('serie.detailAucune')
+                : serie.data.recuperation.restantes === 1
+                  ? t('serie.detail', { restantes: 1 })
+                  : t('serie.detailPlusieurs', { restantes: serie.data.recuperation.restantes })
+              : null,
+            serie.data?.recuperation.jour_a_couvrir ? (
+              <Bouton
+                libelle={t('serie.activer')}
+                variante="secondaire"
+                chargement={recuperation.isPending}
+                onPress={() => recuperation.mutate()}
+              />
+            ) : null,
+            true,
+          )}
+          {serie.data && !serie.data.recuperation.jour_a_couvrir ? (
+            <Text style={[typographie.petit, styles.sousLigne, { color: theme.texteTertiaire }]}>
+              {serie.data.courante > 0 || serie.data.recuperation.jour_reparable
+                ? t('serie.rienACouvrir')
+                : t('serie.tropTard', { record: serie.data.record })}
+            </Text>
+          ) : null}
+        </Carte>
         <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-          {t('reglages.rituel.note')}
+          {t('reglages.rituel.noteRappels')}
         </Text>
       </View>
 
@@ -309,4 +360,5 @@ const styles = StyleSheet.create({
     borderRadius: rayons.pilule,
   },
   message: { textAlign: 'center' },
+  sousLigne: { paddingBottom: espaces.m },
 })

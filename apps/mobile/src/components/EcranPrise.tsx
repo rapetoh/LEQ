@@ -1,5 +1,6 @@
 import type { AppuiPlan, TypeTentative } from '@leq/domaine'
 import { randomUUID } from 'expo-crypto'
+import { File } from 'expo-file-system'
 import { useNetworkState } from 'expo-network'
 import { useEffect, useRef, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -65,6 +66,8 @@ export function EcranPrise(props: ProprietesPrise) {
   const [niveaux, setNiveaux] = useState<number[]>(() => Array<number>(NB_BARRES).fill(-100))
   const [message, setMessage] = useState<string | null>(null)
   const idRef = useRef<string | null>(null)
+  const demarrageRef = useRef(false)
+  const [demarrageEnCours, setDemarrageEnCours] = useState(false)
   const minuteur = useRef<ReturnType<typeof setInterval> | null>(null)
   const maxRef = useRef(dureeMax)
   useEffect(() => {
@@ -74,7 +77,16 @@ export function EcranPrise(props: ProprietesPrise) {
   const horsLigne = reseau.isConnected === false
 
   const abandonner = async () => {
-    await enregistrement.annuler()
+    // The recorder hands back the partial file: it goes at once, the voice is never kept.
+    const chemin = await enregistrement.annuler()
+    if (chemin) {
+      try {
+        const fichier = new File(chemin)
+        if (fichier.exists) fichier.delete()
+      } catch (erreur) {
+        console.warn('prise: fichier partiel non supprimé', erreur)
+      }
+    }
     if (idRef.current) {
       await file.annuler(idRef.current).catch(() => undefined)
       idRef.current = null
@@ -128,9 +140,15 @@ export function EcranPrise(props: ProprietesPrise) {
   }
 
   const demarrer = async () => {
+    // One start at a time: a double tap must not open two recordings.
+    if (demarrageRef.current || enregistrement.estEnCours()) return
+    demarrageRef.current = true
+    setDemarrageEnCours(true)
     setMessage(null)
     if ((await demanderMicro()) !== 'accorde') {
       setMessage(t('prise.micRefuse'))
+      demarrageRef.current = false
+      setDemarrageEnCours(false)
       return
     }
     const id = randomUUID()
@@ -159,6 +177,9 @@ export function EcranPrise(props: ProprietesPrise) {
       await abandonner()
       setPhase('erreur')
       setMessage(t('prise.erreur'))
+    } finally {
+      demarrageRef.current = false
+      setDemarrageEnCours(false)
     }
   }
 
@@ -278,7 +299,11 @@ export function EcranPrise(props: ProprietesPrise) {
           />
         ) : null}
         {phase === 'pret' || phase === 'erreur' ? (
-          <Bouton libelle={t('prise.demarrer')} onPress={() => void demarrer()} />
+          <Bouton
+            libelle={t('prise.demarrer')}
+            chargement={demarrageEnCours}
+            onPress={() => void demarrer()}
+          />
         ) : null}
         {phase === 'en_cours' ? (
           <>
