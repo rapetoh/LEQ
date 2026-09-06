@@ -34,6 +34,8 @@ Environment: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (Dashboard 
 
 ## Deploy
 
+The production bundle is one 600 KB chunk (React, supabase-js, TanStack Query, the pages); Vite warns above 500 KB. Acceptable for an admin used by one person; split the pages with dynamic imports when the space grows in Phase 6.
+
 Static hosting is enough: `vercel.json` and `public/_redirects` route every path to `index.html` for Vercel and Cloudflare Pages respectively. Set the two environment variables in the hosting dashboard. Target chosen at Phase 6 when the space is complete; nothing is deployed today.
 
 ## Stubs and limits
