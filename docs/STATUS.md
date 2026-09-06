@@ -220,7 +220,7 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
    - [x] A suspended account is sent to `/suspendu` from every screen but the settings (`components/GardeSuspension.tsx`), with the two gestures that stay open in G3
 5. Verification
    - [x] pgTAP (all suites), server (17), mobile (49) and admin (31) tests green; `npm run check` and `npm run format:check` green
-   - [ ] Simulator boot with the Phase 6 app
+   - [x] Simulator boot with the Phase 6 app: builds (0 errors), installs, bundles with no runtime warning, A1 renders (screenshot checked 2026-09-06)
 
 ## Next
 
