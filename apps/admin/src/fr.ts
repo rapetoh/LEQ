@@ -28,6 +28,11 @@ export const fr = {
     exercices: 'Exercices',
     recompenses: 'Récompenses',
     echanges: 'Échanges',
+    grille: 'Grille',
+    annonces: 'Annonces',
+    ateliers: 'Ateliers',
+    utilisateurs: 'Utilisateurs',
+    exports: 'Demandes de données',
     seDeconnecter: 'Se déconnecter',
   },
 
@@ -54,7 +59,7 @@ export const fr = {
       "Ici, tu règles l'application : ses valeurs, et ce qui est visible pour les utilisateurs.",
     disponible: 'Disponible maintenant',
     bientot: 'Bientôt',
-    aVenirIntro: 'Deux espaces arrivent, dans cet ordre.',
+    aVenirIntro: 'Un espace arrive avec la suite.',
     cartes: {
       configuration: {
         titre: 'Configuration',
@@ -86,12 +91,34 @@ export const fr = {
         texte: 'Les points échangés par les utilisateurs, à honorer ou à annuler.',
         action: 'Ouvrir les échanges',
       },
-    },
-    aVenir: {
       grille: {
         titre: 'La grille',
-        texte: 'Tes critères, versionnés, calibrés sur des prises réelles que tu auras écoutées.',
+        texte:
+          'Tes critères, versionnés : chaque nouvelle prise est notée avec la version publiée.',
+        action: 'Ouvrir la grille',
       },
+      annonces: {
+        titre: 'Les annonces',
+        texte: 'Un message à toute la base ou à des régions, deux par mois au plus.',
+        action: 'Ouvrir les annonces',
+      },
+      ateliers: {
+        titre: 'Les ateliers',
+        texte: "Tes ateliers, en salle ou en ligne, tels que l'application les montre.",
+        action: 'Ouvrir les ateliers',
+      },
+      utilisateurs: {
+        titre: 'Les utilisateurs',
+        texte: 'Les profils, la suspension et la réactivation.',
+        action: 'Ouvrir les utilisateurs',
+      },
+      exports: {
+        titre: 'Les demandes de données',
+        texte: 'Les personnes qui veulent une copie de leurs données, à traiter par e-mail.',
+        action: 'Ouvrir les demandes',
+      },
+    },
+    aVenir: {
       banques: {
         titre: 'Les banques de sujets',
         texte: "Sujets de l'Arène, thèses du face-à-face.",
@@ -200,6 +227,7 @@ export const fr = {
       cle: 'Lettres minuscules, chiffres et tirets bas seulement.',
       texteRequis: 'Un défi texte a besoin de son texte à lire.',
       preparationRequise: 'Un grand format a besoin de sa durée de préparation.',
+      bande: 'Le max doit être supérieur ou égal au min.',
       contrat: 'Cette valeur ne respecte pas le contrat.',
     },
     champs: {
@@ -357,5 +385,189 @@ export const fr = {
       honore: 'Honoré',
       annule: 'Annulé',
     },
+  },
+
+  grille: {
+    titre: 'La grille',
+    intro:
+      'Ta grille, en versions. Un brouillon se modifie critère par critère ; une fois publiée, une version ne bouge plus et chaque nouvelle prise est notée avec la version publiée la plus récente. Les prises déjà notées gardent leur version.',
+    vide: 'Aucune version. Crée la première pour écrire tes critères.',
+    erreurChargement: 'Impossible de charger la grille.',
+    erreur: 'Enregistrement impossible.',
+    premiereVersion: 'Créer la première version',
+    nouvelleVersionDepuis: (v: number) => `Nouvelle version à partir de la ${v}`,
+    version: (v: number) => `Version ${v}`,
+    versionCreee: (v: number) => `Version ${v} créée, en brouillon.`,
+    publieeLe: (date: string) => `publiée le ${date}`,
+    publieeCourte: 'Publiée',
+    brouillon: 'Brouillon',
+    enService: 'En service pour les nouvelles prises',
+    nbCriteres: (n: number) => (n === 1 ? '1 critère' : `${n} critères`),
+    nbElements: (n: number) => (n === 1 ? '1 mesure' : `${n} mesures`),
+    surMax: (max: number) => `sur ${max}`,
+    lectureSeule:
+      'Cette version est publiée : elle se lit, elle ne se modifie plus. Crée une nouvelle version pour changer un critère.',
+    ajouterCritere: 'Ajouter un critère',
+    aucunCritere: 'Aucun critère dans cette version.',
+    modifier: 'Modifier',
+    supprimer: 'Supprimer',
+    supprimerTitre: (nom: string) => `Supprimer le critère « ${nom} »`,
+    supprimerMessage:
+      'Il disparaît de ce brouillon. Les versions publiées ne changent pas. Continuer ?',
+    publier: 'Publier cette version',
+    publierTitre: (v: number) => `Publier la version ${v}`,
+    publierMessage:
+      'À partir de maintenant, chaque nouvelle prise est notée avec cette version et le défi du jour se valide sur ses notes. On ne dépublie pas : pour changer, tu crées une nouvelle version. Continuer ?',
+    publiee: 'Version publiée. Elle note les prochaines prises.',
+    critereEnregistre: 'Critère enregistré.',
+    critereSupprime: 'Critère supprimé.',
+    champs: {
+      cle: 'Clé technique',
+      cleAide: 'Minuscules, chiffres, tirets bas. Elle nomme la sous-note dans chaque retour.',
+      nom: 'Nom montré',
+      scoreMax: 'Note maximale',
+      scoreMaxAide: 'La somme des notes maximales des critères fait la note totale de la grille.',
+      definition: 'Définition',
+      definitionAide: 'Ce que le critère écoute, en une phrase. Montré à côté du nom.',
+      elements: 'Les mesures écoutées',
+      elementsAide:
+        "Chaque mesure lit un chiffre de l'analyse et le range dans une bande ; la note du critère est la moyenne pondérée des bandes, ramenée à la note maximale.",
+      mesure: 'Mesure',
+      mesureAide: "Un chemin dans les mesures de l'analyse (docs/DATA-MODEL.md).",
+      parType: 'un mot béquille précis…',
+      mot: 'Le mot',
+      poids: 'Poids',
+      poidsAide: "Une mesure de poids 2 compte deux fois plus qu'une mesure de poids 1.",
+      bandes: 'Les bandes',
+      bandesAide:
+        'De min (inclus) à max (exclu) : la note de la bande. Laisse min ou max vide pour une bande ouverte. Une valeur hors de toute bande vaut 0.',
+      min: 'min',
+      max: 'max',
+      score: 'note',
+      ajouterBande: 'Ajouter une bande',
+      retirerBande: (n: number) => `Retirer la bande ${n}`,
+      ajouterElement: 'Ajouter une mesure',
+      retirerElement: 'Retirer cette mesure',
+    },
+  },
+
+  annonces: {
+    titre: 'Les annonces',
+    intro:
+      "Un message poussé sur les téléphones des personnes qui gardent l'interrupteur allumé. Deux par mois au plus, c'est la base qui compte ; choisis des régions pour un atelier en salle, aucune pour un atelier en ligne.",
+    compteur: (n: number, plafond: number) => `${n} sur ${plafond} ce mois-ci`,
+    envoyer: 'Envoyer maintenant',
+    envoyee: 'Annonce envoyée. Le serveur la pousse dans les prochaines minutes.',
+    plafondAtteint:
+      'Le plafond du mois est atteint. La prochaine annonce attendra le mois prochain.',
+    erreur: "L'annonce n'a pas été envoyée.",
+    erreurChamp: 'Vérifie ce champ.',
+    erreurChargement: 'Impossible de charger les annonces.',
+    historique: 'Envoyées',
+    vide: 'Aucune annonce envoyée pour le moment.',
+    toutLeMonde: 'Tout le monde',
+    nbRegions: (n: number) => (n === 1 ? '1 région' : `${n} régions`),
+    enCours: 'Envoi en cours',
+    bilan: (envoyes: number, destinataires: number, echecs: number) =>
+      echecs === 0
+        ? `${envoyes} sur ${destinataires} reçues`
+        : `${envoyes} sur ${destinataires} reçues, ${echecs} en échec`,
+    champs: {
+      titre: 'Titre',
+      titreAide:
+        'Court : il tient sur un écran verrouillé. Exemple : « Rebecca ouvre un atelier ».',
+      corps: 'Message',
+      corpsAide: "L'atelier, la date, les places, et c'est tout. Le ton d'une invitation.",
+      atelier: 'Atelier lié',
+      atelierAide:
+        "Optionnel : l'application ouvre sa fiche quand la personne touche la notification.",
+      sansAtelier: 'Aucun',
+      regions: 'Régions',
+      regionsAide:
+        'Aucune région cochée : tout le monde. Un atelier en salle : sa région et les voisines.',
+    },
+  },
+
+  ateliers: {
+    titre: 'Les ateliers',
+    intro:
+      "Ce que l'application montre dans « Avec Rebecca, ce mois-ci » et sur le pont vers toi. Un atelier publié est visible ; un brouillon ne l'est pas.",
+    creer: 'Créer un atelier',
+    vide: 'Aucun atelier. Crée le premier.',
+    erreurChargement: 'Impossible de charger les ateliers.',
+    erreur: 'Enregistrement impossible.',
+    cree: 'Atelier créé.',
+    enregistre: 'Atelier enregistré.',
+    modifier: 'Modifier',
+    publier: 'Publier',
+    depublier: 'Dépublier',
+    publie: 'Publié',
+    brouillon: 'Brouillon',
+    enLigne: 'En ligne',
+    champs: {
+      titre: 'Titre',
+      sousTitre: 'Sous-titre',
+      date: 'Date et heure',
+      description: 'Description',
+      descriptionAide: 'Deux phrases : le format, ce que la personne en retire.',
+      enLigne: 'En ligne',
+      enLigneAide: 'Un atelier en ligne concerne tout le monde, sans filtre de région.',
+      lieu: 'Lieu',
+      lieuAide: 'La ville, ou « En ligne ».',
+      region: 'Région',
+      regionAide: 'Pour le filtre des annonces et la carte des personnes concernées.',
+      sansRegion: 'Non précisée',
+      places: 'Places',
+      lien: 'Lien de réservation',
+      lienAide: "La réservation se fait chez toi, hors de l'application.",
+      recompense: 'Récompense qui donne une place',
+      recompenseAide:
+        "Optionnel : la récompense de la boutique qui s'échange contre une place ici.",
+      sansRecompense: 'Aucune',
+      publie: 'Publié',
+      publieAide: "Visible dans l'application dès l'enregistrement.",
+    },
+  },
+
+  utilisateurs: {
+    titre: 'Les utilisateurs',
+    intro:
+      "Les profils, sans adresse e-mail (elle reste dans l'authentification). Suspendre un compte lui coupe l'enregistrement et la boutique ; la personne garde la lecture, la copie de ses données et la suppression.",
+    nombre: (n: number) => (n === 1 ? '1 profil' : `${n} profils`),
+    rechercher: 'Chercher un prénom ou un identifiant',
+    filtres: { tous: 'Tous', suspendus: 'Suspendus', admins: 'Admins' },
+    vide: 'Aucun profil dans cette liste.',
+    erreurChargement: 'Impossible de charger les profils.',
+    erreur: "L'opération n'a pas abouti.",
+    sansPrenom: 'Sans prénom',
+    admin: 'Admin',
+    depuis: (date: string) => `depuis le ${date}`,
+    suspenduDepuis: (date: string) => `suspendu le ${date}`,
+    suspendre: 'Suspendre',
+    reactiver: 'Réactiver',
+    suspendreTitre: (nom: string) => `Suspendre ${nom}`,
+    suspendreMessage:
+      "Le motif est gardé dans le journal, il n'est pas montré à la personne. Elle verra un écran qui dit que son compte est suspendu.",
+    motif: 'Motif',
+    suspendu: 'Compte suspendu.',
+    reactive: 'Compte réactivé.',
+  },
+
+  exports: {
+    titre: 'Les demandes de données',
+    intro:
+      "Chaque ligne est une personne qui a demandé une copie de ses données (chapitre 2). Tu la prépares et l'envoies par e-mail, puis tu marques la demande traitée.",
+    voirTraitees: 'Voir les traitées',
+    masquerTraitees: 'Masquer les traitées',
+    vide: 'Aucune demande à traiter.',
+    erreurChargement: 'Impossible de charger les demandes.',
+    erreur: "La demande n'a pas pu être mise à jour.",
+    sansEmail: 'Sans adresse',
+    traiteeLe: (date: string) => `traitée le ${date}`,
+    traitee: 'Traitée',
+    aTraiter: 'À traiter',
+    marquerTraitee: 'Marquer traitée',
+    rouvrir: 'Rouvrir',
+    misAJour: 'Demande mise à jour.',
   },
 } as const

@@ -12,6 +12,8 @@ import { t } from '@/i18n/fr'
 import { useDrapeaux } from '@/services/configuration'
 import { useEtapeDuJour } from '@/services/parcours'
 import { usePoints, useSerie } from '@/services/progres'
+import { useAteliers } from '@/services/rebecca'
+import { CarteAtelier } from '@/components/CarteAtelier'
 import { etatAujourdhui, minutesDe, positionDefi, rythmeDeFormule } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
@@ -36,6 +38,8 @@ export default function Aujourdhui() {
   const areneActive = drapeaux.data?.arene === true
   const serie = useSerie()
   const points = usePoints()
+  const ateliers = useAteliers()
+  const prochainAtelier = ateliers.data?.[0] ?? null
 
   return (
     <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
@@ -111,8 +115,28 @@ export default function Aujourdhui() {
         )}
 
         <View style={styles.section}>
-          <Titre niveau="section">{t('aujourdhui.avecRebecca')}</Titre>
-          <CartePlaceholder phrase={t('aujourdhui.placeholderRebecca')} />
+          <View style={styles.ligne}>
+            <Titre niveau="section" style={{ flex: 1 }}>
+              {t('aujourdhui.avecRebecca')}
+            </Titre>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/aujourdhui/rebecca')}
+            >
+              <Text style={[typographie.etiquette, { color: theme.lien }]}>
+                {t('aujourdhui.toutVoir')}
+              </Text>
+            </Pressable>
+          </View>
+          {prochainAtelier ? (
+            <CarteAtelier
+              atelier={prochainAtelier}
+              compact
+              onOuvrir={() => router.push('/aujourdhui/rebecca')}
+            />
+          ) : (
+            <CartePlaceholder phrase={t('aujourdhui.placeholderRebecca')} />
+          )}
         </View>
       </View>
     </ScrollView>

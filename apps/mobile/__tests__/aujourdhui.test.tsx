@@ -11,6 +11,7 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn() }),
 }))
 jest.mock('@/services/parcours', () => ({ useEtapeDuJour: jest.fn() }))
+jest.mock('@/services/rebecca', () => ({ useAteliers: jest.fn(() => ({ data: undefined })) }))
 jest.mock('@/services/progres', () => ({
   useSerie: jest.fn(() => ({ data: undefined })),
   usePoints: jest.fn(() => ({ data: undefined })),

@@ -210,16 +210,17 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
    - [x] Job `envoyer_annonce` (`jobs/envoyerAnnonce.ts`): one push per active token of the people who keep `notif_annonces` on, whose region is in the list (everyone when the list is null), not suspended; batches of 100; tokens marked as for the feedback push; counts written back; idempotent; 4 tests with a fake sender (17 server tests)
    - [x] The pipeline reads the filler word list from `configuration.mots_bequilles` at each analysis, falling back to the contract's v1 list
 3. Admin
-   - [ ] Grille: versions list, a draft edited criterion by criterion (key, name, definition, score max, elements with a measure path from the contract, bands, weights), publish with confirmation, a new version copied from the published one; the pgTAP and the engine already exist
-   - [ ] Annonces et ateliers: create and edit a workshop, compose an announcement (title, body, workshop, regions), the month's counter against the cap, send; history of what was sent
-   - [ ] Utilisateurs: list and search profiles, suspend with a reason, reactivate; the log of suspensions
-   - [ ] Demandes d'export: the inbox, mark as treated
+   - [x] Grille (`/grille`): versions as tabs, a draft edited criterion by criterion (key, name, definition, score max, elements with a measure path from the contract or a per-word crutch count, bands, weights; pure validation tested), publish with confirmation (one-way), a new version copied from the selected one, published versions read-only
+   - [x] Annonces (`/annonces`): compose (title, body, linked workshop, regions as toggles), the month's counter against the cap, send through `publier_annonce()`, history with the delivery counts; Ateliers (`/ateliers`): create, edit, publish and unpublish, region, places, booking link, the reward that gives a place
+   - [x] Utilisateurs (`/utilisateurs`): profiles with search and filters, suspend with a reason, reactivate, the open reason shown on the row
+   - [x] Demandes de données (`/exports`): the inbox, mark treated, reopen (31 admin tests in all)
 4. Mobile
-   - [ ] B1 "Avec Rebecca, ce mois-ci": the next published workshop, "Tout voir" opens B1b (`/aujourdhui/rebecca`) with workshops and announcements; F1 shows the workshop card; a tapped announcement (X6) opens B1b
-   - [ ] G3: the region picker (chapter 3, asked in settings now that announcements exist)
-   - [ ] A suspended account sees one screen saying so, with the two gestures that stay open (copy of data, deletion)
+   - [x] B1 "Avec Rebecca, ce mois-ci": the next published workshop (`components/CarteAtelier.tsx`), "Tout voir" opens B1b (`/aujourdhui/rebecca`) with workshops, the one-to-one line and announcements; F1 shows the workshop card with the points line when a reward gives a place; a tapped announcement (X6, data `annonce_id`) opens B1b
+   - [x] G3: the region picker (fixed list of the contract)
+   - [x] A suspended account is sent to `/suspendu` from every screen but the settings (`components/GardeSuspension.tsx`), with the two gestures that stay open in G3
 5. Verification
-   - [ ] pgTAP, server, mobile and admin tests green; `npm run check`; simulator boot
+   - [x] pgTAP (all suites), server (17), mobile (49) and admin (31) tests green; `npm run check` and `npm run format:check` green
+   - [ ] Simulator boot with the Phase 6 app
 
 ## Next
 

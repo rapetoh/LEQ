@@ -11,9 +11,10 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
+import { GardeSuspension } from '@/components/GardeSuspension'
 import { Rappels } from '@/components/Rappels'
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
-import { rafraichirJeton, surNotificationTouchee } from '@/services/notifications'
+import { rafraichirJeton, routePourCible, surNotificationTouchee } from '@/services/notifications'
 import { definirExpirationFileJours, demarrerFile, routePourRetour } from '@/services/prises'
 import { FournisseurSession, useSession } from '@/services/supabase'
 import { FournisseurTheme, useTheme } from '@/theme/ThemeProvider'
@@ -76,7 +77,10 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
     return surNotificationTouchee((cible) => {
       if (cible.tentative_id) {
         void routePourRetour(cible.tentative_id).then((route) => router.push(route))
+        return
       }
+      const route = routePourCible(cible)
+      if (route) router.push(route)
     })
   }, [router])
 
@@ -86,6 +90,7 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
     <FournisseurDemarrage>
       <ReglagesFile />
       <Rappels />
+      <GardeSuspension />
       <StatusBar style={theme.sombre ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -108,6 +113,8 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
         <Stack.Screen name="acte/[acteId]/traverse" options={{ gestureEnabled: false }} />
         <Stack.Screen name="recompenses" />
         <Stack.Screen name="rebecca" />
+        <Stack.Screen name="aujourdhui/rebecca" />
+        <Stack.Screen name="suspendu" options={{ gestureEnabled: false }} />
       </Stack>
     </FournisseurDemarrage>
   )

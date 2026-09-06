@@ -9,11 +9,16 @@ const DISPONIBLES = [
   { vers: '/exercices', ...fr.accueil.cartes.exercices },
   { vers: '/recompenses', ...fr.accueil.cartes.recompenses },
   { vers: '/echanges', ...fr.accueil.cartes.echanges },
+  { vers: '/grille', ...fr.accueil.cartes.grille },
+  { vers: '/annonces', ...fr.accueil.cartes.annonces },
+  { vers: '/ateliers', ...fr.accueil.cartes.ateliers },
+  { vers: '/utilisateurs', ...fr.accueil.cartes.utilisateurs },
+  { vers: '/exports', ...fr.accueil.cartes.exports },
 ] as const
 
-const A_VENIR = [fr.accueil.aVenir.grille, fr.accueil.aVenir.banques]
+const A_VENIR = [fr.accueil.aVenir.banques]
 
-/** Home: what Rebecca can do today, and the two spaces that come next. No fake data. */
+/** Home: what Rebecca can do today, and the space that comes next. No fake data. */
 export function Accueil() {
   return (
     <div className="page">

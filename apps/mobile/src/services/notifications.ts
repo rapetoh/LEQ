@@ -85,6 +85,13 @@ export async function rafraichirJeton(): Promise<void> {
 
 export interface CibleNotification {
   tentative_id?: string
+  annonce_id?: string
+}
+
+/** Where a tapped notification goes when it is not a feedback: B1b for an announcement (X6). */
+export function routePourCible(cible: CibleNotification): string | null {
+  if (cible.annonce_id) return '/aujourdhui/rebecca'
+  return null
 }
 
 /** The data carried by a tapped notification, or null. */
@@ -92,7 +99,10 @@ export function lireCible(
   reponse: Notifications.NotificationResponse | null,
 ): CibleNotification | null {
   const data = reponse?.notification.request.content.data as CibleNotification | undefined
-  return data && typeof data.tentative_id === 'string' ? { tentative_id: data.tentative_id } : null
+  if (!data) return null
+  if (typeof data.tentative_id === 'string') return { tentative_id: data.tentative_id }
+  if (typeof data.annonce_id === 'string') return { annonce_id: data.annonce_id }
+  return null
 }
 
 export function surNotificationTouchee(ecouteur: (cible: CibleNotification) => void): () => void {

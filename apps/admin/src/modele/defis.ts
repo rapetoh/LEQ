@@ -28,6 +28,7 @@ export type CodeErreur =
   | 'cle'
   | 'texteRequis'
   | 'preparationRequise'
+  | 'bande'
   | 'contrat'
 
 export type Erreurs = Partial<Record<string, CodeErreur>>

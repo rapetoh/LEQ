@@ -6,6 +6,8 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 're
 import { useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { CODES_REGION, NOMS_REGION, type CodeRegion } from '@leq/domaine'
+
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
@@ -27,6 +29,7 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 
 type Profil = {
   prenom: string | null
+  region: CodeRegion | null
   publier_sous_prenom: boolean
   notif_rappel: boolean
   notif_serie: boolean
@@ -57,6 +60,7 @@ export default function Reglages() {
   const mouvementReduit = useReducedMotion()
   const [message, setMessage] = useState<string | null>(null)
   const [suppression, setSuppression] = useState(false)
+  const [choixRegion, setChoixRegion] = useState(false)
   const serie = useSerie()
 
   const recuperation = useMutation({
@@ -82,7 +86,7 @@ export default function Reglages() {
       const { data, error } = await supabase
         .from('profils')
         .select(
-          'prenom, publier_sous_prenom, notif_rappel, notif_serie, notif_social, notif_annonces, heure_rappel',
+          'prenom, region, publier_sous_prenom, notif_rappel, notif_serie, notif_social, notif_annonces, heure_rappel',
         )
         .eq('id', utilisateurId)
         .single()
@@ -294,6 +298,51 @@ export default function Reglages() {
         <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
           {t('reglages.rituel.noteRappels')}
         </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Titre niveau="section">{t('reglages.region.titre')}</Titre>
+        <Carte style={styles.liste}>
+          {ligne(
+            p?.region ? NOMS_REGION[p.region] : t('reglages.region.aucune'),
+            t('reglages.region.detail'),
+            <Bouton
+              libelle={t('reglages.region.choisir')}
+              variante="texte"
+              onPress={() => setChoixRegion((v) => !v)}
+            />,
+            true,
+          )}
+          {choixRegion
+            ? CODES_REGION.map((code) => (
+                <Pressable
+                  key={code}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: p?.region === code }}
+                  onPress={() => {
+                    modifier.mutate({ region: code })
+                    setChoixRegion(false)
+                  }}
+                  style={[
+                    styles.ligne,
+                    { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.bordure },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      typographie.corps,
+                      { color: p?.region === code ? theme.texte : theme.texteSecondaire, flex: 1 },
+                    ]}
+                  >
+                    {NOMS_REGION[code]}
+                  </Text>
+                  {p?.region === code ? (
+                    <Text style={[typographie.corpsFort, { color: theme.accent }]}>✓</Text>
+                  ) : null}
+                </Pressable>
+              ))
+            : null}
+        </Carte>
       </View>
 
       <View style={styles.section}>

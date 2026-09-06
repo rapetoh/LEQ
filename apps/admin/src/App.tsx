@@ -11,6 +11,11 @@ import { EditionDefi } from './pages/banques/EditionDefi'
 import { Echanges } from './pages/banques/Echanges'
 import { Exercices } from './pages/banques/Exercices'
 import { Recompenses } from './pages/banques/Recompenses'
+import { Annonces } from './pages/annonces/Annonces'
+import { Ateliers } from './pages/annonces/Ateliers'
+import { Grille } from './pages/grille/Grille'
+import { DemandesExport } from './pages/utilisateurs/DemandesExport'
+import { Utilisateurs } from './pages/utilisateurs/Utilisateurs'
 
 /** Every page except the login sits behind a session and the admin role. */
 export function App() {
@@ -35,6 +40,11 @@ export function App() {
         <Route path="exercices" element={<Exercices />} />
         <Route path="recompenses" element={<Recompenses />} />
         <Route path="echanges" element={<Echanges />} />
+        <Route path="grille" element={<Grille />} />
+        <Route path="annonces" element={<Annonces />} />
+        <Route path="ateliers" element={<Ateliers />} />
+        <Route path="utilisateurs" element={<Utilisateurs />} />
+        <Route path="exports" element={<DemandesExport />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

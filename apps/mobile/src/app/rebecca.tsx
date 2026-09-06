@@ -2,11 +2,14 @@ import { useRouter } from 'expo-router'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { CarteAtelier } from '@/components/CarteAtelier'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { useBoutique } from '@/services/progres'
+import { useAteliers } from '@/services/rebecca'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -17,6 +20,12 @@ export default function Rebecca() {
   const theme = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const ateliers = useAteliers()
+  const boutique = useBoutique()
+  const prochain = ateliers.data?.[0] ?? null
+  const cout = prochain?.recompense_id
+    ? (boutique.data?.recompenses.find((r) => r.id === prochain.recompense_id)?.cout_points ?? null)
+    : null
   return (
     <ScrollView
       style={{ backgroundColor: theme.fond }}
@@ -30,7 +39,11 @@ export default function Rebecca() {
         {t('rebecca.corps')}
       </Text>
 
-      <CartePlaceholder titre={t('rebecca.ateliers')} phrase={t('rebecca.ateliersPlaceholder')} />
+      {prochain ? (
+        <CarteAtelier atelier={prochain} coutPlace={cout} />
+      ) : (
+        <CartePlaceholder titre={t('rebecca.ateliers')} phrase={t('rebecca.ateliersPlaceholder')} />
+      )}
 
       <Carte style={styles.bloc}>
         <Text style={[typographie.titreCarte, { color: theme.texte }]}>
