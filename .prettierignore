@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+.expo
+Brainstorming
+**/ios
+**/android
+supabase/.temp
+package-lock.json

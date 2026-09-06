@@ -1,0 +1,42 @@
+# dépendances
+node_modules/
+
+# secrets et environnement local
+.env
+.env.*
+!.env.example
+
+# sorties de build
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Expo et natif généré (Continuous Native Generation)
+.expo/
+apps/mobile/ios/
+apps/mobile/android/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+
+# système et éditeurs
+.DS_Store
+*.log
+npm-debug.log*
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
