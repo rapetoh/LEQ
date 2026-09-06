@@ -27,6 +27,7 @@ export function creerDepotAnalyse(pool: Pool): DepotAnalyse {
   return {
     lireTentative: (id) => db.lireTentative(pool, id),
     mettreAJourStatut: (id, statut) => db.mettreAJourStatut(pool, id, statut),
+    mettreAJourDuree: (id, dureeS) => db.mettreAJourDuree(pool, id, dureeS),
     lireGrillePubliee: () => db.lireGrillePubliee(pool),
     enregistrerAnalyseEtEvaluation: (analyse, evaluation) =>
       db.enregistrerAnalyseEtEvaluation(pool, analyse, evaluation),

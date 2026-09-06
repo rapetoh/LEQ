@@ -70,6 +70,9 @@ function construireFaux(
     mettreAJourStatut: async (_id, statut) => {
       journal.push(`statut:${statut}`)
     },
+    mettreAJourDuree: async (_id, dureeS) => {
+      journal.push(`duree:${dureeS}`)
+    },
     lireGrillePubliee: async () => options.grille ?? null,
     enregistrerAnalyseEtEvaluation: async (analyse, evaluation) => {
       echec('enregistrer')
@@ -127,6 +130,7 @@ describe('analyserTentative', () => {
       'statut:en_transcription',
       'telechargement',
       'statut:en_mesure',
+      'duree:1',
       'statut:en_evaluation',
       'ecriture',
       'suppression_audio',

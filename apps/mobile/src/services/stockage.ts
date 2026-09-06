@@ -7,6 +7,9 @@ export const CLES = {
   cacheConfiguration: 'cache_configuration',
   cacheDrapeaux: 'cache_drapeaux',
   modeNuit: 'mode_nuit',
+  profilLocal: 'profil_local',
+  reponsesAccueil: 'reponses_accueil',
+  priseDiagnostic: 'prise_diagnostic',
 } as const
 
 export type CleStockage = (typeof CLES)[keyof typeof CLES]

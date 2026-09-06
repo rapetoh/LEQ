@@ -42,6 +42,10 @@ fly logs -c apps/serveur/fly.toml
 
 `PROCESS` is taken from `FLY_PROCESS_GROUP`, set by Fly on every machine. The Dockerfile builds the three TypeScript workspaces and installs ffmpeg, Python and Praat (parselmouth) in the runtime stage.
 
+## Simulating a take
+
+`scripts/simuler-prise.mjs` does what the phone does against the hosted project (anonymous sign-in, upload to `audio-tentatives`, insert of the `tentatives` row), then, after the worker ran, prints what is left (statuses, measures, objects, job) and deletes the test user. See the usage comment at the top of the file.
+
 ## Environment
 
 See `.env.example`: every variable, its default and what it does.

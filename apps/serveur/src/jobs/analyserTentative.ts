@@ -32,6 +32,7 @@ export class ErreurPipeline extends Error {
 export interface DepotAnalyse {
   lireTentative(id: string): Promise<Tentative | null>
   mettreAJourStatut(id: string, statut: StatutTentative): Promise<void>
+  mettreAJourDuree(id: string, dureeS: number): Promise<void>
   lireGrillePubliee(): Promise<GrillePubliee | null>
   /** Must write both rows in one transaction. */
   enregistrerAnalyseEtEvaluation(
@@ -156,6 +157,7 @@ export async function analyserTentative(
     // Mesure
     await depot.mettreAJourStatut(tentativeId, 'en_mesure')
     const audio = await deps.decoder(octets)
+    await depot.mettreAJourDuree(tentativeId, audio.dureeS)
     const prosodie = await deps.prosodie.extraire(audio.pcm, audio.frequenceHz)
     const mesures = deps.mesurer({
       pcm: audio.pcm,

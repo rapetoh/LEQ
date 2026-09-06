@@ -129,22 +129,24 @@ Written before the work started, as the rule says. Slices are built in this orde
    - [ ] `reponses_accueil` (the three onboarding answers, fixed option codes), `jetons_push` (Expo push tokens per device), `profils.prenom` set at A7, `demander_suppression_compte()` RPC that queues the `supprimer_compte` job for the caller, `tentatives` added to the Realtime publication
    - [ ] `@leq/domaine` schemas and option lists; pgTAP additions green against the hosted project
 2. Recording stack on the phone (ADR-007)
-   - [ ] `react-native-audio-api` installed with its config plugin; a development build runs on the simulator; recording to `.m4a` 16 kHz mono in the cache directory; level meter; interruption ends the take
+   - [x] `react-native-audio-api` 0.13.3 installed with its config plugin (microphone text, background mode, Android foreground service of type microphone); the development build compiles and installs on the iPhone 17 simulator with React Native 0.86.3 (ADR-007 item 1)
+   - [x] Recording service written (`src/services/enregistrement.ts`): session `record` in `measurement` mode, `.m4a` 16 kHz mono 64 kbps in the cache directory, level meter from the raw buffers, an interruption ends the take. Not yet exercised on a device: the simulator flow needs taps (slice 7)
    - [ ] Fallback documented and exercised only if the build fails (ADR-007, expo-audio recorder plus a session module)
 3. Local queue and upload
-   - [ ] Queue with the phone-only states (enregistrement, en attente réseau, envoi, envoyée, annulée, expirée), index persisted on the phone, files in the cache directory, Android backup disabled, 7-day expiry, retry with backoff on foreground and on network return, upload idempotent by attempt id (an object already there counts as sent), insert of the `tentatives` row idempotent
-   - [ ] Unit tests of the queue state machine
+   - [x] Queue written: pure state machine (`fileMachine.ts`), orchestrator with injected dependencies (`file.ts`), real wiring (`prises.ts`: AsyncStorage index, cache files, expo-network, triggers on foreground and network return), upload and insert idempotent by attempt id (`tentatives.ts`), Android backup disabled in `app.json`, expiry from `expiration_file_locale_jours`
+   - [x] 11 unit tests: transitions, backoff, expiry, cleanup, interrupted take dropped, offline wait, failure and retry
 4. Screens of flow A and the X states
-   - [ ] A3 three questions (touch, never type), A4 diagnostic take (60 to 90 s, Refaire, Terminer), A5 analysis in progress, X2 sending with Bulle, X3 failure (challenge and streak untouched, retry, keep on phone), X4 offline banner while recording
-   - [ ] A6 profile from measures only (rate, fillers, silences, no grid text, no archetype title), A7 account (email code, Apple and Google buttons wired to `linkIdentity` behind credentials, "Plus tard" keeps the local profile)
-   - [ ] The feedback screen updates by itself when the row reaches `retour_disponible` (Realtime, polling fallback)
+   - [x] Screens written: A3 (`accueil/questions`), A4 with the X4 banner (`accueil/prise`), A5, X2 and X3 as states of one screen (`accueil/analyse`), A6 (`accueil/profil`), A7 (`accueil/compte`, e-mail code path live, Apple and Google buttons present but disabled until credentials). Typecheck, lint and tests green; not yet walked through on a device
+   - [x] `useSuiviPrise` follows a take from the queue to the server statuses (Realtime on `tentatives`, polling every 15 s)
 5. Server side of the loop
-   - [ ] `duree_s` written from the decoded audio; push "Ton retour est prêt" through Expo's push API to the person's registered tokens; failures logged, never retried into a loop
+   - [x] `duree_s` written from the decoded audio
+   - [ ] Push "Ton retour est prêt" through Expo's push API to the person's registered tokens; failures logged, never retried into a loop
    - [ ] Account deletion end to end: RPC queues the job, the worker removes storage objects then the auth user, the phone signs out and wipes its queue and caches
 6. Settings G3, minimal
    - [ ] The voice statement (chapter 2 wording, marked for lawyer review), "Supprimer mon compte" with confirmation, "Recevoir une copie de mes données" as a request row (Phase 6 inbox), the four notification toggles stored on the profile (used from Phase 5)
 7. End to end on the simulator, then on Roch's iPhone
-   - [ ] A1 to A6 with the worker running on this Mac: the take uploads, the job runs, the audio object is gone, the measures show on A6
+   - [x] Server side, on a synthetic 66 s M4A pushed exactly as the phone does (`apps/serveur/scripts/simuler-prise.mjs`): anonymous upload 200, insert 201, job claimed, transcription (stub), ffmpeg, Praat (pitch read at the synthesised 160 Hz), measures, analysis and evaluation written, audio object deleted, `retour_disponible` in 3.9 s, `duree_s` 66.00
+   - [ ] Same loop driven from the app on the simulator (A1 to A6): needs taps, Roch or a later automation
    - [ ] Offline: airplane mode during A4, the take waits, sends when the network returns, the streak day is the recording day (checked in the row)
    - [ ] Failure injection in the worker: X3 shows, no `resultat`, nothing consumed
    - [ ] Deletion leaves no row and no object for the test user

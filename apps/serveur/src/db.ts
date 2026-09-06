@@ -299,6 +299,14 @@ export async function mettreAJourStatut(
   await ex.query('update public.tentatives set statut = $2 where id = $1', [id, statut])
 }
 
+/** The decoded length of the audio, written once the file is decoded (the phone's value is an estimate). */
+export async function mettreAJourDuree(ex: Executeur, id: string, dureeS: number): Promise<void> {
+  await ex.query('update public.tentatives set duree_s = $2 where id = $1', [
+    id,
+    Math.round(dureeS * 100) / 100,
+  ])
+}
+
 export async function marquerEchecTechnique(
   ex: Executeur,
   id: string,

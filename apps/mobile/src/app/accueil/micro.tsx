@@ -32,9 +32,12 @@ export default function Micro() {
 
   const systeme = Platform.OS === 'ios' ? 'iOS' : 'Android'
 
+  // Granted or not, the flow goes on: A4 asks again before recording when needed.
   const terminer = () => {
+    router.push('/accueil/questions')
+  }
+  const sansMicro = () => {
     marquerAccueilTermine()
-    // A3 (three questions) and A4 (the diagnostic take) arrive in Phase 1.
     router.replace('/(onglets)/aujourdhui')
   }
 
@@ -96,7 +99,7 @@ export default function Micro() {
             <Bouton
               libelle={t('accueil.micro.continuerSansMicro')}
               variante="texte"
-              onPress={terminer}
+              onPress={sansMicro}
             />
           </>
         ) : (
