@@ -1,4 +1,4 @@
-# ADR-001: Stack: Expo, Supabase in Paris, one Node service on Fly.io
+# ADR-001: Stack: Expo, Supabase in the EU, one Node service on Fly.io
 
 Status: Accepted
 Date: 2026-09-05
@@ -19,7 +19,7 @@ Supabase Edge Functions have CPU time limits that cannot run signal processing o
 ## Decision
 
 - Mobile: Expo SDK 57, React Native, TypeScript, Expo Router. One codebase for iOS and Android. Store binaries are built on EAS cloud.
-- System of record: Supabase, region eu-west-3 (Paris): Postgres 17, Auth (including anonymous sign-in), Storage, Realtime, pg_cron. Edge Functions stay thin: webhooks only (RevenueCat).
+- System of record: Supabase, region eu-west-1 (Ireland; the plan said Paris, the project was created in Ireland on 2026-09-06 and kept, the difference being a few milliseconds from Fly's Paris machines): Postgres 17, Auth (including anonymous sign-in), Storage, Realtime, pg_cron. Edge Functions stay thin: webhooks only (RevenueCat).
 - Compute: one Node 22 TypeScript service, `apps/serveur`, built on Hono, deployed on Fly.io in Paris (`cdg`) as two process groups from one image: `worker` (analysis pipeline, scheduled jobs, privileged operations) and `temps-reel` (debate WebSocket). `min_machines_running = 1` on both. The image ships ffmpeg and Python 3 with parselmouth (see ADR-008).
 - Admin: `apps/admin`, a Vite plus React SPA, TanStack Query, served as static files, talking to Supabase directly under RLS and to the server for privileged writes.
 - Public web: `apps/web`, Phase 7.

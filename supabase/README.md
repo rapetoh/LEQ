@@ -11,7 +11,7 @@ The database of record: migrations, seed, database tests and the CLI configurati
 
 ## Status
 
-No project exists yet: the organisation is at the free-plan limit of two active projects (see `docs/OPEN-INPUTS.md`). Nothing in this folder has run against a database. The SQL was reviewed by reading only; the first `db push` is the first real test, and `supabase test db` needs Docker (OrbStack or Docker Desktop) for the local stack.
+The project exists since 2026-09-06 (ref `gnabuebxleogsuhvdgpk`, eu-west-1, dedicated account join.leq@gmail.com). Nothing in this folder has run against it yet: the first `db push` is pending the database password. The SQL was reviewed by reading only; the first `db push` is the first real test, and `supabase test db` needs Docker (OrbStack or Docker Desktop) for the local stack.
 
 ## Apply to the hosted project
 

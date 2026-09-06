@@ -57,7 +57,7 @@ Ticked only when verified on a machine.
    - [x] Migration `20260906000000_socle.sql` written and reviewed by reading; one fix applied (the column-protection trigger now lets a direct database connection change `role`, which the worker and the operator need)
    - [x] Seed written, idempotent
    - [ ] Database tests run against a local stack (needs Docker) or the hosted project
-   - [ ] Project "LEQ" created in eu-west-3 (blocked)
+   - [x] Project "LEQ" created on a dedicated account (join.leq@gmail.com, org "LEQ's Org"), ref `gnabuebxleogsuhvdgpk`, eu-west-1 (Ireland; Paris was the plan, kept as is)
    - [ ] Migrations pushed, seed applied, dashboard settings done (anonymous sign-ins, hook registered, pg_cron confirmed)
 5. `apps/mobile`
    - [x] Package `@leq/mobile`, `app.json` with name LEQ, scheme `leq`, bundle identifier `com.leqapp.mobile` (awaiting confirmation), French microphone text
@@ -114,14 +114,14 @@ Decisions taken during integration (not in the plan):
 
 ## Blocked
 
-- Supabase project "LEQ" not created yet. Decision (2026-09-06): a separate Supabase account for LEQ, with its own organisation, so nothing on the existing account moves. Waiting for Roch to sign up and run `npx supabase login`; then the project is created from the CLI in eu-west-3.
+- Supabase: project created; `npx supabase link` and `db push` wait for the database password in the root `.env` (`SUPABASE_DB_PASSWORD`).
 - Fly.io: CLI installed, not logged in. `fly auth login` once, then the first deploy and the job-claim verification.
 - Device checks of ADR-007: run on Roch's iPhone and the simulator first (his testing setup); the Android half waits for an EAS development build on a borrowed or later device, before release.
 
 ## Next
 
-1. Roch: create the LEQ Supabase account and run `npx supabase login`, run `fly auth login`, provide the API keys listed in docs/OPEN-INPUTS.md when convenient.
-2. Create the project from the CLI in eu-west-3 (`npx supabase projects create`), `npx supabase link`, `npx supabase db push --include-seed`, register the hook, enable anonymous sign-ins, confirm pg_cron. Fix whatever the first push reveals in the migration and note it here.
+1. Roch: paste the database password into the root `.env`, run `fly auth login`, provide the API keys listed in docs/OPEN-INPUTS.md when convenient.
+2. `npx supabase link --project-ref gnabuebxleogsuhvdgpk`, `npx supabase db push --include-seed`, register the hook, enable anonymous sign-ins, confirm pg_cron. Fix whatever the first push reveals in the migration and note it here.
 3. Fill `apps/mobile/.env`, `apps/admin/.env.local`, `apps/serveur/.env`; boot the shell on the simulator; create Rebecca's admin user and check the configuration round trip; deploy the server and watch a job complete. Tick the boxes above.
 4. Start Phase 1: the recording screen with the capture stack of ADR-007 (checklist items 1 to 9 on devices), upload, the local queue, A3 to A7, X2 to X4, account conversion, deletion, push. Write the Phase 1 acceptance list here before starting.
 5. In parallel, assemble the bench corpus and run the bench as soon as one key arrives.

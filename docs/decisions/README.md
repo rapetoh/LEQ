@@ -6,16 +6,16 @@ Each record has three parts. Context: what was true and what forced a choice. De
 
 Status values: Proposed, Accepted, Superseded by ADR-nnn.
 
-| ADR                                                          | Title                                                      | Status                                               | Date       |
-| ------------------------------------------------------------ | ---------------------------------------------------------- | ---------------------------------------------------- | ---------- |
-| [ADR-001](ADR-001-stack.md)                                  | Stack: Expo, Supabase in Paris, one Node service on Fly.io | Accepted                                             | 2026-09-05 |
-| [ADR-002](ADR-002-monorepo.md)                               | Monorepo with npm workspaces                               | Accepted                                             | 2026-09-05 |
-| [ADR-003](ADR-003-french-domain-vocabulary.md)               | French domain vocabulary, English plumbing                 | Accepted                                             | 2026-09-05 |
-| [ADR-004](ADR-004-anonymous-diagnostic.md)                   | Diagnostic before account, via anonymous sign-in           | Accepted                                             | 2026-09-05 |
-| [ADR-005](ADR-005-transient-audio.md)                        | Audio is transient by construction                         | Accepted                                             | 2026-09-05 |
-| [ADR-006](ADR-006-structured-feedback-and-versioned-grid.md) | Structured feedback first, versioned grid                  | Accepted                                             | 2026-09-05 |
-| ADR-007                                                      | Audio capture stack for attempts and for the debate        | Reserved: written by the Phase 0 audio capture spike |            |
-| [ADR-008](ADR-008-praat-prosody.md)                          | Prosody extraction in Praat, everything else in TypeScript | Accepted                                             | 2026-09-05 |
+| ADR                                                          | Title                                                       | Status                                               | Date       |
+| ------------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------- | ---------- |
+| [ADR-001](ADR-001-stack.md)                                  | Stack: Expo, Supabase in the EU, one Node service on Fly.io | Accepted                                             | 2026-09-05 |
+| [ADR-002](ADR-002-monorepo.md)                               | Monorepo with npm workspaces                                | Accepted                                             | 2026-09-05 |
+| [ADR-003](ADR-003-french-domain-vocabulary.md)               | French domain vocabulary, English plumbing                  | Accepted                                             | 2026-09-05 |
+| [ADR-004](ADR-004-anonymous-diagnostic.md)                   | Diagnostic before account, via anonymous sign-in            | Accepted                                             | 2026-09-05 |
+| [ADR-005](ADR-005-transient-audio.md)                        | Audio is transient by construction                          | Accepted                                             | 2026-09-05 |
+| [ADR-006](ADR-006-structured-feedback-and-versioned-grid.md) | Structured feedback first, versioned grid                   | Accepted                                             | 2026-09-05 |
+| ADR-007                                                      | Audio capture stack for attempts and for the debate         | Reserved: written by the Phase 0 audio capture spike |            |
+| [ADR-008](ADR-008-praat-prosody.md)                          | Prosody extraction in Praat, everything else in TypeScript  | Accepted                                             | 2026-09-05 |
 
 ## Reserved numbers
 
