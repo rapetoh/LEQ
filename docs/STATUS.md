@@ -196,7 +196,7 @@ Written before the work started. Cahier chapters 6 and 7, ADR-009. Slices in ord
    - [x] Récompenses page: list, create, edit, type, cost, monthly cap, validate, deactivate (validation tested); Échanges: filter by status, honour, cancel with confirmation and refund
 4. Verification
    - [x] pgTAP (all suites), server (13), mobile (46) and admin (27) tests green; `npm run check` and `npm run format:check` green
-   - [ ] Simulator boot with the Phase 5 app (started; recorded when checked)
+   - [x] Simulator boot with the Phase 5 app: builds (0 errors), installs, bundles 2,274 modules with no runtime warning, A1 renders (screenshot checked 2026-09-06)
    - [ ] Roch: tap through D1, D2, G3 protection and a reminder on his phone
 
 ## Next
