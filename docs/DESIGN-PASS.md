@@ -1,6 +1,6 @@
 # Passe design contre la maquette (2026-09-06)
 
-La maquette est le plancher : chaque écran construit doit l'égaler ou faire un peu mieux. Relevé par un lecteur indépendant sur les écrans construits jusqu'à la Phase 6. Une ligne est cochée quand la correction est faite (le passage sur le simulateur reste à faire par Roch). Fait le 2026-09-06 : la salle sombre pour A4, B4, A5, X2, X3 (A2 et A3 restent à passer) ; la carte héros orange de B1 avec ses pilules et ses points de progression ; le prénom sur B1 et Moi ; les appuis du plan dans le brief ; les étapes d'attente dès l'envoi ; la carte « série intacte » sur X3 ; la hiérarchie de A4 ; l'heure du rappel modifiable ; la tuile silences ; le bouton « Défi suivant ». Restent : l'anneau de progression du chrono, le chemin sinueux de H1, la flamme, A2 et A3 sur bleu nuit, les barres de D2, les icônes, les espaces insécables de la typographie française, les détails listés ci-dessous.
+La maquette est le plancher : chaque écran construit doit l'égaler ou faire un peu mieux. Relevé par un lecteur indépendant sur les écrans construits jusqu'à la Phase 6. Une ligne est cochée quand la correction est faite (le passage sur le simulateur reste à faire par Roch). Fait le 2026-09-06 : la salle sombre pour A4, B4, A5, X2, X3 (A2 et A3 passés aussi) ; la carte héros orange de B1 avec ses pilules et ses points de progression ; le prénom sur B1 et Moi ; les appuis du plan dans le brief ; les étapes d'attente dès l'envoi ; la carte « série intacte » sur X3 ; la hiérarchie de A4 ; l'heure du rappel modifiable ; la tuile silences ; le bouton « Défi suivant ». Restent : l'anneau de progression du chrono, le chemin sinueux de H1, la flamme, A2 et A3 sur bleu nuit, les barres de D2, les icônes, les espaces insécables de la typographie française, les détails listés ci-dessous.
 
 - [x] **X3 (et A5/X2, même composant)** (manque) `apps/mobile/src/components/EcranAnalyse.tsx`  
       Maquette : Sous le corps de X3, une carte bleu nuit avec la flamme : « Série de 6 jours : intacte ». C'est la preuve visible que la panne ne touche pas la série.  
@@ -30,7 +30,7 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : Trois cartes d'étape visibles dès l'envoi : « Envoyée » (faite), « Analyse en cours » (point or), « Ton retour arrive ici » (point gris). L'attente n'est jamais un écran sans repère.  
       Construit : Pendant la phase téléphone (envoi, attente réseau) rien n'est listé : seulement titre et corps. Les cartes n'apparaissent qu'en phase serveur et ce sont celles de A5 (rythme, béquilles, profil). fr.analyse.envoyee n'est utilisé nulle part ; « Ton retour arrive ici » est une note en bas, pas une étape.  
       Correction : Rendre la liste d'étapes dans toutes les phases non échouées : envoi / envoyée, analyse en cours (avec les trois sous-étapes de A5 quand la phase serveur les précise), ton retour arrive ici ; marquer l'étape courante par la teinte voix et un point.
-- [ ] **A2, A3, A4, A5, B4, X2, X3, X4** (moins_bien) `apps/mobile/src/components/EcranPrise.tsx`  
+- [x] **A2, A3, A4, A5, B4, X2, X3, X4** (moins_bien) `apps/mobile/src/components/EcranPrise.tsx`  
       Maquette : Tous ces écrans sont sur bleu nuit #001636 (« la pièce se calme », « la salle se tait ») : textes blancs, cartes #0d2a4e, onde or.  
       Construit : micro.tsx, questions.tsx, EcranPrise.tsx et EcranAnalyse.tsx rendent sur theme.fond (blanc chaud en mode clair). Seuls A1 (bienvenue.tsx) et H3 utilisent theme.hero.  
       Correction : Passer ces quatre écrans sur theme.hero avec heroTexte / heroTexteSecondaire, Titre surFondSombre, Bouton surFondSombre, et une teinte de carte sombre (#0d2a4e) ajoutée à Carte pour les promesses, les étapes d'analyse et le bandeau hors ligne.
@@ -82,7 +82,7 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : La flamme de série (goutte orange à cœur or) : dans la pilule de B1 devant « 6 », sur chaque jour actif de « Ta semaine » (D1), en badge sur l'avatar de G1, devant « Série de 6 jours : intacte » (X3).  
       Construit : Aucune flamme : B1 affiche « 6 / jours de suite » dans un carré, D1 des ronds pleins de 22 px, G1 rien, X3 rien.  
       Correction : Un petit composant Flamme (deux formes ou SF flame.fill / Material local-fire-department via Icone) réutilisé aux quatre endroits.
-- [ ] **A3** (detail) `apps/mobile/src/app/accueil/questions.tsx`  
+- [x] **A3** (detail) `apps/mobile/src/app/accueil/questions.tsx`  
       Maquette : À droite de « QUESTION 2 SUR 3 », trois barres de 22 × 5 px, or jusqu'à la question courante.  
       Construit : Le compteur texte seulement.  
       Correction : Rangée de QUESTIONS_ACCUEIL.length barres (voix / carteDouce) alignée à droite du compteur.
@@ -102,7 +102,7 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : « Réduire les animations / Bulle reste calme, rien ne bouge » avec un interrupteur ; « Recevoir une copie de mes données › » ligne entière tapable avec chevron ; « Sinon : « Voix 87 » » est un exemple.  
       Construit : Ligne « Réduire les animations » en lecture seule (suit le réglage système, sans interrupteur) ; l'export porte un bouton texte « Continuer » ; le numéro 87 est codé en dur pour tout le monde (t('reglages.voix.publierPrenomDetail', { numero: 87 })).  
       Correction : Interrupteur local (AsyncStorage) qui force Bulle et CielEtoile au calme en plus du réglage système ; ligne export en Pressable avec chevron ; libellé sans numéro (« Sinon : anonyme dans l'Arène, sous un numéro de voix ») tant que le numéro réel n'existe pas.
-- [ ] **A2** (detail) `apps/mobile/src/app/accueil/micro.tsx`  
+- [x] **A2** (detail) `apps/mobile/src/app/accueil/micro.tsx`  
       Maquette : Bulle 96 px centrée au-dessus du titre 32 px centré, le bloc centré verticalement.  
       Construit : Bulle petite (40 px) alignée à gauche, titre aligné à gauche, tout en haut.  
       Correction : Bulle taille moyenne centrée, Titre centre, bloc en justifyContent center.

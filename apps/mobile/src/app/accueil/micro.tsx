@@ -59,27 +59,26 @@ export default function Micro() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.fond }}
+      style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Bulle taille="moyenne" visage="sourit" style={styles.bulle} />
-      <Titre niveau="ecran">{t('accueil.micro.titre')}</Titre>
+      <View style={styles.entete}>
+        <Bulle taille="moyenne" visage="sourit" />
+        <Titre niveau="ecran" surFondSombre centre>
+          {t('accueil.micro.titre')}
+        </Titre>
+      </View>
 
       <View style={styles.promesses}>
         {PROMESSES.map((promesse) => (
-          <Carte key={promesse.sf} style={styles.promesse}>
-            <View style={[styles.pastille, { backgroundColor: theme.voixDoux }]}>
-              <Icone
-                sf={promesse.sf}
-                material={promesse.material}
-                taille={22}
-                couleur={theme.texte}
-              />
+          <Carte key={promesse.sf} teinte="sombre" style={styles.promesse}>
+            <View style={[styles.pastille, { backgroundColor: theme.voix }]}>
+              <Icone sf="checkmark" material="check" taille={14} couleur={theme.hero} />
             </View>
-            <Text style={[typographie.corps, styles.promesseTexte, { color: theme.texte }]}>
+            <Text style={[typographie.corpsFort, styles.promesseTexte, { color: theme.heroTexte }]}>
               {promesse.texte}
             </Text>
           </Carte>
@@ -89,7 +88,7 @@ export default function Micro() {
       <View style={styles.actions}>
         {refuse ? (
           <>
-            <Text style={[typographie.corps, styles.note, { color: theme.texteSecondaire }]}>
+            <Text style={[typographie.corps, styles.note, { color: theme.heroTexteSecondaire }]}>
               {t('accueil.micro.refuse')}
             </Text>
             <Bouton
@@ -99,6 +98,7 @@ export default function Micro() {
             <Bouton
               libelle={t('accueil.micro.continuerSansMicro')}
               variante="texte"
+              surFondSombre
               onPress={sansMicro}
             />
           </>
@@ -109,7 +109,7 @@ export default function Micro() {
               chargement={enCours}
               onPress={() => void activerMicro()}
             />
-            <Text style={[typographie.petit, styles.note, { color: theme.texteTertiaire }]}>
+            <Text style={[typographie.petit, styles.note, { color: theme.heroTexteSecondaire }]}>
               {t('accueil.micro.note', { systeme })}
             </Text>
           </>
@@ -121,13 +121,14 @@ export default function Micro() {
 
 const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.l },
-  bulle: { alignSelf: 'flex-start' },
+  entete: { alignItems: 'center', gap: espaces.l, marginTop: espaces.xl },
   promesses: { gap: espaces.s, marginTop: espaces.xs },
-  promesse: { flexDirection: 'row', alignItems: 'center', gap: espaces.m },
+  promesse: { flexDirection: 'row', alignItems: 'flex-start', gap: espaces.m },
   pastille: {
-    width: 44,
-    height: 44,
-    borderRadius: rayons.m,
+    width: 22,
+    height: 22,
+    marginTop: 2,
+    borderRadius: rayons.s,
     alignItems: 'center',
     justifyContent: 'center',
   },

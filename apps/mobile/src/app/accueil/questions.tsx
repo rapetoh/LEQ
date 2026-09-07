@@ -44,16 +44,30 @@ export default function Questions() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.fond }}
+      style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Text style={[typographie.etiquette, { color: theme.texteTertiaire }]}>
-        {t('questions.compteur', { numero: index + 1, total: QUESTIONS_ACCUEIL.length })}
-      </Text>
-      <Titre niveau="ecran">{question.question}</Titre>
+      <View style={styles.compteur}>
+        <Text
+          style={[typographie.etiquette, styles.majuscules, { color: theme.heroTexteSecondaire }]}
+        >
+          {t('questions.compteur', { numero: index + 1, total: QUESTIONS_ACCUEIL.length })}
+        </Text>
+        <View style={styles.barres}>
+          {QUESTIONS_ACCUEIL.map((q, i) => (
+            <View
+              key={q.cle}
+              style={[styles.barre, { backgroundColor: i <= index ? theme.voix : theme.heroCarte }]}
+            />
+          ))}
+        </View>
+      </View>
+      <Titre niveau="ecran" surFondSombre>
+        {question.question}
+      </Titre>
 
       <View style={styles.options} accessibilityRole="radiogroup">
         {question.options.map((option) => {
@@ -70,15 +84,17 @@ export default function Questions() {
                   [question.cle]: option as ContexteAccueil & BlocageAccueil & ObjectifAccueil,
                 })
               }
-              style={[
-                styles.option,
-                {
-                  backgroundColor: actif ? theme.accentDoux : theme.carte,
-                  borderColor: actif ? theme.accent : theme.bordure,
-                },
-              ]}
+              style={[styles.option, { backgroundColor: actif ? theme.voix : theme.heroCarte }]}
             >
-              <Text style={[typographie.corpsFort, { color: theme.texte }]}>{libelle}</Text>
+              <Text
+                style={[
+                  typographie.corpsFort,
+                  { color: actif ? theme.hero : theme.heroTexte, flex: 1 },
+                ]}
+              >
+                {libelle}
+              </Text>
+              {actif ? <Text style={[typographie.corpsFort, { color: theme.hero }]}>✓</Text> : null}
             </Pressable>
           )
         })}
@@ -86,7 +102,7 @@ export default function Questions() {
 
       <View style={styles.actions}>
         <Bouton libelle={t('questions.continuer')} onPress={continuer} desactive={!choix} />
-        <Text style={[typographie.petit, styles.note, { color: theme.texteTertiaire }]}>
+        <Text style={[typographie.petit, styles.note, { color: theme.heroTexteSecondaire }]}>
           {t('questions.note')}
         </Text>
       </View>
@@ -97,7 +113,17 @@ export default function Questions() {
 const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.l },
   options: { gap: espaces.s },
-  option: { padding: espaces.m, borderRadius: rayons.l, borderWidth: 1.5 },
+  compteur: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  majuscules: { textTransform: 'uppercase' },
+  barres: { flexDirection: 'row', gap: espaces.xxs },
+  barre: { width: 22, height: 5, borderRadius: 3 },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espaces.s,
+    padding: espaces.m,
+    borderRadius: rayons.l,
+  },
   actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l },
   note: { textAlign: 'center' },
 })
