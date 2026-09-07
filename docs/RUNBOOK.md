@@ -128,6 +128,8 @@ Database connection from Fly: use the direct connection string (port 5432, not t
 
 ## Build the mobile app
 
+TestFlight (first done on 2026-09-06): the App Store build runs on Expo's servers from `apps/mobile` with `npx eas-cli build --platform ios --profile production --auto-submit`. Three things make it work in this monorepo: `eas.json` has a `production` profile with `distribution: store`; `apps/mobile/package.json` has an `eas-build-post-install` hook that compiles `packages/domaine` (its `dist/` is git-ignored, so the cloud build must produce it); the two public variables `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` live as EAS environment variables (`npx eas-cli env:list --environment production`), because the local `.env` is not uploaded and Metro inlines them at bundle time. The first build needs one interactive run by Roch (Apple login and two-factor code) so EAS can create the distribution certificate; after that the command runs non-interactively. Before a cloud build, `npx expo export --platform ios --output-dir /tmp/leq-export` from `apps/mobile` checks the bundle in a minute.
+
 Simulator (local, free):
 
 ```bash
