@@ -9,7 +9,8 @@
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "eas-build-post-install": "npm run build --prefix ../../packages/domaine"
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "0.4.2",

@@ -269,7 +269,7 @@ function PremierJour() {
         { paddingTop: insets.top + espaces.xxl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Bulle taille="moyenne" style={styles.bulle} />
+      <Bulle taille="moyenne" visage="sourit" style={styles.bulle} />
       <Titre niveau="ecran" centre>
         {t('progres.vide.titre')}
       </Titre>

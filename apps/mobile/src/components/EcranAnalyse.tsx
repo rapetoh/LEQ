@@ -126,7 +126,7 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
       ]}
     >
       <View style={styles.centre}>
-        <Bulle taille="moyenne" calme={echec !== null} />
+        <Bulle taille="moyenne" calme={echec !== null} visage={echec ? 'sourit' : 'attend'} />
         <Titre niveau="ecran" surFondSombre centre>
           {titre}
         </Titre>

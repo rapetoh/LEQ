@@ -15,7 +15,7 @@ export function EcranChargement() {
       style={[styles.conteneur, { backgroundColor: theme.fond }]}
       accessibilityRole="progressbar"
     >
-      <Bulle taille="moyenne" />
+      <Bulle taille="moyenne" visage="attend" />
       <Text style={[typographie.corps, styles.texte, { color: theme.texteSecondaire }]}>
         {t('commun.chargement')}
       </Text>

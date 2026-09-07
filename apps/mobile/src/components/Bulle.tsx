@@ -7,98 +7,200 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated'
 
 import { t } from '@/i18n/fr'
 import { couleurs } from '@/theme/tokens'
 
-// Bulle, the mascot, as a placeholder: a soft circle in "or" that breathes slowly.
-// The final character comes later; every screen already places it through this component.
+// Bulle, the mascot, exactly as the validated mockup draws it: a speech bubble in "or" with a
+// tail at the bottom left, two blinking eyes, and a mouth that speaks (bars), smiles, or waits
+// (open). The geometry is the mockup's at 150 px wide, scaled for the three sizes it uses.
 
 export type TailleBulle = 'petite' | 'moyenne' | 'grande'
+export type VisageBulle = 'parle' | 'sourit' | 'attend'
 
-const DIAMETRES: Record<TailleBulle, number> = { petite: 40, moyenne: 96, grande: 160 }
+/** Widths taken from the mockup: B5 (52), A2 (96), A1 (150). */
+const LARGEURS: Record<TailleBulle, number> = { petite: 52, moyenne: 96, grande: 150 }
+const BASE = 150
 
 type Props = {
   taille?: TailleBulle
   /** Bulle listens without moving (recording screens) or the person asked for calm. */
   calme?: boolean
+  /** The mouth: speaking bars by default, a smile when calm, an open mouth while waiting. */
+  visage?: VisageBulle
   style?: StyleProp<ViewStyle>
 }
 
-export function Bulle({ taille = 'moyenne', calme = false, style }: Props) {
+export function Bulle({ taille = 'moyenne', calme = false, visage, style }: Props) {
   const mouvementReduit = useReducedMotion()
   const immobile = calme || mouvementReduit
-  const souffle = useSharedValue(0)
+  const face: VisageBulle = visage ?? (calme ? 'sourit' : 'parle')
+  const s = LARGEURS[taille] / BASE
+
+  const flotte = useSharedValue(0)
+  const cligne = useSharedValue(1)
+  const parle1 = useSharedValue(0.45)
+  const parle2 = useSharedValue(1)
+  const parle3 = useSharedValue(0.7)
 
   useEffect(() => {
     if (immobile) {
-      cancelAnimation(souffle)
-      souffle.set(withTiming(0, { duration: 300 }))
+      cancelAnimation(flotte)
+      cancelAnimation(cligne)
+      cancelAnimation(parle1)
+      cancelAnimation(parle2)
+      cancelAnimation(parle3)
+      flotte.set(withTiming(0, { duration: 300 }))
+      cligne.set(1)
       return
     }
-    souffle.set(
-      withRepeat(withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.sin) }), -1, true),
+    flotte.set(
+      withRepeat(withTiming(1, { duration: 1900, easing: Easing.inOut(Easing.sin) }), -1, true),
     )
-    return () => cancelAnimation(souffle)
-  }, [immobile, souffle])
+    cligne.set(
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 3800 }),
+          withTiming(0.08, { duration: 110 }),
+          withTiming(1, { duration: 180 }),
+        ),
+        -1,
+        false,
+      ),
+    )
+    if (face === 'parle') {
+      parle1.set(
+        withRepeat(withTiming(1, { duration: 700, easing: Easing.inOut(Easing.sin) }), -1, true),
+      )
+      parle2.set(
+        withRepeat(withTiming(0.4, { duration: 850, easing: Easing.inOut(Easing.sin) }), -1, true),
+      )
+      parle3.set(
+        withRepeat(withTiming(0.35, { duration: 750, easing: Easing.inOut(Easing.sin) }), -1, true),
+      )
+    }
+    return () => {
+      cancelAnimation(flotte)
+      cancelAnimation(cligne)
+      cancelAnimation(parle1)
+      cancelAnimation(parle2)
+      cancelAnimation(parle3)
+    }
+  }, [immobile, face, flotte, cligne, parle1, parle2, parle3])
 
-  const styleCorps = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + souffle.get() * 0.05 }],
+  const styleFlotte = useAnimatedStyle(() => ({
+    transform: [{ translateY: -4 * s * flotte.get() }],
   }))
+  const styleYeux = useAnimatedStyle(() => ({ transform: [{ scaleY: cligne.get() }] }))
+  const styleBarre1 = useAnimatedStyle(() => ({ height: 17 * s * parle1.get() }))
+  const styleBarre2 = useAnimatedStyle(() => ({ height: 17 * s * parle2.get() }))
+  const styleBarre3 = useAnimatedStyle(() => ({ height: 17 * s * parle3.get() }))
 
-  const styleHalo = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + souffle.get() * 0.12 }],
-    opacity: 0.22 + souffle.get() * 0.1,
-  }))
-
-  const diametre = DIAMETRES[taille]
-  const halo = diametre * 1.35
-  const reflet = Math.max(4, diametre * 0.18)
+  const oeil = {
+    position: 'absolute' as const,
+    top: 40 * s,
+    width: 11 * s,
+    height: 17 * s,
+    borderRadius: 6 * s,
+    backgroundColor: couleurs.bleuNuit,
+  }
+  const barre = { width: 4.5 * s, borderRadius: 2 * s, backgroundColor: couleurs.bleuNuit }
 
   return (
-    <View
+    <Animated.View
       accessibilityRole="image"
       accessibilityLabel={t('commun.bulle')}
-      style={[{ width: halo, height: halo }, styles.conteneur, style]}
+      style={[{ width: 150 * s, height: 134 * s }, styleFlotte, style]}
     >
-      <Animated.View
-        style={[styles.halo, { width: halo, height: halo, borderRadius: halo / 2 }, styleHalo]}
-      />
-      <Animated.View
+      <View
         style={[
-          styles.corps,
-          { width: diametre, height: diametre, borderRadius: diametre / 2 },
-          styleCorps,
+          styles.absolu,
+          {
+            top: 10 * s,
+            left: 10 * s,
+            width: 130 * s,
+            height: 96 * s,
+            borderRadius: 36 * s,
+            backgroundColor: couleurs.or,
+          },
         ]}
-      >
+      />
+      <View
+        style={[
+          styles.absolu,
+          {
+            top: 98 * s,
+            left: 38 * s,
+            width: 0,
+            height: 0,
+            borderLeftWidth: 6 * s,
+            borderRightWidth: 20 * s,
+            borderTopWidth: 26 * s,
+            borderLeftColor: 'transparent',
+            borderRightColor: 'transparent',
+            borderTopColor: couleurs.or,
+          },
+        ]}
+      />
+      <Animated.View style={[oeil, { left: 44 * s }, styleYeux]} />
+      <Animated.View style={[oeil, { left: 90 * s }, styleYeux]} />
+      {face === 'parle' ? (
         <View
           style={[
-            styles.reflet,
+            styles.absolu,
+            styles.bouche,
+            { top: 70 * s, left: 56 * s, height: 17 * s, gap: 3 * s },
+          ]}
+        >
+          <Animated.View style={[barre, styleBarre1]} />
+          <Animated.View style={[barre, styleBarre2]} />
+          <Animated.View style={[barre, styleBarre3]} />
+          <Animated.View style={[barre, styleBarre1]} />
+        </View>
+      ) : face === 'sourit' ? (
+        <View
+          style={[
+            styles.absolu,
             {
-              width: reflet,
-              height: reflet,
-              borderRadius: reflet / 2,
-              top: diametre * 0.2,
-              left: diametre * 0.24,
+              top: 69 * s,
+              left: 59 * s,
+              width: 19 * s,
+              height: 9 * s,
+              borderBottomLeftRadius: 11 * s,
+              borderBottomRightRadius: 11 * s,
+              borderBottomWidth: 4 * s,
+              borderLeftWidth: 4 * s,
+              borderRightWidth: 4 * s,
+              borderBottomColor: couleurs.bleuNuit,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
             },
           ]}
         />
-      </Animated.View>
-    </View>
+      ) : (
+        <View
+          style={[
+            styles.absolu,
+            {
+              top: 72 * s,
+              left: 55 * s,
+              width: 31 * s,
+              height: 14 * s,
+              borderBottomLeftRadius: 17 * s,
+              borderBottomRightRadius: 17 * s,
+              backgroundColor: couleurs.bleuNuit,
+            },
+          ]}
+        />
+      )}
+    </Animated.View>
   )
 }
 
 const styles = StyleSheet.create({
-  conteneur: { alignItems: 'center', justifyContent: 'center' },
-  halo: { position: 'absolute', backgroundColor: couleurs.or },
-  corps: {
-    backgroundColor: couleurs.or,
-    shadowColor: couleurs.orange,
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-  },
-  reflet: { position: 'absolute', backgroundColor: 'rgba(255, 255, 255, 0.75)' },
+  absolu: { position: 'absolute' },
+  bouche: { flexDirection: 'row', alignItems: 'center' },
 })

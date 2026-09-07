@@ -65,7 +65,7 @@ export default function Micro() {
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Bulle taille="petite" style={styles.bulle} />
+      <Bulle taille="moyenne" visage="sourit" style={styles.bulle} />
       <Titre niveau="ecran">{t('accueil.micro.titre')}</Titre>
 
       <View style={styles.promesses}>
