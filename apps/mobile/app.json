@@ -14,10 +14,7 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "LEQ a besoin du micro pour analyser ta prise de parole. Ta voix est analysée puis effacée.",
         "CFBundleDevelopmentRegion": "fr",
-        "CFBundleLocalizations": [
-          "fr",
-          "fr"
-        ],
+        "CFBundleLocalizations": ["fr", "fr"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -59,9 +56,7 @@
             "android.permission.FOREGROUND_SERVICE_MICROPHONE"
           ],
           "androidForegroundService": true,
-          "androidFSTypes": [
-            "microphone"
-          ]
+          "androidFSTypes": ["microphone"]
         }
       ],
       [
