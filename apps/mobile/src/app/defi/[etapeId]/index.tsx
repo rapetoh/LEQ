@@ -72,6 +72,7 @@ function ContenuBrief({ brief }: { brief: DonneesBrief }) {
         surtitre={surtitreFormat(defi.format, defi.duree_max_s)}
         points={t('defi.points', { points: defi.points })}
         titre={defi.titre}
+        progression={{ ordre: etape.ordre, total: brief.nb_etapes_acte }}
         position={
           position.genre === 'derniere'
             ? t('defi.dernier', { acte: position.acte })
@@ -129,6 +130,14 @@ function ContenuBrief({ brief }: { brief: DonneesBrief }) {
           <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
             {t('defi.longNote')}
           </Text>
+        </Carte>
+      ) : null}
+
+      {defi.format !== 'long' && defi.plan.length > 0 ? (
+        <Carte style={styles.bloc}>
+          {defi.plan.map((appui, index) => (
+            <Etape key={appui.titre} numero={index + 1} titre={appui.titre} detail={appui.detail} />
+          ))}
         </Carte>
       ) : null}
 

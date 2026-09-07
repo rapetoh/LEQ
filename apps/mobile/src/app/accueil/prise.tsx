@@ -14,9 +14,9 @@ export default function Prise() {
   return (
     <EcranPrise
       type="diagnostic"
-      surtitre={t('prise.surtitre')}
-      titre={t('prise.unePrise')}
-      consigne={t('prise.consigne')}
+      surtitre={`${t('prise.surtitre')} · ${t('prise.unePrise')}`}
+      titre={t('prise.consigne')}
+      consigne=""
       dureeMin={configuration.data?.duree_diagnostic_min_s ?? 60}
       dureeMax={configuration.data?.duree_diagnostic_max_s ?? 90}
       onTerminee={(id) => {

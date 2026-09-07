@@ -193,53 +193,61 @@ export function EcranPrise(props: ProprietesPrise) {
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.fond }}
+      style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
       {horsLigne ? (
-        <Carte teinte="voix" style={styles.bandeau}>
-          <Text style={[typographie.etiquette, { color: theme.texte }]}>
+        <Carte teinte="sombre" style={styles.bandeau}>
+          <Text style={[typographie.etiquette, { color: theme.heroTexte }]}>
             {t('prise.horsLigne')}
           </Text>
-          <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
             {t('prise.horsLigneDetail')}
           </Text>
         </Carte>
       ) : null}
 
-      <Text style={[typographie.etiquette, { color: theme.texteTertiaire }]}>{props.surtitre}</Text>
-      <Titre niveau="ecran">{props.titre}</Titre>
-      <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>{props.consigne}</Text>
+      <Text style={[typographie.etiquette, { color: theme.heroTexteSecondaire }]}>
+        {props.surtitre}
+      </Text>
+      <Titre niveau="ecran" surFondSombre>
+        {props.titre}
+      </Titre>
+      {props.consigne ? (
+        <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+          {props.consigne}
+        </Text>
+      ) : null}
 
       {phase === 'lecture' && props.texteALire ? (
-        <Carte teinte="voix" style={styles.texte}>
-          <Text style={[typographie.etiquette, { color: theme.texteSecondaire }]}>
+        <Carte teinte="sombre" style={styles.texte}>
+          <Text style={[typographie.etiquette, { color: theme.heroTexteSecondaire }]}>
             {t('defi.texteChoisi')}
           </Text>
-          <Text style={[typographie.titreCarte, { color: theme.texte }]}>
+          <Text style={[typographie.titreCarte, { color: theme.heroTexte }]}>
             « {props.texteALire} »
           </Text>
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
             {t('defi.minuterieApresLecture')}
           </Text>
         </Carte>
       ) : null}
 
       {phase === 'preparation' ? (
-        <Carte teinte="douce" style={styles.texte}>
-          <Text style={[typographie.chiffre, { color: theme.texte }]}>
+        <Carte teinte="sombre" style={styles.texte}>
+          <Text style={[typographie.chiffre, { color: theme.heroTexte }]}>
             {formaterDuree(preparationRestante)}
           </Text>
           {(props.plan ?? []).map((appui, index) => (
             <View key={appui.titre} style={styles.appui}>
-              <Text style={[typographie.corpsFort, { color: theme.texte }]}>
+              <Text style={[typographie.corpsFort, { color: theme.heroTexte }]}>
                 {index + 1}. {appui.titre}
               </Text>
               {appui.detail ? (
-                <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+                <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
                   {appui.detail}
                 </Text>
               ) : null}
@@ -251,15 +259,15 @@ export function EcranPrise(props: ProprietesPrise) {
       {phase !== 'lecture' && phase !== 'preparation' ? (
         <View style={styles.centre}>
           <Bulle taille="petite" calme={phase === 'en_cours'} />
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
             {phase === 'en_cours'
               ? (props.encouragement ?? t('prise.ecouteCalme'))
               : t('prise.ecoute')}
           </Text>
-          <Text style={[typographie.chiffre, { color: theme.texte }]}>
+          <Text style={[typographie.chiffre, { color: theme.heroTexte }]}>
             {formaterDuree(secondes)}
           </Text>
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
             {t('prise.plage', { min: formaterDuree(dureeMin), max: formaterDuree(dureeMax) })}
           </Text>
           <Onde niveaux={niveaux} />
@@ -268,7 +276,7 @@ export function EcranPrise(props: ProprietesPrise) {
               {props.plan.map((appui, index) => (
                 <Text
                   key={appui.titre}
-                  style={[typographie.petit, { color: theme.texteSecondaire }]}
+                  style={[typographie.petit, { color: theme.heroTexteSecondaire }]}
                 >
                   {index + 1}. {appui.titre}
                 </Text>
@@ -279,7 +287,7 @@ export function EcranPrise(props: ProprietesPrise) {
       ) : null}
 
       {message ? (
-        <Text style={[typographie.corps, styles.message, { color: theme.texteSecondaire }]}>
+        <Text style={[typographie.corps, styles.message, { color: theme.heroTexteSecondaire }]}>
           {message}
         </Text>
       ) : null}
@@ -318,6 +326,7 @@ export function EcranPrise(props: ProprietesPrise) {
         <Bouton
           libelle={t('prise.annuler')}
           variante="texte"
+          surFondSombre
           onPress={() => {
             void abandonner().then(onAnnuler)
           }}

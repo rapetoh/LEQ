@@ -12,7 +12,7 @@ import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
 // The three button shapes of the mockup: orange pill, outline, plain text. Labels are verbs.
 
-export type VarianteBouton = 'principal' | 'secondaire' | 'texte'
+export type VarianteBouton = 'principal' | 'secondaire' | 'texte' | 'blanc' | 'or'
 
 type Props = {
   libelle: string
@@ -42,22 +42,28 @@ export function Bouton({
   const couleurTexte =
     variante === 'principal'
       ? theme.accentTexte
-      : surFondSombre
-        ? theme.heroTexte
-        : variante === 'texte'
-          ? theme.lien
-          : theme.texte
+      : variante === 'blanc' || variante === 'or'
+        ? couleurs.bleuNuit
+        : surFondSombre
+          ? theme.heroTexte
+          : variante === 'texte'
+            ? theme.lien
+            : theme.texte
 
   const styleVariante: ViewStyle =
     variante === 'principal'
       ? { backgroundColor: couleurs.orange }
-      : variante === 'secondaire'
-        ? {
-            backgroundColor: 'transparent',
-            borderWidth: 1.5,
-            borderColor: surFondSombre ? theme.heroBordure : theme.bordure,
-          }
-        : { backgroundColor: 'transparent', minHeight: 44 }
+      : variante === 'blanc'
+        ? { backgroundColor: couleurs.blanc }
+        : variante === 'or'
+          ? { backgroundColor: couleurs.or }
+          : variante === 'secondaire'
+            ? {
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
+                borderColor: surFondSombre ? theme.heroBordure : theme.bordure,
+              }
+            : { backgroundColor: 'transparent', minHeight: 44 }
 
   return (
     <Pressable

@@ -37,9 +37,9 @@ export function TuilesMesures({ mesures }: { mesures: Mesures }) {
         </Text>
       </Carte>
       <Carte style={styles.tuile}>
-        <Text style={[typographie.chiffre, { color: theme.texte }]}>{mesures.silences.tenus}</Text>
+        <Text style={[typographie.chiffre, { color: theme.texte }]}>{mesures.silences.total}</Text>
         <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
-          {t('retour.silencesTenus')}
+          {t('retour.silencesDetail', { tenus: mesures.silences.tenus })}
         </Text>
       </Carte>
     </View>

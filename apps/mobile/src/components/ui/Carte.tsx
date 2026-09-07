@@ -4,7 +4,8 @@ import type { ReactNode } from 'react'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons } from '@/theme/tokens'
 
-export type TeinteCarte = 'carte' | 'douce' | 'orange' | 'voix' | 'transparente'
+export type TeinteCarte =
+  'carte' | 'douce' | 'orange' | 'voix' | 'transparente' | 'sombre' | 'accent'
 
 type Props = {
   children: ReactNode
@@ -23,7 +24,11 @@ export function Carte({ children, teinte = 'carte', style }: Props) {
           ? theme.voixDoux
           : teinte === 'transparente'
             ? 'transparent'
-            : theme.carte
+            : teinte === 'sombre'
+              ? theme.heroCarte
+              : teinte === 'accent'
+                ? theme.accent
+                : theme.carte
 
   return (
     <View

@@ -2,7 +2,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native'
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -61,6 +70,7 @@ export default function Reglages() {
   const [message, setMessage] = useState<string | null>(null)
   const [suppression, setSuppression] = useState(false)
   const [choixRegion, setChoixRegion] = useState(false)
+  const [heureSaisie, setHeureSaisie] = useState<string | null>(null)
   const serie = useSerie()
 
   const recuperation = useMutation({
@@ -248,9 +258,51 @@ export default function Reglages() {
           {ligne(
             t('reglages.rituel.rappel'),
             p ? t('reglages.rituel.rappelHeure', { heure: heureCourte(p.heure_rappel) }) : null,
-            p ? interrupteur('notif_rappel', p.notif_rappel) : null,
+            p ? (
+              <View style={styles.ligneCourte}>
+                <Bouton
+                  libelle={t('reglages.rituel.modifier')}
+                  variante="texte"
+                  onPress={() =>
+                    setHeureSaisie(heureSaisie === null ? p.heure_rappel.slice(0, 5) : null)
+                  }
+                />
+                {interrupteur('notif_rappel', p.notif_rappel)}
+              </View>
+            ) : null,
             true,
           )}
+          {heureSaisie !== null ? (
+            <View
+              style={[
+                styles.ligne,
+                { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.bordure },
+              ]}
+            >
+              <TextInput
+                accessibilityLabel={t('reglages.rituel.heure')}
+                value={heureSaisie}
+                onChangeText={setHeureSaisie}
+                keyboardType="numbers-and-punctuation"
+                placeholder="21:30"
+                placeholderTextColor={theme.texteTertiaire}
+                style={[
+                  typographie.corps,
+                  styles.champHeure,
+                  { color: theme.texte, borderColor: theme.bordure },
+                ]}
+              />
+              <Bouton
+                libelle={t('reglages.rituel.enregistrerHeure')}
+                variante="secondaire"
+                desactive={!/^([01]\d|2[0-3]):[0-5]\d$/.test(heureSaisie)}
+                onPress={() => {
+                  modifier.mutate({ heure_rappel: heureSaisie })
+                  setHeureSaisie(null)
+                }}
+              />
+            </View>
+          ) : null}
           {ligne(
             t('reglages.rituel.serie'),
             t('reglages.rituel.serieDetail'),
@@ -411,5 +463,13 @@ const styles = StyleSheet.create({
     borderRadius: rayons.pilule,
   },
   message: { textAlign: 'center' },
+  ligneCourte: { flexDirection: 'row', alignItems: 'center', gap: espaces.xs },
+  champHeure: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: rayons.s,
+    paddingHorizontal: espaces.s,
+    paddingVertical: espaces.xs,
+  },
   sousLigne: { paddingBottom: espaces.m },
 })

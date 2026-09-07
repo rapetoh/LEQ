@@ -14,7 +14,7 @@ import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
 import { activerNotifications } from '@/services/notifications'
 import { CLE_CARTE, CLE_ETAPE_DU_JOUR } from '@/services/parcours'
-import { invaliderProgres } from '@/services/progres'
+import { invaliderProgres , useSerie } from '@/services/progres'
 import { file } from '@/services/prises'
 import { ecrireProfilLocal } from '@/services/profilLocal'
 import { supabase } from '@/services/supabase'
@@ -40,6 +40,7 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
   const clientRequetes = useQueryClient()
   const { marquerAccueilTermine } = useDemarrage()
   const suivi = useSuiviPrise(id)
+  const serie = useSerie()
   const [erreurLecture, setErreurLecture] = useState(false)
 
   useEffect(() => {
@@ -118,7 +119,7 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
 
   return (
     <ScrollView
-      style={{ backgroundColor: theme.fond }}
+      style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,
         { paddingTop: insets.top + espaces.xxl, paddingBottom: insets.bottom + espaces.xl },
@@ -126,47 +127,96 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
     >
       <View style={styles.centre}>
         <Bulle taille="moyenne" calme={echec !== null} />
-        <Titre niveau="ecran" centre>
+        <Titre niveau="ecran" surFondSombre centre>
           {titre}
         </Titre>
         {corps ? (
-          <Text style={[typographie.corps, styles.corps, { color: theme.texteSecondaire }]}>
+          <Text style={[typographie.corps, styles.corps, { color: theme.heroTexteSecondaire }]}>
             {corps}
           </Text>
         ) : null}
       </View>
 
-      {echec === null && suivi.phase === 'serveur' ? (
+      {echec === null ? (
         <View style={styles.etapes}>
-          {ETAPES.map((cle, index) => (
-            <Carte key={cle} teinte={index === etape ? 'voix' : 'carte'} style={styles.etape}>
-              <Text
-                style={[
-                  typographie.corpsFort,
-                  { color: index <= etape ? theme.texte : theme.texteTertiaire },
-                ]}
-              >
-                {t(`analyse.${cle}`)}
-              </Text>
+          {(suivi.phase === 'serveur'
+            ? ETAPES.map((cle, index) => ({
+                libelle: t(`analyse.${cle}`),
+                etat: index < etape ? 'fait' : index === etape ? 'courant' : 'a_venir',
+              }))
+            : [
+                {
+                  libelle:
+                    suivi.phase === 'telephone' && suivi.entree.etat === 'envoyee'
+                      ? t('analyse.envoyee')
+                      : t('analyse.envoi'),
+                  etat:
+                    suivi.phase === 'telephone' && suivi.entree.etat === 'envoyee'
+                      ? 'fait'
+                      : 'courant',
+                },
+                { libelle: t('analyse.enCours'), etat: 'a_venir' },
+                { libelle: t('analyse.retourIci'), etat: 'a_venir' },
+              ]
+          ).map((ligne) => (
+            <Carte key={ligne.libelle} teinte="sombre" style={styles.etape}>
+              <View style={styles.ligne}>
+                <View
+                  style={[
+                    styles.point,
+                    { backgroundColor: ligne.etat === 'a_venir' ? theme.heroBordure : theme.voix },
+                  ]}
+                />
+                <Text
+                  style={[
+                    typographie.corpsFort,
+                    {
+                      color: ligne.etat === 'a_venir' ? theme.heroTexteSecondaire : theme.heroTexte,
+                    },
+                  ]}
+                >
+                  {ligne.libelle}
+                </Text>
+              </View>
             </Carte>
           ))}
         </View>
+      ) : null}
+
+      {echec === 'telephone' ? (
+        <Carte teinte="sombre" style={styles.etape}>
+          <Text style={[typographie.corpsFort, { color: theme.heroTexte }]}>
+            {serie.data && serie.data.courante > 0
+              ? t('envoi.echec.serieIntacte', { jours: serie.data.courante })
+              : t('envoi.echec.serieIntacteSansJours')}
+          </Text>
+        </Carte>
       ) : null}
 
       <View style={styles.actions}>
         {echec === 'telephone' ? (
           <>
             <Bouton libelle={t('analyse.reessayer')} onPress={() => void file.envoyerEnAttente()} />
-            <Bouton libelle={t('analyse.plusTard')} variante="texte" onPress={quitter} />
+            <Bouton
+              libelle={t('analyse.plusTard')}
+              variante="texte"
+              surFondSombre
+              onPress={quitter}
+            />
           </>
         ) : echec === 'serveur' ? (
           <Bouton libelle={t('analyse.refairePrise')} onPress={refaire} />
         ) : (
           <>
-            <Text style={[typographie.petit, styles.corps, { color: theme.texteTertiaire }]}>
+            <Text style={[typographie.petit, styles.corps, { color: theme.heroTexteSecondaire }]}>
               {t('analyse.retourIci')}
             </Text>
-            <Bouton libelle={t('analyse.quitter')} variante="secondaire" onPress={quitter} />
+            <Bouton
+              libelle={t('analyse.quitter')}
+              variante="secondaire"
+              surFondSombre
+              onPress={quitter}
+            />
           </>
         )}
       </View>
@@ -180,5 +230,7 @@ const styles = StyleSheet.create({
   corps: { textAlign: 'center' },
   etapes: { gap: espaces.s },
   etape: { paddingVertical: espaces.m },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  point: { width: 10, height: 10, borderRadius: 5 },
   actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l },
 })

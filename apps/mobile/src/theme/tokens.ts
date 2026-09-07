@@ -84,6 +84,8 @@ export type Theme = {
   heroTexte: string
   heroTexteSecondaire: string
   heroBordure: string
+  /** Cards on a bleu nuit screen (the mockup's #0d2a4e). */
+  heroCarte: string
   succes: string
   erreur: string
   barreOnglets: string
@@ -112,6 +114,7 @@ export const themeClair: Theme = {
   heroTexte: couleurs.blanc,
   heroTexteSecondaire: couleurs.encre3,
   heroBordure: 'rgba(255, 255, 255, 0.28)',
+  heroCarte: '#0D2A4E',
   succes: couleurs.vert,
   erreur: couleurs.rouge,
   barreOnglets: couleurs.fondCarte,
@@ -140,6 +143,7 @@ export const themeSombre: Theme = {
   heroTexte: couleurs.blanc,
   heroTexteSecondaire: couleurs.encre3,
   heroBordure: 'rgba(255, 255, 255, 0.28)',
+  heroCarte: '#0D2A4E',
   succes: '#5FB884',
   erreur: '#F0844F',
   barreOnglets: '#061C42',

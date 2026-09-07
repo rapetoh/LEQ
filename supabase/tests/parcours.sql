@@ -91,7 +91,7 @@ select is(public.appliquer_resultat(tests_leq.tentative_evaluee('11111111-1111-4
 select is((select statut from public.etapes where id = (select etape1 from ctx)), 'validee', 'step 1 validée');
 select is((select statut from public.etapes where parcours_id = (select parcours_id from ctx) and ordre_global = 2), 'disponible', 'step 2 unlocked');
 select is((select resultat from public.tentatives where id = (select tentative_validante_id from public.etapes where id = (select etape1 from ctx))), 'etape_validee', 'the attempt carries the result');
-select is(public.appliquer_resultat((select tentative_validante_id from public.etapes where id = (select etape1 from ctx))), null, 'applying twice does nothing');
+select is(public.appliquer_resultat((select tentative_validante_id from public.etapes where id = (select etape1 from ctx))), 'etape_validee', 'applying twice answers the stored result (migration 0009)');
 
 -- rhythm: one validated today closes the day in gratuit, complet reopens it ----------------
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');

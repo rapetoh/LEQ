@@ -17,6 +17,7 @@ import {
   useRetour,
   type Retour as DonneesRetour,
 } from '@/services/parcours'
+import { useCarte } from '@/services/parcours'
 import { fermeLActe } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
@@ -64,6 +65,12 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { evaluation, etape, resultat } = retour
+  const carte = useCarte()
+  const suivante = etape
+    ? (carte.data
+        ?.flatMap((a) => a.etapes)
+        .find((e) => e.ordre_global === etape.ordre_global + 1) ?? null)
+    : null
   const mesures = retour.mesures!
   const sousNotes = evaluation ? Object.entries(evaluation.sous_notes) : []
   const noteVisible =
@@ -91,14 +98,26 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
   if (resultat === 'etape_validee' && etape) {
     if (fermeLActe(retour)) {
       actions.push({ libelle: t('commun.continuer'), cible: `/acte/${etape.acte_id}/traverse` })
+    } else if (suivante) {
+      actions.push({
+        libelle: t('defi.resultat.suivant', { titre: suivante.defi.titre }),
+        cible: `/defi/${suivante.id}`,
+      })
+      actions.push({
+        libelle: t('defi.resultat.carte'),
+        cible: '/(onglets)/defis',
+        variante: 'texte',
+      })
     } else {
       actions.push({ libelle: t('defi.resultat.carte'), cible: '/(onglets)/defis' })
     }
-    actions.push({
-      libelle: t('defi.versAujourdhui'),
-      cible: '/(onglets)/aujourdhui',
-      variante: 'texte',
-    })
+    if (!suivante || fermeLActe(retour)) {
+      actions.push({
+        libelle: t('defi.versAujourdhui'),
+        cible: '/(onglets)/aujourdhui',
+        variante: 'texte',
+      })
+    }
   } else if (resultat === 'etape_echouee' && etape) {
     if (etape.rattrapage_propose) {
       actions.push({

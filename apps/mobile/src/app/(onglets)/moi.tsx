@@ -6,6 +6,7 @@ import { EnteteEcran } from '@/components/EnteteEcran'
 import { Carte } from '@/components/ui/Carte'
 import { t } from '@/i18n/fr'
 import { useDrapeaux } from '@/services/configuration'
+import { moisEtAnnee, useProfil } from '@/services/profil'
 import { usePoints, useSerie } from '@/services/progres'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
@@ -19,6 +20,8 @@ export default function Moi() {
   const drapeaux = useDrapeaux()
   const serie = useSerie()
   const points = usePoints()
+  const profil = useProfil()
+  const prenom = profil.data?.prenom?.trim() ?? null
 
   const lignes: { libelle: string; detail?: string; action?: () => void }[] = [
     ...(drapeaux.data?.face_a_face === true ? [{ libelle: t('moi.faceAFace') }] : []),
@@ -35,6 +38,23 @@ export default function Moi() {
       <EnteteEcran titre={t('moi.titre')} />
 
       <View style={styles.sections}>
+        <View style={styles.identite}>
+          <View style={[styles.avatar, { backgroundColor: theme.voixDoux }]}>
+            <Text style={[typographie.titreSection, { color: theme.texte }]}>
+              {prenom ? prenom.charAt(0).toUpperCase() : '·'}
+            </Text>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[typographie.titreSection, { color: theme.texte }]}>
+              {prenom ?? t('moi.titre')}
+            </Text>
+            {profil.data ? (
+              <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+                {t('moi.depuis', { mois: moisEtAnnee(profil.data.cree_le) })}
+              </Text>
+            ) : null}
+          </View>
+        </View>
         <CartePlaceholder phrase={t('moi.placeholderProfil')} />
 
         <View style={styles.chiffres}>
@@ -132,6 +152,14 @@ function Chiffre({
 const styles = StyleSheet.create({
   contenu: { paddingBottom: espaces.xxl },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
+  identite: { flexDirection: 'row', alignItems: 'center', gap: espaces.m },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   chiffres: { flexDirection: 'row', gap: espaces.xs },
   chiffre: { flex: 1, alignItems: 'center', gap: espaces.xxs, paddingHorizontal: espaces.xs },
   liste: { paddingVertical: 0 },

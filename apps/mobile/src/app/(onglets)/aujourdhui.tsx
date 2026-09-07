@@ -13,6 +13,8 @@ import { useDrapeaux } from '@/services/configuration'
 import { useEtapeDuJour } from '@/services/parcours'
 import { usePoints, useSerie } from '@/services/progres'
 import { useAteliers } from '@/services/rebecca'
+import { useProfil } from '@/services/profil'
+import { Icone } from '@/components/ui/Icone'
 import { CarteAtelier } from '@/components/CarteAtelier'
 import { etatAujourdhui, minutesDe, positionDefi, rythmeDeFormule } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -40,12 +42,16 @@ export default function Aujourdhui() {
   const points = usePoints()
   const ateliers = useAteliers()
   const prochainAtelier = ateliers.data?.[0] ?? null
+  const profil = useProfil()
+  const prenom = profil.data?.prenom?.trim()
 
   return (
     <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
       <EnteteEcran
         surtitre={dateDuJour()}
-        titre={t('aujourdhui.salutationSansPrenom')}
+        titre={
+          prenom ? t('aujourdhui.salutation', { prenom }) : t('aujourdhui.salutationSansPrenom')
+        }
         droite={
           serie.data ? (
             <View
@@ -55,9 +61,17 @@ export default function Aujourdhui() {
                 { backgroundColor: serie.data.validee_aujourdhui ? theme.voix : theme.carteDouce },
               ]}
             >
-              <Text style={[typographie.corpsFort, { color: theme.texte }]}>
-                {t('aujourdhui.serieJours', { jours: serie.data.courante })}
-              </Text>
+              <View style={styles.ligne}>
+                <Icone
+                  sf="flame.fill"
+                  material="local-fire-department"
+                  taille={16}
+                  couleur={theme.accent}
+                />
+                <Text style={[typographie.corpsFort, { color: theme.texte }]}>
+                  {t('aujourdhui.serieJours', { jours: serie.data.courante })}
+                </Text>
+              </View>
               <Text style={[typographie.etiquette, { color: theme.texteSecondaire }]}>
                 {t('aujourdhui.serieLibelle')}
               </Text>
@@ -190,11 +204,13 @@ export function CarteDuJour() {
     const position = positionDefi(acte, etape.ordre, etape.nb_etapes_acte)
     const cible = etat.rattrapage ? `/defi/${etape.id}/rattrapage` : `/defi/${etape.id}`
     return (
-      <Carte teinte="orange" style={styles.defi}>
+      <Carte teinte="accent" style={styles.defi}>
         <EnteteDefi
+          surFondAccent
           surtitre={t('aujourdhui.defiDuJour', { minutes: minutesDe(defi.duree_max_s) })}
           points={t('aujourdhui.points', { points: defi.points })}
           titre={defi.titre}
+          progression={{ ordre: etape.ordre, total: etape.nb_etapes_acte }}
           position={
             position.genre === 'derniere'
               ? t('defi.dernier', { acte: position.acte })
@@ -203,10 +219,11 @@ export function CarteDuJour() {
         />
         <Bouton
           libelle={t('aujourdhui.jeMeLance')}
+          variante="blanc"
           onPress={() => router.push(cible)}
           accessibilityHint={defi.titre}
         />
-        <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>{formule}</Text>
+        <Text style={[typographie.petit, { color: 'rgba(255, 255, 255, 0.85)' }]}>{formule}</Text>
       </Carte>
     )
   }
