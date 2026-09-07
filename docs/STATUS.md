@@ -224,6 +224,10 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
    - [x] Fixed (migration 0009): "today" followed Europe/Paris for anyone whose profile had no zone (now the zone of the last take, and the phone writes its zone to the profile at session start); `appliquer_resultat` counted a second failure when the pipeline was replayed; the recovery vanished when the person recorded today before activating it; the announcement job could re-send on a retry (it now claims before sending); re-opening a cancelled exchange deleted the refund (now a compensating movement under the points lock); the export inbox embed was ambiguous (two foreign keys to profils); a distinction kept hidden cost fields; the G3 sentence when the month's recovery is already used; "En ligne" hardcoded. 77 pgTAP assertions on serie_points, 18 server tests
    - [x] Simulator boot with the Phase 6 app: builds (0 errors), installs, bundles with no runtime warning, A1 renders (screenshot checked 2026-09-06)
 
+## Design pass
+
+Roch's rule (2026-09-06): the mockup is the floor, every screen equals it or does slightly better. One reader compared every built screen with its mockup screen; the 28 gaps and their state live in docs/DESIGN-PASS.md. Nine are fixed; the rest (progress ring, the map's winding path, the flame, A2 and A3 on bleu nuit, D2 bars, icons, French no-break spaces) are the next design work, before Phase 7.
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.
