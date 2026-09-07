@@ -3,9 +3,10 @@ import { randomUUID } from 'expo-crypto'
 import { File } from 'expo-file-system'
 import { useNetworkState } from 'expo-network'
 import { useEffect, useRef, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { AnneauProgression } from '@/components/AnneauProgression'
 import { Bulle } from '@/components/Bulle'
 import { Onde } from '@/components/Onde'
 import { Bouton } from '@/components/ui/Bouton'
@@ -264,12 +265,18 @@ export function EcranPrise(props: ProprietesPrise) {
               ? (props.encouragement ?? t('prise.ecouteCalme'))
               : t('prise.ecoute')}
           </Text>
-          <Text style={[typographie.chiffre, { color: theme.heroTexte }]}>
-            {formaterDuree(secondes)}
-          </Text>
-          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
-            {t('prise.plage', { min: formaterDuree(dureeMin), max: formaterDuree(dureeMax) })}
-          </Text>
+          <AnneauProgression
+            progression={dureeMax > 0 ? secondes / dureeMax : 0}
+            diametre={190}
+            style={styles.anneau}
+          >
+            <Text style={[typographie.chiffre, styles.chrono, { color: theme.heroTexte }]}>
+              {formaterDuree(secondes)}
+            </Text>
+            <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+              {t('prise.plage', { min: formaterDuree(dureeMin), max: formaterDuree(dureeMax) })}
+            </Text>
+          </AnneauProgression>
           <Onde niveaux={niveaux} />
           {phase === 'en_cours' && props.plan && props.plan.length > 0 ? (
             <View style={styles.appuisPrise}>
@@ -314,23 +321,43 @@ export function EcranPrise(props: ProprietesPrise) {
           />
         ) : null}
         {phase === 'en_cours' ? (
-          <>
-            <Bouton libelle={t('prise.terminer')} onPress={() => void terminer()} />
+          <View style={styles.commandes}>
             <Bouton
               libelle={t('prise.refaire')}
-              variante="secondaire"
+              variante="texte"
+              surFondSombre
               onPress={() => void refaire()}
             />
-          </>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('prise.terminer')}
+              onPress={() => void terminer()}
+              style={({ pressed }) => [
+                styles.stop,
+                { backgroundColor: theme.voix },
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <View style={[styles.carre, { backgroundColor: theme.hero }]} />
+            </Pressable>
+            <Bouton
+              libelle={t('prise.terminer')}
+              variante="texte"
+              surFondSombre
+              onPress={() => void terminer()}
+            />
+          </View>
         ) : null}
-        <Bouton
-          libelle={t('prise.annuler')}
-          variante="texte"
-          surFondSombre
-          onPress={() => {
-            void abandonner().then(onAnnuler)
-          }}
-        />
+        {phase !== 'en_cours' ? (
+          <Bouton
+            libelle={t('prise.annuler')}
+            variante="texte"
+            surFondSombre
+            onPress={() => {
+              void abandonner().then(onAnnuler)
+            }}
+          />
+        ) : null}
       </View>
     </ScrollView>
   )
@@ -343,6 +370,11 @@ const styles = StyleSheet.create({
   appui: { gap: 2 },
   appuisPrise: { alignSelf: 'stretch', gap: espaces.xxs, paddingTop: espaces.s },
   centre: { alignItems: 'center', gap: espaces.s, marginTop: espaces.l },
+  anneau: { marginVertical: espaces.s },
+  chrono: { fontSize: 44, lineHeight: 50 },
+  commandes: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  stop: { width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center' },
+  carre: { width: 28, height: 28, borderRadius: 8 },
   message: { textAlign: 'center' },
   actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l },
 })
