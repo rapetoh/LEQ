@@ -90,9 +90,14 @@ export function validerRecompense(
   const echangeable = distinction ? false : saisie.echangeable
   const ordre = entier(saisie.ordre, true, 1)
   if (!ordre.ok) erreurs.ordre = ordre.code
-  const cout = entier(saisie.cout_points, echangeable, 1)
+  // A distinction has neither cost nor cap: whatever the hidden fields hold is dropped, not validated.
+  const cout = distinction
+    ? { ok: true as const, valeur: null }
+    : entier(saisie.cout_points, echangeable, 1)
   if (!cout.ok) erreurs.cout_points = cout.code
-  const plafond = entier(saisie.plafond_par_mois, false, 1)
+  const plafond = distinction
+    ? { ok: true as const, valeur: null }
+    : entier(saisie.plafond_par_mois, false, 1)
   if (!plafond.ok) erreurs.plafond_par_mois = plafond.code
   if (Object.keys(erreurs).length > 0 || !ordre.ok || !cout.ok || !plafond.ok)
     return { ok: false, erreurs }
@@ -104,7 +109,7 @@ export function validerRecompense(
     titre: saisie.titre.trim(),
     sous_titre: saisie.sous_titre.trim() || null,
     description: saisie.description.trim() || null,
-    cout_points: echangeable ? cout.valeur : cout.valeur,
+    cout_points: cout.valeur,
     plafond_par_mois: plafond.valeur,
     echangeable,
     provisoire: saisie.provisoire,

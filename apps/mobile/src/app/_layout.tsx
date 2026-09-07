@@ -16,6 +16,7 @@ import { Rappels } from '@/components/Rappels'
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
 import { rafraichirJeton, routePourCible, surNotificationTouchee } from '@/services/notifications'
 import { definirExpirationFileJours, demarrerFile, routePourRetour } from '@/services/prises'
+import { synchroniserFuseau } from '@/services/fuseau'
 import { FournisseurSession, useSession } from '@/services/supabase'
 import { FournisseurTheme, useTheme } from '@/theme/ThemeProvider'
 
@@ -68,6 +69,7 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
     if (!session) return
     void demarrerFile()
     void rafraichirJeton()
+    void synchroniserFuseau(session.user.id)
   }, [session])
 
   // A tap on "Ton retour est prêt" opens the take's waiting screen, which opens the

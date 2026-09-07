@@ -18,7 +18,10 @@ export type DemandeExport = z.output<typeof DemandeExportSchema>
 export async function chargerDemandesExport(): Promise<DemandeExport[]> {
   const { data, error } = await supabase
     .from('demandes_export')
-    .select('id, utilisateur_id, email, traitee_le, traitee_par, cree_le, profils(prenom)')
+    // Two foreign keys point to profils (the person, the admin who treated it): name the one meant.
+    .select(
+      'id, utilisateur_id, email, traitee_le, traitee_par, cree_le, profils!demandes_export_utilisateur_id_fkey(prenom)',
+    )
     .order('cree_le', { ascending: false })
   if (error) throw new Error(error.message)
   return z.array(DemandeExportSchema).parse(data)

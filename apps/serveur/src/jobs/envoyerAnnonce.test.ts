@@ -10,6 +10,7 @@ const ANNONCE = '9a9a9a9a-9a9a-4a9a-8a9a-9a9a9a9a9a9a'
 function fauxExecuteur(options: {
   annonce: { regions: string[] | null; destinataires: number | null } | null
   jetons: Array<{ id: string; jeton: string }>
+  dejaReservee?: boolean
 }) {
   const marques: Array<{ id: string; erreur: string | null; desactiver: boolean }> = []
   const resultats: unknown[][] = []
@@ -46,6 +47,10 @@ function fauxExecuteur(options: {
           desactiver: Boolean(values?.[2]),
         })
         return reponse([])
+      }
+      if (text.includes('set destinataires = $2 where id = $1 and destinataires is null')) {
+        resultats.push(['reservation', ...(values ?? [])])
+        return reponse(options.dejaReservee ? [] : [{ id: ANNONCE }])
       }
       if (text.includes('update public.annonces')) {
         resultats.push(values ?? [])
@@ -93,7 +98,10 @@ describe('envoyerAnnonce', () => {
       { id: 'j1', erreur: null, desactiver: false },
       { id: 'j2', erreur: 'DeviceNotRegistered', desactiver: true },
     ])
-    expect(faux.resultats).toEqual([[ANNONCE, 2, 1, 1]])
+    expect(faux.resultats).toEqual([
+      ['reservation', ANNONCE, 2],
+      [ANNONCE, 2, 1, 1],
+    ])
   })
 
   it('does not send an announcement that already has its counts', async () => {
@@ -143,6 +151,28 @@ describe('envoyerAnnonce', () => {
       echecs: TAILLE_LOT_PUSH,
     })
     expect(faux.regions()).toBeNull()
+  })
+
+  it('sends nothing when another run already claimed the announcement', async () => {
+    const faux = fauxExecuteur({
+      annonce: { regions: null, destinataires: null },
+      jetons: [{ id: 'j1', jeton: 'x' }],
+      dejaReservee: true,
+    })
+    let appels = 0
+    const bilan = await envoyerAnnonce(
+      {
+        ex: faux.ex,
+        envoyer: async () => {
+          appels += 1
+          return []
+        },
+      },
+      ANNONCE,
+      log,
+    )
+    expect(appels).toBe(0)
+    expect(bilan).toEqual({ destinataires: 1, envoyes: 0, echecs: 0 })
   })
 
   it('does nothing for an unknown announcement', async () => {

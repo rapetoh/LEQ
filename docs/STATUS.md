@@ -220,6 +220,8 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
    - [x] A suspended account is sent to `/suspendu` from every screen but the settings (`components/GardeSuspension.tsx`), with the two gestures that stay open in G3
 5. Verification
    - [x] pgTAP (all suites), server (17), mobile (49) and admin (31) tests green; `npm run check` and `npm run format:check` green
+6. Review (two independent readers, 2026-09-06, Phases 5 and 6 together)
+   - [x] Fixed (migration 0009): "today" followed Europe/Paris for anyone whose profile had no zone (now the zone of the last take, and the phone writes its zone to the profile at session start); `appliquer_resultat` counted a second failure when the pipeline was replayed; the recovery vanished when the person recorded today before activating it; the announcement job could re-send on a retry (it now claims before sending); re-opening a cancelled exchange deleted the refund (now a compensating movement under the points lock); the export inbox embed was ambiguous (two foreign keys to profils); a distinction kept hidden cost fields; the G3 sentence when the month's recovery is already used; "En ligne" hardcoded. 77 pgTAP assertions on serie_points, 18 server tests
    - [x] Simulator boot with the Phase 6 app: builds (0 errors), installs, bundles with no runtime warning, A1 renders (screenshot checked 2026-09-06)
 
 ## Next

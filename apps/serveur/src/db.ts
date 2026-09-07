@@ -351,6 +351,22 @@ export async function listerJetonsPourAnnonce(
   return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
 }
 
+/**
+ * Claims the announcement before any push leaves: writes `destinataires` only when it is still
+ * null. False means another run already claimed it, so a retry sends nothing twice.
+ */
+export async function reserverAnnonce(
+  ex: Executeur,
+  id: string,
+  destinataires: number,
+): Promise<boolean> {
+  const { rows } = await ex.query(
+    'update public.annonces set destinataires = $2 where id = $1 and destinataires is null returning id',
+    [id, destinataires],
+  )
+  return rows.length > 0
+}
+
 export async function ecrireResultatAnnonce(
   ex: Executeur,
   id: string,

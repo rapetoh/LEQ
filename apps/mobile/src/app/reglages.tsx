@@ -289,9 +289,11 @@ export default function Reglages() {
           )}
           {serie.data && !serie.data.recuperation.jour_a_couvrir ? (
             <Text style={[typographie.petit, styles.sousLigne, { color: theme.texteTertiaire }]}>
-              {serie.data.courante > 0 || serie.data.recuperation.jour_reparable
-                ? t('serie.rienACouvrir')
-                : t('serie.tropTard', { record: serie.data.record })}
+              {serie.data.recuperation.jour_reparable && serie.data.recuperation.restantes === 0
+                ? t('serie.quotaUtilise', { record: serie.data.record })
+                : serie.data.courante > 0
+                  ? t('serie.rienACouvrir')
+                  : t('serie.tropTard', { record: serie.data.record })}
             </Text>
           ) : null}
         </Carte>

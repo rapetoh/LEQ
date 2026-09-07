@@ -1,12 +1,14 @@
 // envoyer_annonce: one of Rebecca's announcements (cahier chapter 12), pushed once to the
 // people who keep the switch on, in the regions it concerns, and not suspended. The cap and
 // the filter were already enforced by publier_annonce(); this job only delivers and counts.
-// Idempotent: an announcement that already has its counts is not sent twice.
+// Idempotent: the announcement is claimed (destinataires written) before the first push leaves,
+// so a retry after a crash mid-way never sends it twice; the counts land at the end.
 import { z } from 'zod'
 import {
   ecrireResultatAnnonce,
   lireAnnonce,
   listerJetonsPourAnnonce,
+  reserverAnnonce,
   type Executeur,
   type JetonDestinataire,
 } from '../db.js'
@@ -63,6 +65,10 @@ export async function envoyerAnnonce(
   }
 
   const jetons = await listerJetonsPourAnnonce(deps.ex, annonce.regions)
+  if (!(await reserverAnnonce(deps.ex, annonceId, jetons.length))) {
+    journal.info('annonce reservee par un autre passage, rien a envoyer')
+    return { destinataires: jetons.length, envoyes: 0, echecs: 0 }
+  }
   let envoyes = 0
   let echecs = 0
   for (let debut = 0; debut < jetons.length; debut += TAILLE_LOT_PUSH) {

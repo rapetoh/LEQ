@@ -50,7 +50,9 @@ select tests_leq.creer_utilisateur('11111111-1111-4111-8111-111111111111', 'a@te
 select tests_leq.creer_utilisateur('22222222-2222-4222-8222-222222222222', 'b@test.leq', false);
 select tests_leq.creer_utilisateur('33333333-3333-4333-8333-333333333333', 'c@test.leq', true);
 select tests_leq.creer_utilisateur('44444444-4444-4444-8444-444444444444', 'admin@test.leq', false);
-update public.profils set fuseau_horaire = 'Europe/Paris' where id in ('11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222');
+select tests_leq.creer_utilisateur('55555555-5555-4555-8555-555555555555', 'e@test.leq', false);
+select tests_leq.creer_utilisateur('66666666-6666-4666-8666-666666666666', 'f@test.leq', false);
+update public.profils set fuseau_horaire = 'Europe/Paris' where id in ('11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', '55555555-5555-4555-8555-555555555555');
 
 -- "Today" is the real Paris day: the table refuses recordings in the future or older than 8 days.
 create temp table ctx as select (now() at time zone 'Europe/Paris')::date as aujourdhui, '11111111-1111-4111-8111-111111111111'::uuid as a, '22222222-2222-4222-8222-222222222222'::uuid as b;
@@ -91,6 +93,24 @@ select is((select (public.calculer_serie(a, aujourdhui)) ->> 'validee_aujourdhui
 select tests_leq.prise((select b from ctx), (select aujourdhui - 4 from ctx), 120, '{}'::jsonb, 0);
 select is((select (public.calculer_serie(b, aujourdhui)) #>> '{recuperation,jour_a_couvrir}' from ctx), null, 'a gap of three days is not repairable');
 select throws_ok($$ select public.activer_recuperation(b, aujourdhui) from ctx $$, 'P0001', 'rien_a_couvrir', 'B cannot activate a recovery');
+-- recording today after a missed yesterday: the recovery still closes the gap -----------------
+select tests_leq.prise('55555555-5555-4555-8555-555555555555', (select aujourdhui - 3 from ctx), 120, '{}'::jsonb, 0);
+select tests_leq.prise('55555555-5555-4555-8555-555555555555', (select aujourdhui - 2 from ctx), 120, '{}'::jsonb, 0);
+select tests_leq.prise('55555555-5555-4555-8555-555555555555', (select aujourdhui from ctx), 120, '{}'::jsonb, 0);
+select is((select (public.calculer_serie('55555555-5555-4555-8555-555555555555', aujourdhui)) ->> 'courante' from ctx)::int, 1, 'E recorded today after a gap: the run restarted at 1');
+select is((select (public.calculer_serie('55555555-5555-4555-8555-555555555555', aujourdhui)) #>> '{recuperation,jour_a_couvrir}' from ctx), (select to_char(aujourdhui - 1, 'YYYY-MM-DD') from ctx), 'yesterday is still repairable');
+select is((select public.activer_recuperation('55555555-5555-4555-8555-555555555555', aujourdhui) from ctx), (select aujourdhui - 1 from ctx), 'E covers yesterday');
+select is((select (public.calculer_serie('55555555-5555-4555-8555-555555555555', aujourdhui)) ->> 'courante' from ctx)::int, 4, 'one continuous run of four days');
+
+-- "today" follows the zone of the last take when the profile has none ----------------------------
+insert into public.tentatives (id, utilisateur_id, type, enregistre_le, fuseau_horaire, decalage_minutes, statut)
+values (gen_random_uuid(), '66666666-6666-4666-8666-666666666666', 'diagnostic', now(), 'America/Montreal', -240, 'retour_disponible');
+select is(public.fuseau_de('66666666-6666-4666-8666-666666666666'), 'America/Montreal', 'F''s zone is the zone of the last take');
+select tests_leq.connecter('66666666-6666-4666-8666-666666666666', false, 'utilisateur');
+select is((select (public.ma_serie()) ->> 'validee_aujourdhui')::boolean, true, 'F''s take counts for F''s today, whatever the hour in Paris');
+select is((select (public.ma_serie()) ->> 'aujourdhui'), to_char(now() at time zone 'America/Montreal', 'YYYY-MM-DD'), 'today is the Montreal day');
+reset role; select tests_leq.deconnecter();
+
 -- the caller-facing functions run as the person
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select lives_ok($$ select public.ma_serie() $$, 'ma_serie() answers the signed-in person');
@@ -112,6 +132,13 @@ select is((select public.solde_points(a) from ctx), (select points from etape1),
 select is((select count(*) from public.mouvements_points where utilisateur_id = (select a from ctx) and motif = 'defi_valide'), 1::bigint, 'one movement');
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select is((select (public.mes_points()) ->> 'cette_semaine')::int, (select points from etape1), 'the points count for this week');
+reset role; select tests_leq.deconnecter();
+create temp table etape2 as select e.id from public.etapes e where e.parcours_id = (select id from public.parcours where utilisateur_id = (select a from ctx)) and e.ordre_global = 2;
+create temp table echec as select tests_leq.tentative_evaluee((select a from ctx), (select id from etape2), 1) as id;
+select is(public.appliquer_resultat((select id from echec)), 'etape_echouee', 'a low note fails the second step');
+select is(public.appliquer_resultat((select id from echec)), 'etape_echouee', 'a replay answers the same result');
+select is((select nombre_echecs from public.etapes where id = (select id from etape2)), 1, 'the failure is counted once');
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select throws_ok($$ insert into public.mouvements_points (utilisateur_id, montant, motif) values ('11111111-1111-4111-8111-111111111111', 1000, 'ajustement') $$, '42501', null, 'a person cannot write the ledger');
 reset role; select tests_leq.deconnecter();
 
@@ -148,6 +175,12 @@ select is((select r ->> 'restantes_ce_mois' from jsonb_array_elements((public.me
 reset role; select tests_leq.deconnecter();
 select is((select public.solde_points(b) from ctx), 5000, 'B gets the points back');
 select is((select statut from public.echanges_recompenses where utilisateur_id = (select b from ctx)), 'annule', 'statut annule');
+select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');
+select lives_ok($$ select public.traiter_echange((select id from public.echanges_recompenses where utilisateur_id = (select b from ctx)), 'a_traiter') $$, 'the admin re-opens B''s exchange');
+reset role; select tests_leq.deconnecter();
+select is((select public.solde_points(b) from ctx), 5000 - 300, 'the points are taken again');
+select is((select count(*) from public.mouvements_points where utilisateur_id = (select b from ctx)), 4::bigint, 'four movements, none deleted: the ledger is append-only');
+select is((select statut from public.echanges_recompenses where utilisateur_id = (select b from ctx)), 'a_traiter', 'statut a_traiter again');
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select throws_ok($$ select public.traiter_echange((select id from public.echanges_recompenses limit 1), 'honore') $$, '42501', null, 'a person cannot treat exchanges');
 reset role; select tests_leq.deconnecter();

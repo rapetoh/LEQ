@@ -4,6 +4,8 @@ import { AnnonceSchema, AtelierSchema, type Annonce, type Atelier } from '@leq/d
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { z } from 'zod'
 
+import { t } from '@/i18n/fr'
+
 import { supabase, useSession } from './supabase'
 
 export const CLE_ATELIERS = ['ateliers'] as const
@@ -59,5 +61,5 @@ export function lieuEtDate(atelier: Pick<Atelier, 'lieu' | 'en_ligne' | 'date_de
   const date = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(
     new Date(atelier.date_debut),
   )
-  return `${atelier.en_ligne ? 'En ligne' : atelier.lieu} · ${date}`
+  return `${atelier.en_ligne ? t('rebecca.enLigne') : atelier.lieu} · ${date}`
 }

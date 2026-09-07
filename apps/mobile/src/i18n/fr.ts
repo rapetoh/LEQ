@@ -514,6 +514,8 @@ export const fr = {
       rien_a_couvrir: "Rien à couvrir aujourd'hui.",
       inconnu: "Ça n'a pas marché. C'est nous, pas toi. Réessaie dans un instant.",
     },
+    quotaUtilise:
+      'Hier manque, et la récupération de ce mois est déjà utilisée. Le record reste : {{record}}.',
   },
   rebecca: {
     titre: 'Aller plus loin avec Rebecca',
@@ -522,6 +524,7 @@ export const fr = {
     ateliersPlaceholder: 'Les ateliers de Rebecca apparaîtront ici quand elle en ouvrira un.',
     places: '{{places}} places',
     place: '1 place',
+    enLigne: 'En ligne',
     voirAtelier: "Voir l'atelier",
     reserver: 'Réserver chez Rebecca',
     pointsPlace: 'Une place contre tes points : {{cout}} pts dans la boutique.',
