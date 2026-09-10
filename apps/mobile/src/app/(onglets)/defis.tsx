@@ -11,10 +11,11 @@ import { Carte } from '@/components/ui/Carte'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import {
-  disposerNoeuds,
-  hauteurCarte,
   RAYON_COURANT,
   RAYON_NOEUD,
+  disposerNoeuds,
+  gaucheEtiquette,
+  hauteurCarte,
   tracer,
 } from '@/services/carteVue'
 import { useCarte, type ActeCarte, type EtapeCarte } from '@/services/parcours'
@@ -182,7 +183,9 @@ function Contree({ acte }: { acte: ActeCarte }) {
           </Svg>
           {acte.etapes.map((etape, i) => {
             const p = points[i]
-            return p ? <Noeud key={etape.id} etape={etape} x={p.x} y={p.y} /> : null
+            return p ? (
+              <Noeud key={etape.id} etape={etape} x={p.x} y={p.y} largeur={largeur} />
+            ) : null
           })}
         </>
       ) : acte.etapes.length === 0 ? (
@@ -194,7 +197,17 @@ function Contree({ acte }: { acte: ActeCarte }) {
   )
 }
 
-function Noeud({ etape, x, y }: { etape: EtapeCarte; x: number; y: number }) {
+function Noeud({
+  etape,
+  x,
+  y,
+  largeur,
+}: {
+  etape: EtapeCarte
+  x: number
+  y: number
+  largeur: number
+}) {
   const router = useRouter()
   const destination = destinationNoeud(etape)
   const courant = etape.statut === 'disponible'
@@ -205,7 +218,7 @@ function Noeud({ etape, x, y }: { etape: EtapeCarte; x: number; y: number }) {
     router.push(destination === 'rattrapage' ? `/defi/${etape.id}/rattrapage` : `/defi/${etape.id}`)
   }
   return (
-    <View style={[styles.noeud, { left: x - 90, top: y - rayon, width: 180 }]}>
+    <View style={[styles.noeud, { left: gaucheEtiquette(x, largeur), top: y - rayon, width: 180 }]}>
       <Pressable
         accessibilityRole={destination === 'aucune' ? undefined : 'button'}
         accessibilityLabel={etape.defi.titre}
@@ -302,7 +315,7 @@ const styles = StyleSheet.create({
   glyphe: { alignItems: 'center', gap: 2 },
   glypheHaut: { width: 11, height: 17, borderRadius: 6, backgroundColor: couleurs.blanc },
   glypheBas: { width: 17, height: 3, borderRadius: 2, backgroundColor: couleurs.blanc },
-  bulleNoeud: { position: 'absolute', left: 44, top: -30 },
+  bulleNoeud: { position: 'absolute', left: 48, top: -26 },
   etiquette: {
     paddingHorizontal: 9,
     paddingVertical: 3,

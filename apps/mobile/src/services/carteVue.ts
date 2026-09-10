@@ -6,7 +6,7 @@ export type PointCarte = { x: number; y: number }
 export const RAYON_NOEUD = 26
 export const RAYON_COURANT = 37
 const FRACTIONS = [0.17, 0.71, 0.28, 0.71] as const
-const HAUT = 96
+const HAUT = 128
 const PAS = 112
 
 export function disposerNoeuds(nombre: number, largeur: number): PointCarte[] {
@@ -14,6 +14,11 @@ export function disposerNoeuds(nombre: number, largeur: number): PointCarte[] {
     x: Math.round(largeur * (FRACTIONS[i % FRACTIONS.length] ?? 0.5)),
     y: HAUT + i * PAS,
   }))
+}
+
+/** Where a 180 px label sits so it stays inside the land. */
+export function gaucheEtiquette(x: number, largeur: number, largeurEtiquette = 180): number {
+  return Math.max(4, Math.min(x - largeurEtiquette / 2, largeur - largeurEtiquette - 4))
 }
 
 /** Height of the land so the last label fits. */

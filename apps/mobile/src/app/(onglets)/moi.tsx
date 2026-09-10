@@ -51,7 +51,7 @@ export default function Moi() {
           </View>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={[typographie.titreSection, { color: theme.texte }]}>
-              {prenom ?? t('moi.titre')}
+              {prenom ?? t('profil.titre')}
             </Text>
             {profil.data ? (
               <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
