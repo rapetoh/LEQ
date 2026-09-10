@@ -77,12 +77,8 @@ export class ServiceEnregistrement {
     if (this.enCours) throw new ErreurEnregistrement('Un enregistrement est déjà en cours.')
     const recorder = this.obtenirRecorder()
 
-    AudioManager.setAudioSessionOptions({
-      iosCategory: 'record',
-      iosMode: 'measurement',
-      iosOptions: [],
-    })
-    await AudioManager.setAudioSessionActivity(true)
+    // The measurement session first (no processing, ADR-007); the plain one if the phone refuses it.
+    await this.ouvrirSession('measurement')
 
     const sortie = recorder.enableFileOutput({
       format: FileFormat.M4A,
@@ -119,12 +115,35 @@ export class ServiceEnregistrement {
       },
     )
 
-    const demarrage = await recorder.start({ fileNameOverride: id })
+    let demarrage = await recorder.start({ fileNameOverride: id })
     if (demarrage.status === 'error') {
-      await this.liberer()
-      throw new ErreurEnregistrement(demarrage.message)
+      const premiereErreur = demarrage.message
+      try {
+        await this.ouvrirSession('default')
+        demarrage = await recorder.start({ fileNameOverride: id })
+      } catch (erreur) {
+        await this.liberer()
+        throw new ErreurEnregistrement(`${premiereErreur} ; ${messageDe(erreur)}`)
+      }
+      if (demarrage.status === 'error') {
+        await this.liberer()
+        throw new ErreurEnregistrement(`${premiereErreur} ; ${demarrage.message}`)
+      }
     }
     this.enCours = true
+  }
+
+  private async ouvrirSession(mode: 'measurement' | 'default'): Promise<void> {
+    try {
+      AudioManager.setAudioSessionOptions(
+        mode === 'measurement'
+          ? { iosCategory: 'record', iosMode: 'measurement', iosOptions: [] }
+          : { iosCategory: 'playAndRecord', iosMode: 'default', iosOptions: [] },
+      )
+      await AudioManager.setAudioSessionActivity(true)
+    } catch (erreur) {
+      throw new ErreurEnregistrement(`session audio (${mode}) : ${messageDe(erreur)}`)
+    }
   }
 
   /** Stops and returns the file. Throws when nothing was recorded. */
@@ -163,6 +182,10 @@ export class ServiceEnregistrement {
       console.warn('enregistrement: session non libérée', erreur)
     }
   }
+}
+
+function messageDe(erreur: unknown): string {
+  return erreur instanceof Error ? erreur.message : String(erreur)
 }
 
 export const enregistrement = new ServiceEnregistrement()

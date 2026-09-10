@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-06, Phase 4 review fixes and Phase 5 slices 1 to 3 (ledgers, streak, shop, progress, admin rewards). Update this file in the same commit as any change of state.
+Last updated: 2026-09-10, after Roch's first TestFlight walkthrough (build 3): icon and splash, mockup tab bar, map of acts, account entry, recorder fallback; build 4 submitted. Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -223,6 +223,10 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
 6. Review (two independent readers, 2026-09-06, Phases 5 and 6 together)
    - [x] Fixed (migration 0009): "today" followed Europe/Paris for anyone whose profile had no zone (now the zone of the last take, and the phone writes its zone to the profile at session start); `appliquer_resultat` counted a second failure when the pipeline was replayed; the recovery vanished when the person recorded today before activating it; the announcement job could re-send on a retry (it now claims before sending); re-opening a cancelled exchange deleted the refund (now a compensating movement under the points lock); the export inbox embed was ambiguous (two foreign keys to profils); a distinction kept hidden cost fields; the G3 sentence when the month's recovery is already used; "En ligne" hardcoded. 77 pgTAP assertions on serie_points, 18 server tests
    - [x] Simulator boot with the Phase 6 app: builds (0 errors), installs, bundles with no runtime warning, A1 renders (screenshot checked 2026-09-06)
+
+## Roch's first device walkthrough (2026-09-10, TestFlight build 3)
+
+Reported: default icon and splash (the logo was never wired), design below the mockup (tab bar, map of acts, mascot), recording does not start on the phone, "J'ai déjà un compte" led to the home screen, no visible account state. Fixed in build 4: the logo as icon and splash, Bulle redrawn from the mockup, the floating tab bar, the map of acts with its winding path, sign-in entry from A1, account state on Moi, light theme by default. The recorder now retries with the plain audio session and shows the technical reason on screen when it fails: Roch's next screenshot of A4 tells which native call refuses on the phone (never reproduced on the simulator).
 
 ## Design pass
 

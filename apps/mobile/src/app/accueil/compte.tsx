@@ -1,5 +1,5 @@
 import { PrenomSchema } from '@leq/domaine'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -22,6 +22,8 @@ type Etape = 'choix' | 'email' | 'code' | 'prenom'
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 export default function Compte() {
+  const params = useLocalSearchParams<{ mode?: string }>()
+  const connexion = params.mode === 'connexion'
   const theme = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -106,9 +108,11 @@ export default function Compte() {
       </Text>
       <View style={styles.entete}>
         <Bulle taille="petite" />
-        <Titre niveau="ecran">{t('compte.titre')}</Titre>
+        <Titre niveau="ecran">{connexion ? t('compte.titreConnexion') : t('compte.titre')}</Titre>
       </View>
-      <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>{t('compte.intro')}</Text>
+      <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
+        {connexion ? t('compte.introConnexion') : t('compte.intro')}
+      </Text>
 
       {etape === 'choix' ? (
         <View style={styles.bloc}>

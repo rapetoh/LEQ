@@ -76,6 +76,7 @@ export const fr = {
     interrompue: "Ta prise s'est arrêtée à cause d'un appel ou d'une alerte. Tu peux la refaire.",
     micRefuse: "Sans micro, LEQ ne peut pas t'écouter. Autorise-le dans les réglages du téléphone.",
     erreur: "L'enregistrement n'a pas démarré. C'est nous, pas toi. Réessaie dans un instant.",
+    detail: 'Détail technique : {{detail}}',
   },
   analyse: {
     envoi: 'Envoi en cours',
@@ -120,6 +121,9 @@ export const fr = {
   compte: {
     surtitre: 'Ton profil',
     titre: 'Garde-le, et vois-le changer.',
+    titreConnexion: 'Retrouve ton profil.',
+    introConnexion:
+      'Le code arrive par e-mail. Ton profil, ta série et tes points reviennent avec.',
     intro: 'Un compte, un geste : ton profil, ta série et tes points te suivent.',
     apple: 'Continuer avec Apple',
     google: 'Continuer avec Google',
@@ -317,6 +321,7 @@ export const fr = {
     conservation:
       'Les prises ne sont pas conservées. Leurs résultats, oui : les béquilles baissent défi après défi.',
     verrouille: 'Se déverrouille après le défi précédent',
+    enCoursMajuscules: 'Acte {{acte}} · en cours',
     ouvrir: 'Ouvrir',
     formatTexte: 'Texte à lire',
     formatLong: 'Grand format',
@@ -453,6 +458,13 @@ export const fr = {
     semainesGagnees: 'semaines gagnées',
     semaineGagnee: 'semaine gagnée',
     depuis: 'Depuis {{mois}}',
+    compte: {
+      sansCompte: 'Sans compte pour le moment',
+      sansCompteDetail: 'Ton profil reste sur ce téléphone. Crée ton compte pour le garder.',
+      creer: 'Créer mon compte',
+      connecte: 'Connecté·e avec {{email}}',
+      deconnexion: 'Se déconnecter',
+    },
     faceAFace: 'Le face-à-face',
     mesRecompenses: 'Mes récompenses',
     monAbonnement: 'Mon abonnement',

@@ -62,7 +62,7 @@ export default function Arene() {
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: espaces.xxl },
+  contenu: { paddingBottom: 120 },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
   segments: { flexDirection: 'row', padding: 3, borderRadius: rayons.pilule },
   segment: {

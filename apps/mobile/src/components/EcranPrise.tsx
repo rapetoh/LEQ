@@ -66,6 +66,7 @@ export function EcranPrise(props: ProprietesPrise) {
   const [preparationRestante, setPreparationRestante] = useState(props.preparationS ?? 0)
   const [niveaux, setNiveaux] = useState<number[]>(() => Array<number>(NB_BARRES).fill(-100))
   const [message, setMessage] = useState<string | null>(null)
+  const [detail, setDetail] = useState<string | null>(null)
   const idRef = useRef<string | null>(null)
   const demarrageRef = useRef(false)
   const [demarrageEnCours, setDemarrageEnCours] = useState(false)
@@ -134,6 +135,7 @@ export function EcranPrise(props: ProprietesPrise) {
       onTerminee(id)
     } catch (erreur) {
       console.warn('prise: arrêt impossible', erreur)
+      setDetail(erreur instanceof Error ? erreur.message : String(erreur))
       await abandonner()
       setPhase('erreur')
       setMessage(t('prise.erreur'))
@@ -146,6 +148,7 @@ export function EcranPrise(props: ProprietesPrise) {
     demarrageRef.current = true
     setDemarrageEnCours(true)
     setMessage(null)
+    setDetail(null)
     if ((await demanderMicro()) !== 'accorde') {
       setMessage(t('prise.micRefuse'))
       demarrageRef.current = false
@@ -175,6 +178,7 @@ export function EcranPrise(props: ProprietesPrise) {
       }, 250)
     } catch (erreur) {
       console.warn('prise: démarrage impossible', erreur)
+      setDetail(erreur instanceof Error ? erreur.message : String(erreur))
       await abandonner()
       setPhase('erreur')
       setMessage(t('prise.erreur'))
@@ -296,6 +300,11 @@ export function EcranPrise(props: ProprietesPrise) {
       {message ? (
         <Text style={[typographie.corps, styles.message, { color: theme.heroTexteSecondaire }]}>
           {message}
+        </Text>
+      ) : null}
+      {detail ? (
+        <Text style={[typographie.petit, styles.message, { color: theme.heroTexteSecondaire }]}>
+          {t('prise.detail', { detail })}
         </Text>
       ) : null}
 

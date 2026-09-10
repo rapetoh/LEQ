@@ -7,7 +7,6 @@ import { CielEtoile } from '@/components/CielEtoile'
 import { Bouton } from '@/components/ui/Bouton'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
-import { useDemarrage } from '@/services/configuration'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, typographie } from '@/theme/tokens'
 
@@ -16,7 +15,6 @@ export default function Bienvenue() {
   const theme = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { marquerAccueilTermine } = useDemarrage()
 
   return (
     <View
@@ -55,11 +53,7 @@ export default function Bienvenue() {
           libelle={t('accueil.bienvenue.dejaUnCompte')}
           variante="secondaire"
           surFondSombre
-          onPress={() => {
-            // Sign-in arrives with A7 (Phase 1). Until then the shell opens directly.
-            marquerAccueilTermine()
-            router.replace('/(onglets)/aujourdhui')
-          }}
+          onPress={() => router.push('/accueil/compte?mode=connexion')}
         />
       </View>
     </View>

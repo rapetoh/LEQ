@@ -3,10 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
+import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { t } from '@/i18n/fr'
 import { useDrapeaux } from '@/services/configuration'
 import { moisEtAnnee, useProfil } from '@/services/profil'
+import { supabase, useSession } from '@/services/supabase'
 import { usePoints, useSerie } from '@/services/progres'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
@@ -21,6 +23,9 @@ export default function Moi() {
   const serie = useSerie()
   const points = usePoints()
   const profil = useProfil()
+  const { session, reessayer } = useSession()
+  const anonyme = session?.user.is_anonymous === true
+  const email = session?.user.email ?? null
   const prenom = profil.data?.prenom?.trim() ?? null
 
   const lignes: { libelle: string; detail?: string; action?: () => void }[] = [
@@ -55,6 +60,33 @@ export default function Moi() {
             ) : null}
           </View>
         </View>
+        {anonyme ? (
+          <Carte teinte="voix" style={styles.compte}>
+            <Text style={[typographie.corpsFort, { color: theme.texte }]}>
+              {t('moi.compte.sansCompte')}
+            </Text>
+            <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+              {t('moi.compte.sansCompteDetail')}
+            </Text>
+            <Bouton
+              libelle={t('moi.compte.creer')}
+              onPress={() => router.push('/accueil/compte')}
+            />
+          </Carte>
+        ) : email ? (
+          <View style={styles.ligne}>
+            <Text style={[typographie.petit, { color: theme.texteTertiaire, flex: 1 }]}>
+              {t('moi.compte.connecte', { email })}
+            </Text>
+            <Bouton
+              libelle={t('moi.compte.deconnexion')}
+              variante="texte"
+              onPress={() => {
+                void supabase.auth.signOut().then(() => reessayer())
+              }}
+            />
+          </View>
+        ) : null}
         <CartePlaceholder phrase={t('moi.placeholderProfil')} />
 
         <View style={styles.chiffres}>
@@ -150,8 +182,9 @@ function Chiffre({
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: espaces.xxl },
+  contenu: { paddingBottom: 120 },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
+  compte: { gap: espaces.xs },
   identite: { flexDirection: 'row', alignItems: 'center', gap: espaces.m },
   avatar: {
     width: 64,

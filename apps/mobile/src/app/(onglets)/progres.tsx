@@ -318,7 +318,7 @@ function Apercu({
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: espaces.xxl },
+  contenu: { paddingBottom: 120 },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.m },
   bloc: { gap: espaces.s },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },

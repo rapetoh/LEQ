@@ -264,7 +264,7 @@ export function CarteDuJour() {
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: espaces.xxl },
+  contenu: { paddingBottom: 120 },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
   section: { gap: espaces.s },
   defi: { gap: espaces.m },

@@ -21,7 +21,7 @@ function estModeNuit(valeur: unknown): valeur is ModeNuit {
 
 export function FournisseurTheme({ children }: { children: ReactNode }) {
   const schemaSysteme = useColorScheme()
-  const [mode, setMode] = useState<ModeNuit>('automatique')
+  const [mode, setMode] = useState<ModeNuit>('clair')
 
   useEffect(() => {
     let actif = true

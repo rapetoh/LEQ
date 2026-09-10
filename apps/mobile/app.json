@@ -5,12 +5,11 @@
     "version": "0.1.0",
     "scheme": "leq",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/marque/icone.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.leqapp.mobile",
       "supportsTablet": false,
-      "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "LEQ a besoin du micro pour analyser ta prise de parole. Ta voix est analysée puis effacée.",
         "CFBundleDevelopmentRegion": "fr",
@@ -22,9 +21,7 @@
       "package": "com.leqapp.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#001636",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/marque/icone.png"
       },
       "predictiveBackGestureEnabled": false,
       "allowBackup": false,
@@ -41,8 +38,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#001636",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "image": "./assets/marque/sigle-blanc.png",
+          "imageWidth": 220
         }
       ],
       [
