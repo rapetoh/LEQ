@@ -130,7 +130,7 @@ Written before the work started, as the rule says. Slices are built in this orde
    - [ ] `@leq/domaine` schemas and option lists; pgTAP additions green against the hosted project
 2. Recording stack on the phone (ADR-007)
    - [x] `react-native-audio-api` 0.13.3 installed with its config plugin (microphone text, background mode, Android foreground service of type microphone); the development build compiles and installs on the iPhone 17 simulator with React Native 0.86.3 (ADR-007 item 1)
-   - [x] Recording service written (`src/services/enregistrement.ts`): session `record` in `measurement` mode, `.m4a` 16 kHz mono 64 kbps in the cache directory, level meter from the raw buffers, an interruption ends the take. Not yet exercised on a device: the simulator flow needs taps (slice 7)
+   - [x] Recording service written (`src/services/enregistrement.ts`): session `record` in `measurement` mode, `.m4a` 22.05 kHz mono 32 kbps in the cache directory, level meter from the raw buffers, an interruption ends the take. Not yet exercised on a device: the simulator flow needs taps (slice 7)
    - [ ] Fallback documented and exercised only if the build fails (ADR-007, expo-audio recorder plus a session module)
 3. Local queue and upload
    - [x] Queue written: pure state machine (`fileMachine.ts`), orchestrator with injected dependencies (`file.ts`), real wiring (`prises.ts`: AsyncStorage index, cache files, expo-network, triggers on foreground and network return), upload and insert idempotent by attempt id (`tentatives.ts`), Android backup disabled in `app.json`, expiry from `expiration_file_locale_jours`
@@ -223,6 +223,10 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
 6. Review (two independent readers, 2026-09-06, Phases 5 and 6 together)
    - [x] Fixed (migration 0009): "today" followed Europe/Paris for anyone whose profile had no zone (now the zone of the last take, and the phone writes its zone to the profile at session start); `appliquer_resultat` counted a second failure when the pipeline was replayed; the recovery vanished when the person recorded today before activating it; the announcement job could re-send on a retry (it now claims before sending); re-opening a cancelled exchange deleted the refund (now a compensating movement under the points lock); the export inbox embed was ambiguous (two foreign keys to profils); a distinction kept hidden cost fields; the G3 sentence when the month's recovery is already used; "En ligne" hardcoded. 77 pgTAP assertions on serie_points, 18 server tests
    - [x] Simulator boot with the Phase 6 app: builds (0 errors), installs, bundles with no runtime warning, A1 renders (screenshot checked 2026-09-06)
+
+## The recording bug, found and fixed (2026-09-11)
+
+Roch could not record on his iPhone. The recorder never worked, on any device: the iOS AAC encoder refuses to open a 16 kHz file (`AudioConverterSetProperty(converter, kAudioConverterEncodeBitRate, ...)` fails, error 560226676), so `recorder.start()` returned an error and the screen showed "L'enregistrement n'a pas démarré". Found by adding `apps/mobile/src/app/diagnostic.tsx`, a development-only screen that runs the chain and tries several recorder settings; 16 kHz fails, 22.05 kHz and above succeed. The recorder now writes 22.05 kHz mono 32 kbps; the worker already resamples to 16 kHz with ffmpeg, so nothing downstream changes. Verified end to end on the simulator: 3.00 s recorded, 45 kB file, 41 level frames.
 
 ## Roch's first device walkthrough (2026-09-10, TestFlight build 3)
 

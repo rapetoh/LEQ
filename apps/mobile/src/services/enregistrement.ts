@@ -1,5 +1,5 @@
 // Recording a take (ADR-007, path a): react-native-audio-api owns the audio session.
-// iOS category "record" in "measurement" mode (no dynamics processing), 16 kHz mono
+// iOS category "record" in "measurement" mode (no dynamics processing), 22.05 kHz mono
 // M4A in the cache directory (never backed up), a level meter from the raw buffers,
 // and an interruption (call, alarm) ends the take instead of pausing it: a take with
 // a hole would corrupt the rate windows and the silences.
@@ -14,8 +14,11 @@ import {
   type AudioEventSubscription,
 } from 'react-native-audio-api'
 
-export const FREQUENCE_HZ = 16000
-export const DEBIT_BPS = 64000
+// 22.05 kHz, not 16 kHz: the iOS AAC encoder refuses to open a 16 kHz file (AudioConverter
+// rejects the bit rate). The server resamples to 16 kHz with ffmpeg before measuring, so the
+// pipeline is unchanged. Checked on the simulator with src/app/diagnostic.tsx on 2026-09-11.
+export const FREQUENCE_HZ = 22050
+export const DEBIT_BPS = 32000
 export const SOUS_DOSSIER = 'leq-prises'
 /** 100 ms of audio per level update. */
 const TRAME_NIVEAU = 1600
