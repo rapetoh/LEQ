@@ -11,6 +11,9 @@ export const TYPES_JOB = [
   'balayer_audio',
   'purger_anonymes',
   'envoyer_annonce',
+  'roter_sujet_arene',
+  'fermer_duels',
+  'supprimer_audio_public',
 ] as const
 export const TypeJobSchema = z.enum(TYPES_JOB)
 export type TypeJob = z.infer<typeof TypeJobSchema>
@@ -54,6 +57,13 @@ export const ChargeEnvoyerAnnonceSchema = z.object({
 })
 export type ChargeEnvoyerAnnonce = z.infer<typeof ChargeEnvoyerAnnonceSchema>
 
+/** Inserted by pg_cron every hour: the weekly rotation of the Arena subject (Phase 7). */
+export const ChargeRoterSujetAreneSchema = z.object({})
+/** Inserted by pg_cron every 15 minutes: duels to close or expire (Phase 7). */
+export const ChargeFermerDuelsSchema = z.object({})
+/** Inserted by pg_cron every 30 minutes: the audio of closed weeks and duels (Phase 7). */
+export const ChargeSupprimerAudioPublicSchema = z.object({})
+
 /** One charge schema per job type. */
 export const CHARGES_JOB = {
   analyser_tentative: ChargeAnalyserTentativeSchema,
@@ -61,6 +71,9 @@ export const CHARGES_JOB = {
   balayer_audio: ChargeBalayerAudioSchema,
   purger_anonymes: ChargePurgerAnonymesSchema,
   envoyer_annonce: ChargeEnvoyerAnnonceSchema,
+  roter_sujet_arene: ChargeRoterSujetAreneSchema,
+  fermer_duels: ChargeFermerDuelsSchema,
+  supprimer_audio_public: ChargeSupprimerAudioPublicSchema,
 } as const satisfies Record<TypeJob, z.ZodType>
 
 export type ChargeJob<T extends TypeJob = TypeJob> = z.output<(typeof CHARGES_JOB)[T]>
@@ -125,6 +138,10 @@ export const JobSchema = z.discriminatedUnion('type', [
     type: z.literal('envoyer_annonce'),
     charge: ChargeEnvoyerAnnonceSchema,
   }),
+  JobBaseSchema.extend({
+    type: z.literal('roter_sujet_arene'),
+    charge: ChargeRoterSujetAreneSchema,
+  }),
 ])
 export type Job = z.output<typeof JobSchema>
 export type JobDeType<T extends TypeJob> = Extract<Job, { type: T }>
@@ -156,6 +173,10 @@ export const NouveauJobSchema = z.discriminatedUnion('type', [
   NouveauJobBaseSchema.extend({
     type: z.literal('envoyer_annonce'),
     charge: ChargeEnvoyerAnnonceSchema,
+  }),
+  NouveauJobBaseSchema.extend({
+    type: z.literal('roter_sujet_arene'),
+    charge: ChargeRoterSujetAreneSchema,
   }),
 ])
 export type NouveauJob = z.output<typeof NouveauJobSchema>

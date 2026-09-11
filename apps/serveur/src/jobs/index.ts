@@ -12,6 +12,11 @@ import { choisirTranscripteur } from '../transcription/index.js'
 import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
 import { creerHandlerAnalyserTentative, type DepotAnalyse } from './analyserTentative.js'
 import { creerHandlerBalayerAudio } from './balayerAudio.js'
+import {
+  creerHandlerFermerDuels,
+  creerHandlerRoterSujetArene,
+  creerHandlerSupprimerAudioPublic,
+} from './arene.js'
 import { creerHandlerEnvoyerAnnonce } from './envoyerAnnonce.js'
 import { creerHandlerPurgerAnonymes } from './purgerAnonymes.js'
 import { creerHandlerSupprimerCompte } from './supprimerCompte.js'
@@ -76,5 +81,8 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     balayer_audio: creerHandlerBalayerAudio({ ex: pool, stockage }),
     purger_anonymes: creerHandlerPurgerAnonymes(suppression),
     envoyer_annonce: creerHandlerEnvoyerAnnonce({ ex: pool, envoyer: envoyerViaExpo }),
+    roter_sujet_arene: creerHandlerRoterSujetArene({ ex: pool, stockage }),
+    fermer_duels: creerHandlerFermerDuels({ ex: pool, stockage }),
+    supprimer_audio_public: creerHandlerSupprimerAudioPublic({ ex: pool, stockage }),
   }
 }

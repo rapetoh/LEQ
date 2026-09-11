@@ -406,6 +406,12 @@ Rebecca's space, completed (cahier chapters 8 and 12): workshops and announcemen
 
 - `mots_bequilles` (json, the v1 list): the filler words the analysis looks for. The worker reads it at each analysis and falls back to the contract's list when the value is missing or invalid.
 
+### Scheduled jobs added in Phase 7
+
+- `leq_roter_sujet_arene` (`5 * * * *`): inserts `roter_sujet_arene`; the function itself does nothing before the week is over.
+- `leq_fermer_duels` (`*/15 * * * *`): inserts `fermer_duels`; the worker closes a duel once both have spoken and expires it at the deadline.
+- `leq_supprimer_audio_public` (`*/30 * * * *`): inserts `supprimer_audio_public`; the worker deletes the objects of `prises_publiques` whose `date_suppression` has passed and stamps `audio_supprime_le`.
+
 ## Phase 7 additions (migration `0010_arene`)
 
 The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the app until the `arene` and `duels` flags are on. The rules live here, not in the interface.

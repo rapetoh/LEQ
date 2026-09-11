@@ -78,6 +78,9 @@ export const TYPES_JOB = [
   'balayer_audio',
   'purger_anonymes',
   'envoyer_annonce',
+  'roter_sujet_arene',
+  'fermer_duels',
+  'supprimer_audio_public',
 ] as const
 export type TypeJob = (typeof TYPES_JOB)[number]
 
@@ -290,6 +293,70 @@ export async function lireListeMotsBequilles(
     .map((m) => m.trim().toLowerCase())
     .filter((m) => m.length > 0)
   return mots.length > 0 ? mots : defaut
+}
+
+// ---------------------------------------------------------------------------
+// arene et duels (Phase 7)
+// ---------------------------------------------------------------------------
+
+/** Closes the week that is over and activates the next subject. Answers the active subject id. */
+export async function roterSujetArene(ex: Executeur): Promise<string | null> {
+  const { rows } = await ex.query('select public.roter_sujet_arene() as sujet')
+  const sujet = rows[0]?.['sujet']
+  return sujet === null || sujet === undefined ? null : String(sujet)
+}
+
+/** Open duels where both have answered, or whose deadline has passed. */
+export async function listerDuelsAFermer(ex: Executeur): Promise<string[]> {
+  const { rows } = await ex.query(
+    `select d.id
+       from public.duels d
+      where d.statut = 'ouvert'
+        and (
+          d.echeance <= now()
+          or (select count(*) from public.prises_publiques p
+               join public.evaluations e on e.tentative_id = p.tentative_id
+              where p.duel_id = d.id) >= 2
+        )
+      order by d.echeance
+      limit 200`,
+  )
+  return rows.map((r) => String(r['id']))
+}
+
+export async function fermerDuel(ex: Executeur, duelId: string): Promise<string | null> {
+  const { rows } = await ex.query('select public.cloturer_duel($1) as verdict', [duelId])
+  const verdict = rows[0]?.['verdict']
+  return verdict === null || verdict === undefined ? null : String(verdict)
+}
+
+export interface PrisePubliqueASupprimer {
+  id: string
+  chemin_audio: string | null
+}
+
+/** Public takes marked for deletion whose audio is still there. */
+export async function listerPrisesPubliquesASupprimer(
+  ex: Executeur,
+): Promise<PrisePubliqueASupprimer[]> {
+  const { rows } = await ex.query(
+    `select id, chemin_audio from public.prises_publiques
+      where date_suppression is not null and date_suppression <= now()
+        and audio_supprime_le is null
+      order by date_suppression
+      limit 500`,
+  )
+  return rows.map((r) => ({
+    id: String(r['id']),
+    chemin_audio: r['chemin_audio'] === null ? null : String(r['chemin_audio']),
+  }))
+}
+
+export async function marquerAudioPublicSupprime(ex: Executeur, id: string): Promise<void> {
+  await ex.query(
+    'update public.prises_publiques set chemin_audio = null, audio_supprime_le = now() where id = $1',
+    [id],
+  )
 }
 
 // ---------------------------------------------------------------------------
