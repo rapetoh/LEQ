@@ -35,6 +35,8 @@ export function formaterDuree(secondes: number): string {
 export type ProprietesPrise = {
   type: TypeTentative
   etapeId?: string
+  /** Set when the take answers a duel (Phase 7). */
+  duelId?: string
   surtitre: string
   titre: string
   consigne: string
@@ -158,7 +160,13 @@ export function EcranPrise(props: ProprietesPrise) {
     const id = randomUUID()
     idRef.current = id
     try {
-      await file.commencer({ id, type, etape_id: etapeId ?? null, ...horodatageLocal() })
+      await file.commencer({
+        id,
+        type,
+        etape_id: etapeId ?? null,
+        duel_id: props.duelId ?? null,
+        ...horodatageLocal(),
+      })
       await enregistrement.demarrer(
         id,
         (dbfs) => setNiveaux((courants) => [...courants.slice(1), dbfs]),

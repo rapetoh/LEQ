@@ -85,6 +85,8 @@ export const TentativeSchema = z.object({
   utilisateur_id: UuidSchema,
   type: TypeTentativeSchema,
   etape_id: UuidSchema.nullable(),
+  /** Set for a `duel` attempt (Phase 7). */
+  duel_id: UuidSchema.nullable(),
   enregistre_le: IsoTimestampSchema,
   fuseau_horaire: IanaTimezoneSchema,
   decalage_minutes: DecalageMinutesSchema,
@@ -111,6 +113,7 @@ export const NouvelleTentativeSchema = z
     utilisateur_id: UuidSchema,
     type: TypeTentativeSchema,
     etape_id: UuidSchema.nullable().default(null),
+    duel_id: UuidSchema.nullable().default(null),
     enregistre_le: IsoTimestampSchema,
     fuseau_horaire: IanaTimezoneSchema,
     decalage_minutes: DecalageMinutesSchema,

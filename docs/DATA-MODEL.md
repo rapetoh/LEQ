@@ -406,6 +406,42 @@ Rebecca's space, completed (cahier chapters 8 and 12): workshops and announcemen
 
 - `mots_bequilles` (json, the v1 list): the filler words the analysis looks for. The worker reads it at each analysis and falls back to the contract's list when the value is missing or invalid.
 
+## Phase 7 additions (migration `0010_arene`)
+
+The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the app until the `arene` and `duels` flags are on. The rules live here, not in the interface.
+
+### sujets_arene
+
+- `id`, `cle unique`, `texte`, `consigne`, `ordre unique`, `duree_max_s`, `actif_le`, `ferme_le`, `provisoire`, `actif`, timestamps.
+- One subject at a time for seven days, derived from the dates: `sujet_arene_actif()` returns the row whose `actif_le` has passed and whose `ferme_le` has not. RLS: authenticated read the activated ones, admin everything.
+
+### prises_publiques
+
+- `id`, `utilisateur_id`, `tentative_id unique`, `contexte` (arena or duel, checked against `sujet_id` and `duel_id`), `chemin_audio`, `statut` (en_moderation, publiee, retiree), `motif_retrait`, `votes_recus`, `date_suppression`, `audio_supprime_le`, timestamps. One take per person per duel.
+- Created only by `publier_prise()`: the deliberate gesture of chapter 11, on an attempt of type `arene` or `duel` that is already analysed, never by an anonymous or suspended account.
+- RLS: own takes always; a published take of the active subject only once the caller has spoken on it (`a_parle_sur()`); a duel take only to the two participants and only once the duel is closed; the admin sees everything, including what waits for moderation.
+
+### impressions, votes
+
+- `impressions (votant_id, prise_id)` records what a voter has been shown, so `paire_a_voter()` can balance the sampling.
+- `votes (votant_id, sujet_id, gagnante_id, perdante_id, paire)` with `unique (votant_id, paire)`: a pair is voted once. `paire` is the two identifiers sorted (`cle_paire()`).
+- `paire_a_voter()` answers `parle_d_abord` until the caller has spoken, never their own takes, the least shown first, and records the two impressions. `voter()` refuses a vote on one's own take, a pair already voted and a pair from two subjects; it credits `points_par_vote` through the ledger, keyed by the vote id.
+- RLS: a person reads their own votes and impressions, nobody reads who voted for whom.
+
+### duels
+
+- `id`, `inviteur_id`, `invite_id`, `sujet`, `jeton unique` (32 hexadecimal characters, the invitation link of `apps/web`), `duree_max_s` (the cap of the caller's formula), `statut` (ouvert, clos, expire), `verdict` (inviteur, invite, egalite), `echeance`, `clos_le`, timestamps. `tentatives.duel_id` links an attempt to its duel.
+- `creer_duel(sujet)`, `lire_duel_par_jeton(jeton)` (readable by an anonymous principal: the invitee may not have the app, and never hears the inviter before recording), `rejoindre_duel(jeton)`.
+- `cloturer_duel()` (service role): with two evaluated takes the higher grid total wins; with one take only, and past the deadline, the duel expires without verdict and both takes are marked for deletion. The verdict is rendered by the analysis and the app says so.
+
+### moderations
+
+- `id`, `prise_id`, `decision` (publiee, retiree), `motif`, `decide_par`, `cree_le`. Written by `moderer_prise()` (admin), which also marks a withdrawn take for deletion.
+
+### roter_sujet_arene()
+
+- Service role, called by the weekly job: closes the current subject once its `duree_sujet_arene_jours` are past, marks every take of that week for deletion (the ranking rows stay, chapter 2), and activates the next subject of the bank by `ordre`. An empty bank is a handled state: nothing is activated.
+
 ## Later phases (names reserved)
 
-`sujets_arene`, `prises_publiques` (Arena or duel, checked), `impressions`, `votes`, `duels`, `debats`, `tours_debat`, `sessions_debat`, `theses`, `moderations`.
+`debats`, `tours_debat`, `sessions_debat`, `theses`.

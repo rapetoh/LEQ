@@ -82,6 +82,7 @@ describe('FileLocale', () => {
       id: demarrage.id,
       type: 'diagnostic',
       etape_id: null,
+      duel_id: null,
       chemin: '/cache/a.m4a',
       enregistre_le: '2026-09-06T09:00:00Z',
       fuseau_horaire: 'Europe/Paris',

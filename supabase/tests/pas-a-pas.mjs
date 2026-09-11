@@ -13,12 +13,17 @@ const client = new pg.Client({
 const texte = await readFile(fichier, 'utf8')
 const enonces = []
 let courant = '',
-  dollars = 0
+  dollars = 0,
+  bloc = false
 for (const ligne of texte.split('\n')) {
-  const n = (ligne.match(/\$\$/g) ?? []).length
-  dollars += n
+  dollars += (ligne.match(/\$\$/g) ?? []).length
+  // A block comment may hold semicolons and $$: never split inside one.
+  const ouvertures = (ligne.match(/\/\*/g) ?? []).length
+  const fermetures = (ligne.match(/\*\//g) ?? []).length
+  if (ouvertures > fermetures) bloc = true
+  else if (fermetures > 0) bloc = false
   courant += ligne + '\n'
-  if (dollars % 2 === 0 && /;\s*$/.test(ligne)) {
+  if (!bloc && dollars % 2 === 0 && /;\s*$/.test(ligne)) {
     enonces.push(courant)
     courant = ''
   }

@@ -15,7 +15,7 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 | 4     | Path machinery, three formats, entitlements, RevenueCat     | Built and reviewed (seven fixes applied, migrations 0005 and 0007); RevenueCat waits for the account |
 | 5     | Streak, points, shop, bridge to Rebecca                     | Slices 1 to 3 built (database, mobile, admin); simulator boot and Roch's tap-through remain          |
 | 6     | Admin space, complete                                       | In progress since 2026-09-06 (checklist below); offers content and moderation queue wait             |
-| 7     | Arena and duels, shipped off, public web                    | Not started                                                                                          |
+| 7     | Arena and duels, shipped off, public web                    | In progress since 2026-09-11 (checklist below)                                                       |
 | 8     | Face-à-face                                                 | Not started                                                                                          |
 | 9     | Release                                                     | Not started                                                                                          |
 
@@ -235,6 +235,25 @@ Reported: default icon and splash (the logo was never wired), design below the m
 ## Design pass
 
 Roch's rule (2026-09-06): the mockup is the floor, every screen equals it or does slightly better. One reader compared every built screen with its mockup screen; the 28 gaps and their state live in docs/DESIGN-PASS.md. Nine are fixed; the rest (progress ring, the map's winding path, the flame, A2 and A3 on bleu nuit, D2 bars, icons, French no-break spaces) are the next design work, before Phase 7.
+
+## Phase 7 checklist (Arena and duels, shipped off)
+
+Written before the work started. Cahier chapter 11, plan Phase 7. Everything ships behind the `arene` and `duels` flags, which stay off until Rebecca turns them on.
+
+1. Contract and database (migration `0010_arene`)
+   - [x] `sujets_arene` (bank with `ordre`, `actif_le`, `ferme_le`; the active subject is derived from the dates), `prises_publiques` (an analysed attempt made public by a deliberate gesture; `contexte` arena or duel, `statut` en_moderation, publiee, retiree; `date_suppression` set at closing), `impressions` (which takes a voter has been shown, for balanced sampling), `votes` (winner, loser, one pair once), `duels` (two people, a subject, 48 h, an invitation token that works without the app), `moderations` (the decision log)
+   - [x] Functions: `sujet_arene_actif()`, `publier_prise()`, `paire_a_voter()` (only once the caller has spoken, never their own takes, balanced by impressions), `voter()` (credits `points_par_vote`), `classement_arene()`, `creer_duel()`, `rejoindre_duel(jeton)`, `cloturer_duel()`; RLS hides others' takes until the caller has spoken, and keeps names out of the vote
+   - [x] pgTAP `tests/arene.sql`: 55 assertions green on the hosted project (rotation, publishing as a deliberate gesture, takes hidden until you have spoken and until moderation, pair voting with impressions and points, no vote on one's own take, a pair voted once, anonymous ranking with the opted-in first names, closing a week marks the audio for deletion and keeps the ranking, duels with their token, verdict from the grid, expiry without verdict, moderation); `@leq/domaine` schemas (`arene.ts`), `tentatives.duel_id`
+2. Server
+   - [ ] Jobs `roter_sujet_arene` (weekly, by pg_cron), `fermer_sujet` (deletes the audio of the closed week, keeps the ranking), `fermer_duel` (48 h, or both spoke; verdict from the grid, clearly labelled automatic)
+3. Mobile
+   - [ ] C1 to C8: the Arena tab in its states (subject, record, hidden takes, pair voting, ranking), the duel invitation and its verdict
+4. Web (`apps/web`)
+   - [ ] The invitation page: listen, record in the browser, upload as an anonymous principal, see the verdict, install link
+5. Admin
+   - [ ] Subjects bank, moderation queue, the flags already exist
+6. Verification
+   - [ ] pgTAP, server, mobile and admin tests green; `npm run check`; simulator boot with the flags on
 
 ## Next
 

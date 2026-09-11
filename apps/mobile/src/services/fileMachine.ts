@@ -18,6 +18,8 @@ export interface EntreeFile {
   id: string
   type: TypeTentative
   etape_id: string | null
+  /** Set for a duel take (Phase 7). */
+  duel_id: string | null
   /** Absolute path of the audio file on the phone, null once deleted. */
   chemin: string | null
   /** When the person started speaking (ISO), the streak day comes from it. */
@@ -49,6 +51,7 @@ export interface DemarragePrise {
   id: string
   type: TypeTentative
   etape_id?: string | null
+  duel_id?: string | null
   enregistre_le: Date
   fuseau_horaire: string
   decalage_minutes: number
@@ -59,6 +62,7 @@ export function creerEntree(demarrage: DemarragePrise): EntreeFile {
     id: demarrage.id,
     type: demarrage.type,
     etape_id: demarrage.etape_id ?? null,
+    duel_id: demarrage.duel_id ?? null,
     chemin: null,
     enregistre_le: demarrage.enregistre_le.toISOString(),
     fuseau_horaire: demarrage.fuseau_horaire,

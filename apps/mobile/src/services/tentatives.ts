@@ -46,6 +46,7 @@ export async function televerserPrise(entree: EntreeFile, utilisateurId: string)
     utilisateur_id: utilisateurId,
     type: entree.type,
     etape_id: entree.etape_id,
+    duel_id: entree.duel_id,
     enregistre_le: entree.enregistre_le,
     fuseau_horaire: entree.fuseau_horaire,
     decalage_minutes: entree.decalage_minutes,
