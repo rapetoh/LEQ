@@ -56,7 +56,7 @@ export default function AvecRebecca() {
 
       <Carte style={styles.bloc}>
         <Text style={[typographie.titreCarte, { color: theme.texte }]}>
-          {t('rebecca.individuel')}
+          {t('rebecca.individuelCourt')}
         </Text>
         <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
           {t('rebecca.individuelDetail')}

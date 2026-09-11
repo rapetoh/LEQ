@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
+import { useContexteTheme } from '@/theme/ThemeProvider'
 import { couleurs } from '@/theme/tokens'
 
 // Twinkling dots behind the bleu nuit hero screens (A1). Positions are deterministic so the
@@ -41,7 +42,8 @@ function generer(nombre: number): Etoile[] {
 const ETOILES = generer(32)
 
 function Point({ etoile }: { etoile: Etoile }) {
-  const mouvementReduit = useReducedMotion()
+  const { animationsReduites } = useContexteTheme()
+  const mouvementReduit = useReducedMotion() || animationsReduites
   const lueur = useSharedValue(0.35)
 
   useEffect(() => {

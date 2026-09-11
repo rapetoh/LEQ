@@ -11,6 +11,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Icone } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
+import { formaterEntier } from '@/app/(onglets)/moi'
 import { t } from '@/i18n/fr'
 import { useResumeProgres } from '@/services/progres'
 import {
@@ -74,7 +75,16 @@ function Progression({ resume }: { resume: ResumeProgres }) {
                     styles.point,
                     { backgroundColor: jour.actif ? theme.voix : theme.carteDouce },
                   ]}
-                />
+                >
+                  {jour.actif ? (
+                    <Icone
+                      sf="flame.fill"
+                      material="local-fire-department"
+                      taille={12}
+                      couleur={theme.accent}
+                    />
+                  ) : null}
+                </View>
                 <Text style={[typographie.etiquette, { color: theme.texteTertiaire }]}>
                   {initialeJour(jour.jour)}
                 </Text>
@@ -117,7 +127,7 @@ function Progression({ resume }: { resume: ResumeProgres }) {
             appuis.map((appui) => (
               <View key={appui.mot} style={styles.ligne}>
                 <Text style={[typographie.corpsFort, { color: theme.texte, flex: 1 }]}>
-                  « {appui.mot} »
+                  « {appui.mot} »
                 </Text>
                 <Text style={[typographie.corpsFort, { color: theme.texte }]}>
                   {t('progres.appuis.evolution', { avant: appui.avant, apres: appui.apres })}
@@ -223,11 +233,17 @@ function Progression({ resume }: { resume: ResumeProgres }) {
 
         <CartePlaceholder titre={t('progres.cap.titre')} phrase={t('progres.cap.placeholder')} />
 
-        <Bouton
-          libelle={t('progres.recompenses')}
-          variante="secondaire"
-          onPress={() => router.push('/recompenses')}
-        />
+        <Carte teinte="orange" style={styles.bloc}>
+          <Text
+            style={[typographie.etiquette, styles.majuscules, { color: theme.texteSecondaire }]}
+          >
+            {t('recompenses.titre')}
+          </Text>
+          <Text style={[typographie.chiffre, { color: theme.texte }]}>
+            {formaterEntier(resume.points.solde)}
+          </Text>
+          <Bouton libelle={t('progres.recompenses')} onPress={() => router.push('/recompenses')} />
+        </Carte>
       </View>
     </ScrollView>
   )
@@ -321,10 +337,17 @@ const styles = StyleSheet.create({
   contenu: { paddingBottom: 120 },
   sections: { paddingHorizontal: espaces.xl, gap: espaces.m },
   bloc: { gap: espaces.s },
+  majuscules: { textTransform: 'uppercase' },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
   jours: { flexDirection: 'row', justifyContent: 'space-between' },
   jour: { alignItems: 'center', gap: espaces.xxs },
-  point: { width: 22, height: 22, borderRadius: 11 },
+  point: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   tuiles: { flexDirection: 'row', gap: espaces.xs },
   tuile: { flex: 1, gap: 2, paddingHorizontal: espaces.s, alignItems: 'center' },
   barre: { height: 10, borderRadius: rayons.pilule, overflow: 'visible', marginTop: espaces.xs },

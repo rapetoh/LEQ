@@ -6,6 +6,7 @@ import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
+import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import { useCarte, type EtapeCarte } from '@/services/parcours'
 import { chiffreRomain, ilYA } from '@/services/rythme'
@@ -99,6 +100,16 @@ function Ligne({ etape }: { etape: EtapeCarte }) {
 
   return (
     <View style={styles.ligne}>
+      <View
+        style={[
+          styles.rond,
+          { backgroundColor: etape.statut === 'validee' ? theme.voix : theme.carteDouce },
+        ]}
+      >
+        {etape.statut === 'validee' ? (
+          <Icone sf="checkmark" material="check" taille={14} couleur={theme.texte} />
+        ) : null}
+      </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={[typographie.corpsFort, { color: theme.texte }]}>{etape.defi.titre}</Text>
         <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>{detail}</Text>
@@ -119,5 +130,6 @@ const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.m },
   bloc: { gap: espaces.m },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  rond: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l },
 })

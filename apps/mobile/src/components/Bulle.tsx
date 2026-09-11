@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { t } from '@/i18n/fr'
+import { useContexteTheme } from '@/theme/ThemeProvider'
 import { couleurs } from '@/theme/tokens'
 
 // Bulle, the mascot, exactly as the validated mockup draws it: a speech bubble in "or" with a
@@ -36,7 +37,8 @@ type Props = {
 
 export function Bulle({ taille = 'moyenne', calme = false, visage, style }: Props) {
   const mouvementReduit = useReducedMotion()
-  const immobile = calme || mouvementReduit
+  const { animationsReduites } = useContexteTheme()
+  const immobile = calme || mouvementReduit || animationsReduites
   const face: VisageBulle = visage ?? (calme ? 'sourit' : 'parle')
   const s = LARGEURS[taille] / BASE
 

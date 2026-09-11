@@ -5,6 +5,7 @@ import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
+import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import { useDrapeaux } from '@/services/configuration'
 import { moisEtAnnee, useProfil } from '@/services/profil'
@@ -44,10 +45,22 @@ export default function Moi() {
 
       <View style={styles.sections}>
         <View style={styles.identite}>
-          <View style={[styles.avatar, { backgroundColor: theme.voixDoux }]}>
-            <Text style={[typographie.titreSection, { color: theme.texte }]}>
-              {prenom ? prenom.charAt(0).toUpperCase() : '·'}
-            </Text>
+          <View>
+            <View style={[styles.avatar, { backgroundColor: theme.voixDoux }]}>
+              <Text style={[typographie.titreSection, { color: theme.texte }]}>
+                {prenom ? prenom.charAt(0).toUpperCase() : '·'}
+              </Text>
+            </View>
+            {serie.data && serie.data.courante > 0 ? (
+              <View style={[styles.flamme, { backgroundColor: theme.carte }]}>
+                <Icone
+                  sf="flame.fill"
+                  material="local-fire-department"
+                  taille={14}
+                  couleur={theme.accent}
+                />
+              </View>
+            ) : null}
           </View>
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={[typographie.titreSection, { color: theme.texte }]}>
@@ -186,6 +199,16 @@ const styles = StyleSheet.create({
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
   compte: { gap: espaces.xs },
   identite: { flexDirection: 'row', alignItems: 'center', gap: espaces.m },
+  flamme: {
+    position: 'absolute',
+    right: -4,
+    bottom: -2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatar: {
     width: 64,
     height: 64,

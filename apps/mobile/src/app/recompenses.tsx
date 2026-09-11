@@ -9,6 +9,7 @@ import { formaterEntier } from '@/app/(onglets)/moi'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
+import { Icone, type NomMaterial, type NomSF } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import {
@@ -156,6 +157,13 @@ export default function Recompenses() {
   )
 }
 
+const ICONES: Record<RecompenseBoutique['type'], { sf: NomSF; material: NomMaterial }> = {
+  contenu: { sf: 'play.rectangle.fill', material: 'play-circle-outline' },
+  reduction: { sf: 'percent', material: 'percent' },
+  atelier: { sf: 'person.3.fill', material: 'groups' },
+  distinction: { sf: 'star.fill', material: 'star' },
+}
+
 function Recompense({
   recompense,
   solde,
@@ -186,6 +194,14 @@ function Recompense({
       style={styles.recompense}
     >
       <View style={styles.ligne}>
+        <View style={[styles.tuile, { backgroundColor: theme.voixDoux }]}>
+          <Icone
+            sf={ICONES[recompense.type].sf}
+            material={ICONES[recompense.type].material}
+            taille={22}
+            couleur={theme.texte}
+          />
+        </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={[typographie.titreCarte, { color: theme.texte }]}>{recompense.titre}</Text>
           {recompense.sous_titre ? (
@@ -202,6 +218,19 @@ function Recompense({
           </View>
         ) : null}
       </View>
+      {!distinction && cout !== null ? (
+        <View style={[styles.piste, { backgroundColor: '#FFE9C2' }]}>
+          <View
+            style={[
+              styles.remplissage,
+              {
+                backgroundColor: theme.accent,
+                width: `${Math.min(100, Math.round((solde / cout) * 100))}%`,
+              },
+            ]}
+          />
+        </View>
+      ) : null}
       {recompense.description ? (
         <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
           {recompense.description}
@@ -235,6 +264,15 @@ const styles = StyleSheet.create({
   lignePadding: { paddingVertical: espaces.m },
   message: { textAlign: 'center' },
   recompense: { gap: espaces.s },
+  tuile: {
+    width: 46,
+    height: 46,
+    borderRadius: rayons.m,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  piste: { height: 5, borderRadius: rayons.pilule, overflow: 'hidden' },
+  remplissage: { height: 5, borderRadius: rayons.pilule },
   pilule: {
     paddingHorizontal: espaces.s,
     paddingVertical: espaces.xxs,

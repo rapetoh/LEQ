@@ -10,6 +10,7 @@ import { TuilesMesures } from '@/components/TuilesMesures'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
+import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import {
   CLE_CARTE,
@@ -155,6 +156,11 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
           {t('retour.surtitre')}
         </Text>
       </View>
+      {resultat === 'etape_validee' ? (
+        <View style={[styles.medaille, { backgroundColor: theme.voix }]}>
+          <Icone sf="checkmark" material="check" taille={32} couleur={theme.texte} />
+        </View>
+      ) : null}
       <Titre niveau="ecran">{titre}</Titre>
       {corps ? (
         <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>{corps}</Text>
@@ -177,6 +183,17 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
           </View>
           {sousNotes.map(([cle, sousNote]) => (
             <View key={cle} style={styles.ligne}>
+              <View
+                style={[
+                  styles.marqueur,
+                  {
+                    backgroundColor:
+                      sousNote.max > 0 && sousNote.score / sousNote.max >= 0.8
+                        ? theme.voix
+                        : theme.carteDouce,
+                  },
+                ]}
+              />
               <Text style={[typographie.corps, { color: theme.texte, flex: 1 }]}>
                 {retour.criteres[cle] ?? cle}
               </Text>
@@ -297,6 +314,15 @@ const styles = StyleSheet.create({
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   texteCentre: { textAlign: 'center' },
   entete: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  medaille: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  marqueur: { width: 22, height: 22, borderRadius: 11 },
   section: { marginTop: espaces.s },
   bloc: { gap: espaces.s },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },

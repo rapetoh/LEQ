@@ -7,6 +7,7 @@ export const CLES = {
   cacheConfiguration: 'cache_configuration',
   cacheDrapeaux: 'cache_drapeaux',
   modeNuit: 'mode_nuit',
+  animationsReduites: 'animations_reduites',
   profilLocal: 'profil_local',
   reponsesAccueil: 'reponses_accueil',
   priseDiagnostic: 'prise_diagnostic',

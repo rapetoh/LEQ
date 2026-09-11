@@ -233,7 +233,7 @@ export function EcranPrise(props: ProprietesPrise) {
             {t('defi.texteChoisi')}
           </Text>
           <Text style={[typographie.titreCarte, { color: theme.heroTexte }]}>
-            « {props.texteALire} »
+            « {props.texteALire} »
           </Text>
           <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
             {t('defi.minuterieApresLecture')}

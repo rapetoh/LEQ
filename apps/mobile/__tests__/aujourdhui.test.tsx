@@ -87,8 +87,8 @@ beforeEach(() => mockPush.mockClear())
 describe('CarteDuJour', () => {
   it('shows the step of the day and opens its brief', async () => {
     const ecran = await rendre(DONNEES)
-    expect(ecran.getByText('Ton défi du jour · 2 min')).toBeTruthy()
-    expect(ecran.getByText('+25 pts')).toBeTruthy()
+    expect(ecran.getByText('Ton défi du jour · 2 min')).toBeTruthy()
+    expect(ecran.getByText('+25 pts')).toBeTruthy()
     expect(ecran.getByText('Convaincs-moi en trois phrases')).toBeTruthy()
     expect(ecran.getByText('Acte II · Les crêtes du rythme · 3 sur 5')).toBeTruthy()
     expect(ecran.getByText('Formule Gratuit · un défi par jour')).toBeTruthy()

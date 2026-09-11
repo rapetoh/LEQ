@@ -55,7 +55,7 @@ export function minutesDe(secondes: number): number {
 
 /** "Défi · 2 min", "Défi texte · 3 min", "Grand format · 5 min". */
 export function surtitreFormat(format: FormatDefi, dureeMaxS: number): string {
-  return `${NOMS_FORMAT[format]} · ${minutesDe(dureeMaxS)} min`
+  return `${NOMS_FORMAT[format]} · ${minutesDe(dureeMaxS)} min`
 }
 
 export type PositionDefi =

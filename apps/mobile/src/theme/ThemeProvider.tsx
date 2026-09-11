@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useColorScheme } from 'react-native'
 
-import { CLES, lireJson, ecrireJson } from '@/services/stockage'
+import { CLES, ecrireBooleen, ecrireJson, lireBooleen, lireJson } from '@/services/stockage'
 import { themeClair, themeSombre, type Theme } from '@/theme/tokens'
 
 // "Mode nuit" of the Réglages screen (G3): automatique follows the phone.
@@ -11,6 +11,9 @@ type ContexteTheme = {
   theme: Theme
   mode: ModeNuit
   definirMode: (mode: ModeNuit) => void
+  /** "Réduire les animations" in G3: Bulle and the sky stay calm, whatever the phone says. */
+  animationsReduites: boolean
+  definirAnimationsReduites: (valeur: boolean) => void
 }
 
 const Contexte = createContext<ContexteTheme | null>(null)
@@ -22,12 +25,14 @@ function estModeNuit(valeur: unknown): valeur is ModeNuit {
 export function FournisseurTheme({ children }: { children: ReactNode }) {
   const schemaSysteme = useColorScheme()
   const [mode, setMode] = useState<ModeNuit>('clair')
+  const [animationsReduites, setAnimationsReduites] = useState(false)
 
   useEffect(() => {
     let actif = true
     void lireJson<unknown>(CLES.modeNuit).then((valeur) => {
       if (actif && estModeNuit(valeur)) setMode(valeur)
     })
+    void lireBooleen(CLES.animationsReduites).then((valeur) => setAnimationsReduites(valeur))
     return () => {
       actif = false
     }
@@ -42,8 +47,13 @@ export function FournisseurTheme({ children }: { children: ReactNode }) {
         setMode(nouveau)
         void ecrireJson(CLES.modeNuit, nouveau)
       },
+      animationsReduites,
+      definirAnimationsReduites: (valeur) => {
+        setAnimationsReduites(valeur)
+        void ecrireBooleen(CLES.animationsReduites, valeur)
+      },
     }
-  }, [mode, schemaSysteme])
+  }, [mode, schemaSysteme, animationsReduites])
 
   return <Contexte.Provider value={valeur}>{children}</Contexte.Provider>
 }

@@ -111,9 +111,9 @@ describe('the brief helpers', () => {
   })
 
   it('writes the surtitre of the three formats as the mockup does', () => {
-    expect(surtitreFormat('standard', 120)).toBe('Défi · 2 min')
-    expect(surtitreFormat('texte', 180)).toBe('Défi texte · 3 min')
-    expect(surtitreFormat('long', 300)).toBe('Grand format · 5 min')
+    expect(surtitreFormat('standard', 120)).toBe('Défi · 2 min')
+    expect(surtitreFormat('texte', 180)).toBe('Défi texte · 3 min')
+    expect(surtitreFormat('long', 300)).toBe('Grand format · 5 min')
   })
 
   it('places the défi in its act, and names the last one as the closing défi', () => {

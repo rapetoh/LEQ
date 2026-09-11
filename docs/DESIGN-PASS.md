@@ -1,6 +1,6 @@
 # Passe design contre la maquette (2026-09-06)
 
-La maquette est le plancher : chaque écran construit doit l'égaler ou faire un peu mieux. Relevé par un lecteur indépendant sur les écrans construits jusqu'à la Phase 6. Une ligne est cochée quand la correction est faite (le passage sur le simulateur reste à faire par Roch). Fait le 2026-09-06 : la salle sombre pour A4, B4, A5, X2, X3 (A2 et A3 passés aussi) ; la carte héros orange de B1 avec ses pilules et ses points de progression ; le prénom sur B1 et Moi ; les appuis du plan dans le brief ; les étapes d'attente dès l'envoi ; la carte « série intacte » sur X3 ; la hiérarchie de A4 ; l'heure du rappel modifiable ; la tuile silences ; le bouton « Défi suivant ». Fait aussi le 2026-09-10 : Bulle redessinée depuis la maquette, l'icône et l'écran de lancement à partir des fichiers de Roch (`assets/marque/`), la barre d'onglets flottante de la maquette (`components/BarreOnglets.tsx`), la carte des actes avec le chemin sinueux et ses nœuds (`react-native-svg`), le thème clair par défaut (la maquette ne dessine pas de mode nuit ; il reste un choix dans G3), « J'ai déjà un compte » qui ouvre la connexion, l'état du compte sur Moi. Restent : la flamme, A2 et A3 sur bleu nuit, les barres de D2, les icônes, les espaces insécables de la typographie française, les détails listés ci-dessous.
+La maquette est le plancher : chaque écran construit doit l'égaler ou faire un peu mieux. Relevé par un lecteur indépendant sur les écrans construits jusqu'à la Phase 6. Une ligne est cochée quand la correction est faite (le passage sur le simulateur reste à faire par Roch). Fait le 2026-09-06 : la salle sombre pour A4, B4, A5, X2, X3 (A2 et A3 passés aussi) ; la carte héros orange de B1 avec ses pilules et ses points de progression ; le prénom sur B1 et Moi ; les appuis du plan dans le brief ; les étapes d'attente dès l'envoi ; la carte « série intacte » sur X3 ; la hiérarchie de A4 ; l'heure du rappel modifiable ; la tuile silences ; le bouton « Défi suivant ». Fait aussi le 2026-09-10 : Bulle redessinée depuis la maquette, l'icône et l'écran de lancement à partir des fichiers de Roch (`assets/marque/`), la barre d'onglets flottante de la maquette (`components/BarreOnglets.tsx`), la carte des actes avec le chemin sinueux et ses nœuds (`react-native-svg`), le thème clair par défaut (la maquette ne dessine pas de mode nuit ; il reste un choix dans G3), « J'ai déjà un compte » qui ouvre la connexion, l'état du compte sur Moi. Tout est corrigé au 2026-09-11. Ce qui restait ce jour-là et qui est fait : la flamme, A2 et A3 sur bleu nuit, les barres de D2, les icônes, les espaces insécables de la typographie française, les détails listés ci-dessous.
 
 - [x] **X3 (et A5/X2, même composant)** (manque) `apps/mobile/src/components/EcranAnalyse.tsx`  
       Maquette : Sous le corps de X3, une carte bleu nuit avec la flamme : « Série de 6 jours : intacte ». C'est la preuve visible que la panne ne touche pas la série.  
@@ -50,11 +50,11 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : Une carte : la brume est un bandeau bleu nuit avec un cadenas, l'acte en cours une grande contrée bleu pâle en dégradé avec un chemin SVG sinueux et des nœuds ronds (52 px or = fait, 74 px orange avec Bulle = courant, blanc = verrouillé) portant une pilule blanche de titre ; l'acte traversé un bandeau or en dégradé avec un rond bleu nuit coché.  
       Construit : Trois cartes de la même famille : « douce » pour la brume (sans cadenas), blanche avec une liste verticale de pastilles 32 px pour l'acte en cours, « voix » avec un chevron pour l'acte traversé. La métaphore de carte devient une liste.  
       Correction : Rendre l'acte en cours dans une grande Carte à fond dégradé (bleuDoux) avec les nœuds disposés en zigzag reliés par un chemin (react-native-svg), les tailles et couleurs des nœuds de la maquette et le titre en pilule ; bandeau bleu nuit + icône cadenas pour la brume, bandeau or + rond coché pour le traversé.
-- [ ] **F1** (moins_bien) `apps/mobile/src/app/rebecca.tsx`  
+- [x] **F1** (moins_bien) `apps/mobile/src/app/rebecca.tsx`  
       Maquette : Surtitre 11 px en capitales « Aller plus loin avec Rebecca », puis le titre 30 px « Ce que tu fais seul·e dans ton salon, tu es prêt·e à le faire dans une salle. » ; carte atelier avec un emplacement photo de 150 px ; bouton principal bleu « Voir l'atelier », lien « Une autre fois ».  
       Construit : « Aller plus loin avec Rebecca » est le Titre 28 px et la phrase forte passe en corps 16 px (hiérarchie inversée). Pas d'emplacement photo. Aucun bouton principal : « Voir mes récompenses » en secondaire et « Une autre fois » ; fr.rebecca.voirAtelier n'est utilisé nulle part.  
       Correction : Surtitre en typographie.etiquette, la phrase en Titre ; réserver une zone image dans CarteAtelier (photo si un champ arrive, sinon un aplat voixDoux) ; bouton principal « Voir l'atelier » ouvrant atelier.lien quand il existe.
-- [ ] **D1b** (moins_bien) `apps/mobile/src/app/(onglets)/progres.tsx`  
+- [x] **D1b** (moins_bien) `apps/mobile/src/app/(onglets)/progres.tsx`  
       Maquette : Carte orange pâle « TES POINTS » avec le solde « 1 240 » en 22 px et un bouton pilule orange « Mes récompenses › ».  
       Construit : Un seul Bouton secondaire « Mes récompenses », sans le solde, alors que usePoints() est disponible (utilisé sur B1 et G1).  
       Correction : Carte teinte orange avec t('recompenses.titre'), le solde en typographie.chiffre (formaterEntier) et le bouton principal « Mes récompenses » dedans.
@@ -66,19 +66,19 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : La carte de consigne porte un rond photo de 44 px (Rebecca) à gauche de « Rebecca te dit, mot pour mot : » ; en bas, lien « Un autre sujet » sous « Je suis prêt·e ».  
       Construit : Pas d'emplacement d'avatar ; le lien du bas est « Retour ».  
       Correction : Réserver un rond de 44 px (photo de Rebecca ou aplat voixDoux) quand la consigne n'est pas provisoire ; garder « Retour » tant qu'il n'existe pas de banque de sujets alternatifs, et le noter dans STRINGS.md pour que l'écart soit volontaire.
-- [ ] **H6, H7** (detail) `apps/mobile/src/app/defi/[etapeId]/index.tsx`  
+- [x] **H6, H7** (detail) `apps/mobile/src/app/defi/[etapeId]/index.tsx`  
       Maquette : H6 : bouton « Lire, puis parler ». H7 : bouton « Préparer · 2 min » ; étape 2 « Parle · 5 min / L'anneau marque tes trois appuis en chemin » ; étape 3 « Le retour, en deux temps / La structure d'abord, la voix ensuite ».  
       Construit : Bouton « Je suis prêt·e » pour les trois formats (fr.defi.preparer n'est utilisé nulle part, lireEtParler seulement sur l'écran suivant) ; étape 2 « Tes appuis restent sous tes yeux pendant la prise » ; étape 3 « Le retour / Ce que Bulle a mesuré, puis la carte qui avance ». Ces reformulations ne figurent pas dans la table de corrections de STRINGS.md.  
       Correction : Libellé du bouton selon le format (pret / lireEtParler / preparer) ; soit revenir aux libellés de la maquette pour les étapes 2 et 3, soit ajouter les deux reformulations à STRINGS.md avec leur raison (l'anneau n'existe pas, le retour en deux temps attend la Phase 3).
-- [ ] **H5, H5b** (detail) `apps/mobile/src/i18n/fr.ts`  
+- [x] **H5, H5b** (detail) `apps/mobile/src/i18n/fr.ts`  
       Maquette : Bouton bleu nuit « Aller dans l'Arène ».  
       Construit : fr.defi.termine.voirArene = « Voir l'Arène », hors table de corrections.  
       Correction : Remettre « Aller dans l'Arène » (ou ajouter la correction à STRINGS.md). « Voir les formules » attend E1 : pas compté.
-- [ ] **B1b (et B1)** (detail) `apps/mobile/src/app/aujourdhui/rebecca.tsx`  
+- [x] **B1b (et B1)** (detail) `apps/mobile/src/app/aujourdhui/rebecca.tsx`  
       Maquette : Carte atelier en dégradé sombre : « ATELIER COLLECTIF · EN DIRECT », pilule « 12 places », titre 22 px. Ligne « Une heure, seule à seule » avec icône 44 px et chevron. Sur B1 : photo ronde de Rebecca (44 px, liseré or) et deux boutons « Garder ma place » / « Une heure à deux ».  
       Construit : Étiquette « Atelier · en direct » (fr.aujourdhui.atelierEnDirect) sans « collectif » ; la ligne individuelle reprend le titre de F1 « Ses formations individuelles » (STRINGS.md ne corrige que la ligne de détail) ; carte en teinte voix, titre 17 px ; sur B1 pas de photo ni de raccourci vers le seule-à-seule ; fr.aujourdhui.garderPlace n'est utilisé nulle part.  
       Correction : « Atelier collectif · en direct » ; titre « Une heure, seule à seule » sur B1b (garder « Ses formations individuelles » pour F1) ; emplacement photo 44 px dans CarteAtelier ; sur B1, seconde action vers la ligne individuelle de B1b.
-- [ ] **B1, D1, G1, X3** (detail) `apps/mobile/src/app/(onglets)/progres.tsx`  
+- [x] **B1, D1, G1, X3** (detail) `apps/mobile/src/app/(onglets)/progres.tsx`  
       Maquette : La flamme de série (goutte orange à cœur or) : dans la pilule de B1 devant « 6 », sur chaque jour actif de « Ta semaine » (D1), en badge sur l'avatar de G1, devant « Série de 6 jours : intacte » (X3).  
       Construit : Aucune flamme : B1 affiche « 6 / jours de suite » dans un carré, D1 des ronds pleins de 22 px, G1 rien, X3 rien.  
       Correction : Un petit composant Flamme (deux formes ou SF flame.fill / Material local-fire-department via Icone) réutilisé aux quatre endroits.
@@ -90,11 +90,11 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : Troisième tuile « 6 / SILENCES, 2 TENUS » : le total et les tenus.  
       Construit : Seulement mesures.silences.tenus sous « silences tenus » ; le total disparaît (A6 l'affiche pourtant).  
       Correction : Grand chiffre = silences.total, libellé = « silences, {{tenus}} tenus » (nouvelle clé fr.retour.silencesDetail).
-- [ ] **H2, H4** (detail) `apps/mobile/src/app/retour/[tentativeId].tsx`  
+- [x] **H2, H4** (detail) `apps/mobile/src/app/retour/[tentativeId].tsx`  
       Maquette : H2 : médaille ronde or de 74 px au-dessus de « Défi réussi » ; dans « Ce que l'analyse a entendu », un rond de 22 px (or si le critère est bon, gris sinon) devant chaque ligne. H4 : rond or coché de 30 px devant chaque défi.  
       Construit : Pas de médaille ; lignes critère + score sans indicateur ; lignes de H4 sans rond.  
       Correction : Un rond teinte voix (score/max ≥ 0,8) ou carteDouce devant chaque sous-note ; un rond coché par ligne validée dans acte/[acteId]/index.tsx ; une pastille or de 74 px avec Icone checkmark au-dessus du titre « Défi réussi ».
-- [ ] **D2** (detail) `apps/mobile/src/app/recompenses.tsx`  
+- [x] **D2** (detail) `apps/mobile/src/app/recompenses.tsx`  
       Maquette : Chaque récompense a une tuile icône de 46 px et, quand elle est échangeable, une barre de progression (piste #FFE9C2, remplissage orange) sous le titre avec « 1 200 pts atteints · à toi » ; « FORMULE GRATUIT » en pilule.  
       Construit : Titre, sous-titre, pilule de coût et une ligne d'état texte (« Plus que N pts ») ; pas de barre ni d'icône ; la formule en texte petit.  
       Correction : Barre solde/cout (rayons.pilule, 5 px) sous le titre pour les récompenses échangeables, emplacement icône 46 px par type, formule en pilule carteDouce.
@@ -106,11 +106,15 @@ La maquette est le plancher : chaque écran construit doit l'égaler ou faire un
       Maquette : Bulle 96 px centrée au-dessus du titre 32 px centré, le bloc centré verticalement.  
       Construit : Bulle petite (40 px) alignée à gauche, titre aligné à gauche, tout en haut.  
       Correction : Bulle taille moyenne centrée, Titre centre, bloc en justifyContent center.
-- [ ] **H3** (detail) `apps/mobile/src/app/acte/[acteId]/traverse.tsx`  
+- [x] **H3** (detail) `apps/mobile/src/app/acte/[acteId]/traverse.tsx`  
       Maquette : Bouton principal or (#FFBD59, texte bleu nuit) « Découvrir l'acte III · Emporter la salle » sur le dégradé bleu nuit.  
       Construit : Bouton principal orange standard.  
       Correction : Variante « or » de Bouton (fond couleurs.or, texte bleuNuit) pour les écrans héros de célébration.
-- [ ] **Toutes (fr.ts)** (detail) `apps/mobile/src/i18n/fr.ts`  
+- [x] **Toutes (fr.ts)** (detail) `apps/mobile/src/i18n/fr.ts`  
       Maquette : STRINGS.md règle 12 : espace insécable avant « : » et avant l'unité, fine insécable avant « ? », « ! », « ; » et à l'intérieur des guillemets. (La maquette HTML n'en contient pas non plus : l'écart est avec la règle, pas avec la maquette ; signalé parce que demandé.)  
       Construit : fr.ts ne contient aucun U+00A0 ni U+202F : 30 chaînes avec espace sécable avant « : » (« Exception : une prise… », « record : {{record}} »), « Supprimer ton compte ? », « Échanger {{cout}} points ? », « « {{mot}} » », et toutes les unités (« 2 min », « {{secondes}} s », « +{{points}} pts », « 48 h »). Idem dans le code : `${h} h ${m}` (reglages.tsx), `${min} min ${s} s` (profil.tsx), « {defi.consigne} » (index.tsx, EcranPrise.tsx).  
       Correction : Passer fr.ts au peigne (script : remplacer « : » par « : », « ? » par « ? », espaces intérieurs des guillemets par U+202F, chiffre + unité par U+00A0) et ajouter un test qui interdit l'espace sécable dans ces positions ; même traitement dans les quatre gabarits de code.
+
+## Reste à vérifier
+
+Chaque ligne est cochée sur le code et sur le simulateur. La vérification finale est celle de Roch sur son iPhone, écran par écran, contre la maquette : ce qui lui paraît en dessous revient ici en nouvelle ligne.

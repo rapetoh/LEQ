@@ -9,6 +9,7 @@ import { Bulle } from '@/components/Bulle'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
+import { Icone } from '@/components/ui/Icone'
 import { useSuiviPrise } from '@/hooks/useSuiviPrise'
 import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
@@ -184,8 +185,14 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
       ) : null}
 
       {echec === 'telephone' ? (
-        <Carte teinte="sombre" style={styles.etape}>
-          <Text style={[typographie.corpsFort, { color: theme.heroTexte }]}>
+        <Carte teinte="sombre" style={[styles.etape, styles.ligne]}>
+          <Icone
+            sf="flame.fill"
+            material="local-fire-department"
+            taille={18}
+            couleur={theme.accent}
+          />
+          <Text style={[typographie.corpsFort, { color: theme.heroTexte, flex: 1 }]}>
             {serie.data && serie.data.courante > 0
               ? t('envoi.echec.serieIntacte', { jours: serie.data.courante })
               : t('envoi.echec.serieIntacteSansJours')}

@@ -81,10 +81,17 @@ function ContenuBrief({ brief }: { brief: DonneesBrief }) {
       />
 
       <Carte style={styles.bloc}>
-        <Text style={[typographie.etiquette, { color: theme.texteSecondaire }]}>
-          {defi.provisoire ? t('defi.provisoire') : t('defi.rebeccaDit')}
-        </Text>
-        <Text style={[typographie.titreCarte, { color: theme.texte }]}>« {defi.consigne} »</Text>
+        <View style={styles.ligne}>
+          {!defi.provisoire ? (
+            <View style={[styles.portrait, { backgroundColor: theme.voixDoux }]}>
+              <Text style={[typographie.corpsFort, { color: theme.texte }]}>R</Text>
+            </View>
+          ) : null}
+          <Text style={[typographie.etiquette, { color: theme.texteSecondaire, flex: 1 }]}>
+            {defi.provisoire ? t('defi.provisoire') : t('defi.rebeccaDit')}
+          </Text>
+        </View>
+        <Text style={[typographie.titreCarte, { color: theme.texte }]}>« {defi.consigne} »</Text>
       </Carte>
 
       {defi.format === 'texte' && defi.texte_a_lire ? (
@@ -100,7 +107,7 @@ function ContenuBrief({ brief }: { brief: DonneesBrief }) {
             ) : null}
           </View>
           <Text style={[typographie.corpsFort, { color: theme.texte }]}>
-            « {defi.texte_a_lire} »
+            « {defi.texte_a_lire} »
           </Text>
           <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
             {t('defi.lisLe')}
@@ -153,7 +160,16 @@ function ContenuBrief({ brief }: { brief: DonneesBrief }) {
       ) : null}
 
       <View style={styles.actions}>
-        <Bouton libelle={t('defi.pret')} onPress={() => router.push(`/defi/${etape.id}/prise`)} />
+        <Bouton
+          libelle={
+            defi.format === 'texte'
+              ? t('defi.lireEtParler')
+              : defi.format === 'long'
+                ? t('defi.preparer', { minutes: minutesDe(defi.duree_preparation_s ?? 120) })
+                : t('defi.pret')
+          }
+          onPress={() => router.push(`/defi/${etape.id}/prise`)}
+        />
         <Bouton libelle={t('commun.retour')} variante="texte" onPress={() => router.back()} />
       </View>
     </ScrollView>
@@ -224,6 +240,13 @@ const styles = StyleSheet.create({
   texteCentre: { textAlign: 'center' },
   bloc: { gap: espaces.s },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  portrait: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   numero: {
     width: 28,
     height: 28,

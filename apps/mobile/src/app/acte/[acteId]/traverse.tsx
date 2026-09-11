@@ -69,6 +69,7 @@ export default function ActeTraverse() {
       <View style={styles.actions}>
         {suivant ? (
           <Bouton
+            variante="or"
             libelle={t('defi.acteTraverse.decouvrir', {
               acte: chiffreRomain(suivant.ordre),
               titre: suivant.titre,
@@ -77,6 +78,7 @@ export default function ActeTraverse() {
           />
         ) : (
           <Bouton
+            variante="or"
             libelle={t('defi.resultat.carte')}
             onPress={() => router.replace('/(onglets)/defis')}
           />

@@ -34,10 +34,10 @@ export default function Rebecca() {
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Titre niveau="ecran">{t('rebecca.titre')}</Titre>
-      <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
-        {t('rebecca.corps')}
+      <Text style={[typographie.etiquette, styles.majuscules, { color: theme.texteTertiaire }]}>
+        {t('rebecca.titre')}
       </Text>
+      <Titre niveau="ecran">{t('rebecca.corps')}</Titre>
 
       {prochain ? (
         <CarteAtelier atelier={prochain} coutPlace={cout} />
@@ -69,5 +69,6 @@ export default function Rebecca() {
 const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.m },
   bloc: { gap: espaces.xs },
+  majuscules: { textTransform: 'uppercase', letterSpacing: 1 },
   actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l },
 })

@@ -61,7 +61,8 @@ function heureCourte(heure: string): string {
 }
 
 export default function Reglages() {
-  const { theme, mode, definirMode } = useContexteTheme()
+  const { theme, mode, definirMode, animationsReduites, definirAnimationsReduites } =
+    useContexteTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { session, reessayer } = useSession()
@@ -230,18 +231,20 @@ export default function Reglages() {
         <Carte style={styles.liste}>
           {ligne(
             t('reglages.voix.publierPrenom'),
-            t('reglages.voix.publierPrenomDetail', { numero: 87 }),
+            t('reglages.voix.publierPrenomDetail'),
             p ? interrupteur('publier_sous_prenom', p.publier_sous_prenom) : null,
             true,
           )}
           {ligne(
             t('reglages.voix.export'),
             null,
-            <Bouton
-              libelle={t('commun.continuer')}
-              variante="texte"
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('reglages.voix.export')}
               onPress={() => void demanderExport()}
-            />,
+            >
+              <Text style={[typographie.corpsFort, { color: theme.texteTertiaire }]}>›</Text>
+            </Pressable>,
           )}
         </Carte>
         <Bouton
@@ -433,7 +436,13 @@ export default function Reglages() {
             mouvementReduit
               ? t('reglages.confort.animationsDetail')
               : t('moi.reduireAnimationsSysteme'),
-            null,
+            <Switch
+              value={animationsReduites || mouvementReduit}
+              disabled={mouvementReduit}
+              onValueChange={definirAnimationsReduites}
+              trackColor={{ true: theme.accent }}
+              accessibilityLabel={t('reglages.confort.animations')}
+            />,
             true,
           )}
         </Carte>
