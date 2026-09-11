@@ -2,8 +2,11 @@
 // person, right after retour_disponible. One attempt, errors recorded on the token row,
 // never retried in a loop (docs/DATA-MODEL.md, "Push message").
 import { MESSAGE_RETOUR_PRET } from '@leq/domaine'
-import type { Executeur } from '../db.js'
+import type { Executeur, JetonDestinataire } from '../db.js'
 import type { Logger } from '../log.js'
+
+/** Expo accepts at most a hundred messages per call. */
+export const TAILLE_LOT_PUSH = 100
 
 export const URL_EXPO_PUSH = 'https://exp.host/--/api/v2/push/send'
 
@@ -117,6 +120,50 @@ export async function notifierRetourPret(
     const perime = ticket?.details?.error === 'DeviceNotRegistered'
     await marquerJeton(deps.ex, jeton.id, detail, perime).catch(() => undefined)
     deps.log.warn({ jeton_id: jeton.id, detail, perime }, 'push: jeton en erreur')
+  }
+  return { envoyes, echecs }
+}
+
+/**
+ * Sends one message to a list of tokens, a hundred at a time, and records on every token row
+ * what came back. Never throws: a campaign that fails must not fail the job that produced it,
+ * and a token that Expo no longer knows is switched off rather than retried forever.
+ */
+export async function envoyerACesJetons(
+  deps: { ex: Executeur; envoyer: EnvoyeurPush },
+  jetons: JetonDestinataire[],
+  message: { titre: string; corps: string },
+  data: unknown,
+  journal: Logger,
+): Promise<{ envoyes: number; echecs: number }> {
+  let envoyes = 0
+  let echecs = 0
+  for (let debut = 0; debut < jetons.length; debut += TAILLE_LOT_PUSH) {
+    const lot = jetons.slice(debut, debut + TAILLE_LOT_PUSH)
+    let tickets: ReponseExpoTicket[]
+    try {
+      tickets = await deps.envoyer(
+        lot.map((j) => ({ to: j.jeton, title: message.titre, body: message.corps, data })),
+      )
+    } catch (erreur) {
+      journal.error({ err: erreur, taille: lot.length }, 'push: envoi du lot impossible')
+      echecs += lot.length
+      continue
+    }
+    for (let i = 0; i < lot.length; i += 1) {
+      const jeton = lot[i]
+      const ticket = tickets[i]
+      if (!jeton) continue
+      if (ticket?.status === 'ok') {
+        envoyes += 1
+        await marquerJeton(deps.ex, jeton.id, null, false).catch(() => undefined)
+        continue
+      }
+      echecs += 1
+      const detail = ticket?.details?.error ?? ticket?.message ?? 'reponse absente'
+      const perime = ticket?.details?.error === 'DeviceNotRegistered'
+      await marquerJeton(deps.ex, jeton.id, detail, perime).catch(() => undefined)
+    }
   }
   return { envoyes, echecs }
 }

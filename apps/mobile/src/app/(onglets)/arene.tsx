@@ -9,7 +9,14 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
-import { jourDuSujet, useClassement, useDuels, useMaPrise, useSujet } from '@/services/arene'
+import {
+  jourDuSujet,
+  useClassement,
+  useDernierSujetClos,
+  useDuels,
+  useMaPrise,
+  useSujet,
+} from '@/services/arene'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { minutesDe } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -185,7 +192,31 @@ function Sujet() {
           </Carte>
         </View>
       ) : null}
+
+      <PodiumPasse />
     </>
+  )
+}
+
+/** C8 entry: the week that just closed, one tap away, as long as one has closed. */
+function PodiumPasse() {
+  const theme = useTheme()
+  const router = useRouter()
+  const dernier = useDernierSujetClos()
+  const sujet = dernier.data
+  if (!sujet) return null
+  return (
+    <Carte teinte="sombre" style={styles.bloc}>
+      <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
+        {t('arene.podiumSurtitre')}
+      </Text>
+      <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>{sujet.texte}</Text>
+      <Bouton
+        libelle={t('arene.podiumEntree')}
+        variante="secondaire"
+        onPress={() => router.push(`/arene/podium/${sujet.id}`)}
+      />
+    </Carte>
   )
 }
 

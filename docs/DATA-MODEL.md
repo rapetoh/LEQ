@@ -411,6 +411,7 @@ Rebecca's space, completed (cahier chapters 8 and 12): workshops and announcemen
 - `leq_roter_sujet_arene` (`5 * * * *`): inserts `roter_sujet_arene`; the function itself does nothing before the week is over.
 - `leq_fermer_duels` (`*/15 * * * *`): inserts `fermer_duels`; the worker closes a duel once both have spoken and expires it at the deadline.
 - `leq_supprimer_audio_public` (`*/30 * * * *`): inserts `supprimer_audio_public`; the worker deletes the objects of `prises_publiques` whose `date_suppression` has passed and stamps `audio_supprime_le`.
+- Job `envoyer_resultat_arene` `{sujet_id}` (worker): queued by the rotation handler when a week closes, never by pg_cron. One push per active token of the people who published a take on that week, keep `notif_social` on and are not suspended. Claimed with `reserver_resultat_arene()` before the first push leaves. Its data carries `sujet_id`, which opens that week's podium (C8).
 
 ## Phase 7 additions (migration `0010_arene`)
 
@@ -418,8 +419,11 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 
 ### sujets_arene
 
-- `id`, `cle unique`, `texte`, `consigne`, `ordre unique`, `duree_max_s`, `actif_le`, `ferme_le`, `provisoire`, `actif`, timestamps.
-- One subject at a time for seven days, derived from the dates: `sujet_arene_actif()` returns the row whose `actif_le` has passed and whose `ferme_le` has not. RLS: authenticated read the activated ones, admin everything.
+- `id`, `cle unique`, `texte`, `consigne`, `ordre unique`, `duree_max_s`, `actif_le`, `ferme_le`, `provisoire`, `actif`, `resultat_notifie_le`, timestamps.
+- One subject at a time for seven days, derived from the dates: `sujet_arene_actif()` returns the row whose `actif_le` has passed and whose `ferme_le` has not. RLS: authenticated read every subject that has been activated once (a closed week included, because its podium needs its wording), admin everything.
+- `roter_sujet_arene()` answers `{ferme, actif}`: the week it just closed and the one now running, each null when there is none. The worker needs `ferme` to queue the podium notification.
+- `resultat_notifie_le` is stamped by `reserver_resultat_arene(sujet)`, which answers true exactly once: a job retried after a crash mid-send never notifies the same week twice.
+- `dernier_sujet_arene_clos()` answers the week that closed most recently, for the "voir le podium" entry of the Arena tab.
 
 ### prises_publiques
 

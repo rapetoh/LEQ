@@ -1,6 +1,7 @@
 // Direct Postgres access (node-postgres). The worker connects with the direct
 // connection string, never the pooler: it needs FOR UPDATE SKIP LOCKED and
 // multi-statement transactions.
+import { TYPES_JOB, type TypeJob as TypeJobDomaine } from '@leq/domaine'
 import pg from 'pg'
 import type { Mesures, RegleCritere, Transcription } from './contrat.js'
 
@@ -72,17 +73,10 @@ export interface Tentative {
   modifie_le: Date
 }
 
-export const TYPES_JOB = [
-  'analyser_tentative',
-  'supprimer_compte',
-  'balayer_audio',
-  'purger_anonymes',
-  'envoyer_annonce',
-  'roter_sujet_arene',
-  'fermer_duels',
-  'supprimer_audio_public',
-] as const
-export type TypeJob = (typeof TYPES_JOB)[number]
+// The list of job types is the contract's, not a copy of it: a type added in @leq/domaine
+// and forgotten here used to mean a job nobody ever claimed.
+export { TYPES_JOB }
+export type TypeJob = TypeJobDomaine
 
 export type StatutJob = 'en_attente' | 'en_cours' | 'termine' | 'echoue'
 
@@ -300,10 +294,71 @@ export async function lireListeMotsBequilles(
 // ---------------------------------------------------------------------------
 
 /** Closes the week that is over and activates the next subject. Answers the active subject id. */
-export async function roterSujetArene(ex: Executeur): Promise<string | null> {
-  const { rows } = await ex.query('select public.roter_sujet_arene() as sujet')
-  const sujet = rows[0]?.['sujet']
-  return sujet === null || sujet === undefined ? null : String(sujet)
+export interface RotationArene {
+  /** The week that just ended, null when none did. */
+  ferme: string | null
+  /** The week now running, null when the bank is empty. */
+  actif: string | null
+}
+
+export async function roterSujetArene(ex: Executeur): Promise<RotationArene> {
+  const { rows } = await ex.query('select public.roter_sujet_arene() as rotation')
+  const rotation = (rows[0]?.['rotation'] ?? {}) as { ferme?: unknown; actif?: unknown }
+  return {
+    ferme: typeof rotation.ferme === 'string' ? rotation.ferme : null,
+    actif: typeof rotation.actif === 'string' ? rotation.actif : null,
+  }
+}
+
+/**
+ * Claims the right to notify the result of a week. True exactly once per subject, so a job
+ * retried after a crash mid-send never notifies the same week twice.
+ */
+export async function reserverResultatArene(ex: Executeur, sujetId: string): Promise<boolean> {
+  const { rows } = await ex.query('select public.reserver_resultat_arene($1) as pris', [sujetId])
+  return rows[0]?.['pris'] === true
+}
+
+/**
+ * Active push tokens of the people who published a take on that week, keep the social switch
+ * on and are not suspended. A withdrawn take does not get a podium notification.
+ */
+export async function listerJetonsPourResultatArene(
+  ex: Executeur,
+  sujetId: string,
+): Promise<JetonDestinataire[]> {
+  const { rows } = await ex.query(
+    `select j.id, j.jeton
+       from public.jetons_push j
+       join public.profils p on p.id = j.utilisateur_id
+      where j.desactive_le is null
+        and p.notif_social
+        and p.suspendu_le is null
+        and exists (
+          select 1 from public.prises_publiques pp
+           where pp.utilisateur_id = p.id
+             and pp.sujet_id = $1
+             and pp.statut = 'publiee'
+        )
+      order by j.cree_le`,
+    [sujetId],
+  )
+  return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
+}
+
+/** Queues a job. Used by a handler that discovers work another handler must do. */
+export async function creerJob(
+  ex: Executeur,
+  type: TypeJob,
+  charge: Record<string, unknown>,
+  cleIdempotence: string,
+): Promise<void> {
+  await ex.query(
+    `insert into public.jobs (type, charge, cle_idempotence)
+     values ($1, $2::jsonb, $3)
+     on conflict (cle_idempotence) do nothing`,
+    [type, JSON.stringify(charge), cleIdempotence],
+  )
 }
 
 /** Open duels where both have answered, or whose deadline has passed. */

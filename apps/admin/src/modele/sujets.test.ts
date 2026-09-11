@@ -14,6 +14,7 @@ function sujet(surcharges: Partial<SujetArene>): SujetArene {
     ferme_le: null,
     provisoire: true,
     actif: true,
+    resultat_notifie_le: null,
     cree_le: 'x',
     modifie_le: 'x',
     ...surcharges,

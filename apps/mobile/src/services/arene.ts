@@ -31,6 +31,8 @@ export const CLE_MA_PRISE = ['ma_prise_arene'] as const
 export const CLE_CLASSEMENT = ['classement_arene'] as const
 export const CLE_PAIRE = ['paire_a_voter'] as const
 export const CLE_DUELS = ['duels'] as const
+export const CLE_DERNIER_CLOS = ['dernier_sujet_arene_clos'] as const
+export const CLE_PODIUM = ['podium_arene'] as const
 
 export class ErreurArene extends Error {
   constructor(
@@ -95,10 +97,32 @@ export async function chargerMaPrise(sujetId: string | null): Promise<PrisePubli
   return data ? PrisePubliqueSchema.parse(data) : null
 }
 
-export async function chargerClassement(): Promise<ClassementArene> {
-  const { data, error } = await supabase.rpc('classement_arene')
+/** The ranking of the active week, or of the week whose identifier is given (C8). */
+export async function chargerClassement(sujetId?: string | null): Promise<ClassementArene> {
+  const { data, error } = await supabase.rpc('classement_arene', {
+    p_sujet: sujetId ?? null,
+  })
   if (error) echouer(error.message)
   return ClassementAreneSchema.parse(data)
+}
+
+/** One subject by its identifier: the podium of a closed week needs its wording. */
+export async function chargerSujetParId(sujetId: string): Promise<SujetArene | null> {
+  const { data, error } = await supabase
+    .from('sujets_arene')
+    .select('*')
+    .eq('id', sujetId)
+    .maybeSingle()
+  if (error) echouer(error.message)
+  return data ? SujetAreneSchema.parse(data) : null
+}
+
+/** The week that closed most recently, or null while none has. */
+export async function chargerDernierSujetClos(): Promise<SujetArene | null> {
+  const { data, error } = await supabase.rpc('dernier_sujet_arene_clos')
+  if (error) echouer(error.message)
+  const ligne = Array.isArray(data) ? (data[0] ?? null) : data
+  return ligne ? SujetAreneSchema.parse(ligne) : null
 }
 
 export async function chargerPaire(): Promise<PaireAVoter> {
@@ -162,7 +186,19 @@ function useRequete<T>(
 }
 
 export const useSujet = () => useRequete(CLE_SUJET, chargerSujet)
-export const useClassement = () => useRequete(CLE_CLASSEMENT, chargerClassement)
+export const useClassement = () => useRequete(CLE_CLASSEMENT, () => chargerClassement())
+export const useDernierSujetClos = () => useRequete(CLE_DERNIER_CLOS, chargerDernierSujetClos)
+
+/** C8: a closed week, its wording and its ranking read together. */
+export function usePodium(sujetId: string) {
+  return useRequete([...CLE_PODIUM, sujetId], async () => {
+    const [sujet, classement] = await Promise.all([
+      chargerSujetParId(sujetId),
+      chargerClassement(sujetId),
+    ])
+    return { sujet, classement }
+  })
+}
 export const useDuels = (actif = true) => useRequete(CLE_DUELS, chargerDuels, actif)
 export function useMaPrise(sujetId: string | null) {
   return useRequete(
@@ -173,7 +209,15 @@ export function useMaPrise(sujetId: string | null) {
 }
 
 export function invaliderArene(client: QueryClient): void {
-  for (const cle of [CLE_SUJET, CLE_MA_PRISE, CLE_CLASSEMENT, CLE_PAIRE, CLE_DUELS]) {
+  for (const cle of [
+    CLE_SUJET,
+    CLE_MA_PRISE,
+    CLE_CLASSEMENT,
+    CLE_PAIRE,
+    CLE_DUELS,
+    CLE_DERNIER_CLOS,
+    CLE_PODIUM,
+  ]) {
     void client.invalidateQueries({ queryKey: cle })
   }
 }

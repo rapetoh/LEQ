@@ -53,3 +53,12 @@ export const MESSAGE_RETOUR_PRET = {
   titre: 'Ton retour est prêt',
   corps: 'Ta prise a été analysée. Ouvre LEQ pour lire ce que Bulle a entendu.',
 } as const
+
+/**
+ * The end of an Arena week (C8). A "social event" of chapter 12, so it only reaches the
+ * people who keep `notif_social` on, and only those who spoke that week.
+ */
+export const MESSAGE_RESULTAT_ARENE = {
+  titre: "La semaine de l'Arène est finie",
+  corps: 'Les votes sont comptés. Va voir où tu arrives.',
+} as const

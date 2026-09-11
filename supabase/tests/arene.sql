@@ -65,8 +65,9 @@ select ok((select relrowsecurity from pg_class where oid = 'public.moderations':
 
 -- the rotation activates one subject at a time ----------------------------------------------------
 select is((select id from public.sujet_arene_actif()), null, 'no subject before the first rotation');
-select is((select cle from public.sujets_arene where id = public.roter_sujet_arene()), 'sujet_un', 'the first subject is activated');
-select is((select cle from public.sujets_arene where id = public.roter_sujet_arene()), 'sujet_un', 'a rotation inside the week changes nothing');
+select is((select cle from public.sujets_arene where id = ((public.roter_sujet_arene()) ->> 'actif')::uuid), 'sujet_un', 'the first subject is activated');
+select is(((public.roter_sujet_arene()) ->> 'ferme'), null, 'a rotation inside the week closes nothing');
+select is((select cle from public.sujets_arene where id = ((public.roter_sujet_arene()) ->> 'actif')::uuid), 'sujet_un', 'a rotation inside the week changes nothing');
 select is((select count(*) from public.sujets_arene where actif_le is not null), 1::bigint, 'exactly one activated');
 create temp table sujet as select id from public.sujet_arene_actif();
 grant select on sujet to authenticated;
@@ -153,10 +154,23 @@ reset role; select tests_leq.deconnecter();
 
 -- the closing of a week deletes the audio and keeps the ranking ---------------------------------------
 update public.sujets_arene set actif_le = now() - interval '8 days' where id = (select id from sujet);
-select is((select cle from public.sujets_arene where id = public.roter_sujet_arene()), 'sujet_deux', 'the next subject takes the place');
+create temp table rotation as select public.roter_sujet_arene() as r;
+grant select on rotation to authenticated;
+select is((select cle from public.sujets_arene where id = ((select r from rotation) ->> 'actif')::uuid), 'sujet_deux', 'the next subject takes the place');
+select is(((select r from rotation) ->> 'ferme')::uuid, (select id from sujet), 'the rotation says which week it closed');
 select isnt((select ferme_le from public.sujets_arene where id = (select id from sujet)), null, 'the week is closed');
 select is((select count(*) from public.prises_publiques where sujet_id = (select id from sujet) and date_suppression is null), 0::bigint, 'every take of the closed week is marked for deletion');
 select is((select count(*) from public.prises_publiques where sujet_id = (select id from sujet)), 3::bigint, 'the rows stay: the ranking is not lost');
+
+-- C8 · the podium of the week that closed ---------------------------------------------------------
+select ok(public.reserver_resultat_arene((select id from sujet)), 'the result notification is claimed once');
+select ok(not public.reserver_resultat_arene((select id from sujet)), 'a retry never notifies the same week twice');
+select isnt((select resultat_notifie_le from public.sujets_arene where id = (select id from sujet)), null, 'the claim is stamped on the row');
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select is((select id from public.dernier_sujet_arene_clos()), (select id from sujet), 'the last closed week is the one that just ended');
+select is((select count(*) from public.sujets_arene where id = (select id from sujet)), 1::bigint, 'a closed week stays readable, so its podium has a subject');
+select is(jsonb_array_length((public.classement_arene((select id from sujet))) -> 'classement'), 3, 'the ranking of a closed week is still readable');
+reset role; select tests_leq.deconnecter();
 
 -- duels ------------------------------------------------------------------------------------------------
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');

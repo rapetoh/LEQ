@@ -86,11 +86,16 @@ export async function rafraichirJeton(): Promise<void> {
 export interface CibleNotification {
   tentative_id?: string
   annonce_id?: string
+  sujet_id?: string
 }
 
-/** Where a tapped notification goes when it is not a feedback: B1b for an announcement (X6). */
+/**
+ * Where a tapped notification goes when it is not a feedback: B1b for an announcement (X6),
+ * the podium of that week for the end of an Arena week (C8).
+ */
 export function routePourCible(cible: CibleNotification): string | null {
   if (cible.annonce_id) return '/aujourdhui/rebecca'
+  if (cible.sujet_id) return `/arene/podium/${cible.sujet_id}`
   return null
 }
 
@@ -102,6 +107,7 @@ export function lireCible(
   if (!data) return null
   if (typeof data.tentative_id === 'string') return { tentative_id: data.tentative_id }
   if (typeof data.annonce_id === 'string') return { annonce_id: data.annonce_id }
+  if (typeof data.sujet_id === 'string') return { sujet_id: data.sujet_id }
   return null
 }
 

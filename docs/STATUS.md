@@ -224,6 +224,10 @@ Written before the work started. Cahier chapters 8, 11 (suspension), 12 (announc
    - [x] Fixed (migration 0009): "today" followed Europe/Paris for anyone whose profile had no zone (now the zone of the last take, and the phone writes its zone to the profile at session start); `appliquer_resultat` counted a second failure when the pipeline was replayed; the recovery vanished when the person recorded today before activating it; the announcement job could re-send on a retry (it now claims before sending); re-opening a cancelled exchange deleted the refund (now a compensating movement under the points lock); the export inbox embed was ambiguous (two foreign keys to profils); a distinction kept hidden cost fields; the G3 sentence when the month's recovery is already used; "En ligne" hardcoded. 77 pgTAP assertions on serie_points, 18 server tests
    - [x] Simulator boot with the Phase 6 app: builds (0 errors), installs, bundles with no runtime warning, A1 renders (screenshot checked 2026-09-06)
 
+## What is in TestFlight right now
+
+Build 7 (commit `ed0de0f`, 2026-09-11) is the recording fix and nothing after it. Everything committed since is Phase 7, which ships behind the `arene` and `duels` flags and is therefore invisible in that build. Roch can test flow A and the daily loop on build 7 as it stands; a new build is worth making when he wants to see the Arena, or when Phase 8 starts.
+
 ## The recording bug, found and fixed (2026-09-11)
 
 Roch could not record on his iPhone. The recorder never worked, on any device: the iOS AAC encoder refuses to open a 16 kHz file (`AudioConverterSetProperty(converter, kAudioConverterEncodeBitRate, ...)` fails, error 560226676), so `recorder.start()` returned an error and the screen showed "L'enregistrement n'a pas démarré". Found by adding `apps/mobile/src/app/diagnostic.tsx`, a development-only screen that runs the chain and tries several recorder settings; 16 kHz fails, 22.05 kHz and above succeed. The recorder now writes 22.05 kHz mono 32 kbps; the worker already resamples to 16 kHz with ffmpeg, so nothing downstream changes. Verified end to end on the simulator: 3.00 s recorded, 45 kB file, 41 level frames.
@@ -249,7 +253,8 @@ Written before the work started. Cahier chapter 11, plan Phase 7. Everything shi
 3. Mobile
    - [x] C1 to C4: the Arena tab with its two toggles, the subject of the week with its day counter, recording a passage, the take once sent (published or waiting for moderation), the open votes, the anonymous ranking; the duels in progress and finished
    - [x] C5 to C7: creating a duel with its invitation link (copied to the clipboard, works without the app), the duel verdict said to be rendered by the analysis, the duel take, and pair voting with playback of the two takes through signed URLs (migration 0012 lets a listener read only what chapter 11 allows)
-   - [ ] C8 the podium at the end of the week, and the notifications that open it
+   - [x] C8 the podium (`/arene/podium/[sujetId]`): the week that closed, its subject, the three steps drawn the way a podium stands (second, first, third, an empty step left empty rather than moving someone up), the person's own place counted against the whole week, the rest of the ranking, and the sentence that the recordings are gone while the ranking stays. Reached from the Arena tab and from the notification
+   - [x] The end-of-week notification: `roter_sujet_arene` now says which week it closed, and queues `envoyer_resultat_arene`, which tells the people who spoke that week and keep the social switch on (chapter 12). Claimed before the first push leaves, so a retry never notifies a week twice. A tap opens that week's podium
 4. Web (`apps/web`)
    - [x] `/duel/:jeton`: the subject, the ceiling and what is left of the 48 h, then recording in the browser (MediaRecorder, phone processing off as on the app), sending, and the verdict. The invitee never hears the inviter before recording, which is the rule of chapter 11 and is covered by a test. The seat is claimed (`rejoindre_duel`) before the person speaks, so a refusal is said before the effort. The conservation sentence sits next to the send button, where chapter 2 asks for it. The verdict is labelled as rendered by the analysis
    - [x] The invitee needs no account: anonymous sign-in, widened by migration `0013_duel_invite_anonyme`. The audio object is named `.m4a` because the storage policy asks for that shape; the bytes are the browser's own container (mp4 on Safari, webm on Chrome and Firefox) and the worker decodes by probing the content
@@ -259,7 +264,9 @@ Written before the work started. Cahier chapter 11, plan Phase 7. Everything shi
 5. Admin
    - [x] Subjects bank (`/arene/sujets`: create, edit, order, ceiling, mark as validated) and moderation queue (`/arene/moderation`: publish or withdraw with a reason); the flags already existed
 6. Verification
-   - [ ] pgTAP, server, mobile and admin tests green; `npm run check`; simulator boot with the flags on
+   - [x] Every database suite green against the hosted project, inside a rolled-back transaction: arene 68, socle 134, socle_phase1 22, parcours 59, serie_points 77, admin_phase6 34, demandes_export 7. Migration `0014_podium_arene` pushed (its first push failed on `create or replace` refusing a return-type change, rolled back clean, fixed with an explicit `drop function`)
+   - [x] `npm run check` and `npm run format:check` green: server 33 tests, mobile 74, admin 35, web 30, domaine 32, moteur 33
+   - [ ] Simulator walkthrough of the Arena with the flags on, on a week that has actually closed. The podium's wording and its awkward cases (one speaker, a tie, someone who did not speak, nobody at all) are covered by a component test; what is not yet seen on a device is a podium with real votes, which needs Rebecca's subject bank and a week gone by
 
 ## Next
 

@@ -13,6 +13,7 @@ import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js
 import { creerHandlerAnalyserTentative, type DepotAnalyse } from './analyserTentative.js'
 import { creerHandlerBalayerAudio } from './balayerAudio.js'
 import {
+  creerHandlerEnvoyerResultatArene,
   creerHandlerFermerDuels,
   creerHandlerRoterSujetArene,
   creerHandlerSupprimerAudioPublic,
@@ -84,5 +85,6 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     roter_sujet_arene: creerHandlerRoterSujetArene({ ex: pool, stockage }),
     fermer_duels: creerHandlerFermerDuels({ ex: pool, stockage }),
     supprimer_audio_public: creerHandlerSupprimerAudioPublic({ ex: pool, stockage }),
+    envoyer_resultat_arene: creerHandlerEnvoyerResultatArene({ ex: pool, envoyer: envoyerViaExpo }),
   }
 }

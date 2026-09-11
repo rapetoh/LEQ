@@ -17,6 +17,8 @@ export const SujetAreneSchema = z.object({
   ferme_le: IsoTimestampSchema.nullable(),
   provisoire: z.boolean(),
   actif: z.boolean(),
+  /** Set before the podium notification leaves, so a retry never notifies a week twice. */
+  resultat_notifie_le: IsoTimestampSchema.nullable(),
   cree_le: IsoTimestampSchema,
   modifie_le: IsoTimestampSchema,
 })
@@ -25,6 +27,7 @@ export const SujetAreneEditableSchema = SujetAreneSchema.omit({
   id: true,
   actif_le: true,
   ferme_le: true,
+  resultat_notifie_le: true,
   cree_le: true,
   modifie_le: true,
 })

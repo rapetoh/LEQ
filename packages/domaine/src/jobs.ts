@@ -14,6 +14,7 @@ export const TYPES_JOB = [
   'roter_sujet_arene',
   'fermer_duels',
   'supprimer_audio_public',
+  'envoyer_resultat_arene',
 ] as const
 export const TypeJobSchema = z.enum(TYPES_JOB)
 export type TypeJob = z.infer<typeof TypeJobSchema>
@@ -63,6 +64,9 @@ export const ChargeRoterSujetAreneSchema = z.object({})
 export const ChargeFermerDuelsSchema = z.object({})
 /** Inserted by pg_cron every 30 minutes: the audio of closed weeks and duels (Phase 7). */
 export const ChargeSupprimerAudioPublicSchema = z.object({})
+/** Inserted by `roter_sujet_arene` when a week closes: the podium of that week (Phase 7, C8). */
+export const ChargeEnvoyerResultatAreneSchema = z.object({ sujet_id: UuidSchema })
+export type ChargeEnvoyerResultatArene = z.infer<typeof ChargeEnvoyerResultatAreneSchema>
 
 /** One charge schema per job type. */
 export const CHARGES_JOB = {
@@ -74,6 +78,7 @@ export const CHARGES_JOB = {
   roter_sujet_arene: ChargeRoterSujetAreneSchema,
   fermer_duels: ChargeFermerDuelsSchema,
   supprimer_audio_public: ChargeSupprimerAudioPublicSchema,
+  envoyer_resultat_arene: ChargeEnvoyerResultatAreneSchema,
 } as const satisfies Record<TypeJob, z.ZodType>
 
 export type ChargeJob<T extends TypeJob = TypeJob> = z.output<(typeof CHARGES_JOB)[T]>
