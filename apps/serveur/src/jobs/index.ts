@@ -9,6 +9,7 @@ import * as db from '../db.js'
 import type { TypeJob } from '../db.js'
 import { BUCKET_AUDIO_TENTATIVES, type Comptes, type Stockage } from '../stockage.js'
 import { choisirTranscripteur } from '../transcription/index.js'
+import { choisirAdversaire } from '../debat/index.js'
 import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
 import { creerHandlerAnalyserTentative, type DepotAnalyse } from './analyserTentative.js'
 import { creerHandlerBalayerAudio } from './balayerAudio.js'
@@ -18,6 +19,7 @@ import {
   creerHandlerRoterSujetArene,
   creerHandlerSupprimerAudioPublic,
 } from './arene.js'
+import { creerHandlerDebrieferDebat } from './debrieferDebat.js'
 import { creerHandlerEnvoyerAnnonce } from './envoyerAnnonce.js'
 import { creerHandlerPurgerAnonymes } from './purgerAnonymes.js'
 import { creerHandlerSupprimerCompte } from './supprimerCompte.js'
@@ -86,5 +88,9 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     fermer_duels: creerHandlerFermerDuels({ ex: pool, stockage }),
     supprimer_audio_public: creerHandlerSupprimerAudioPublic({ ex: pool, stockage }),
     envoyer_resultat_arene: creerHandlerEnvoyerResultatArene({ ex: pool, envoyer: envoyerViaExpo }),
+    debriefer_debat: creerHandlerDebrieferDebat({
+      ex: pool,
+      adversaire: choisirAdversaire(config.adversaire),
+    }),
   }
 }

@@ -34,6 +34,15 @@ describe('the health route', () => {
   })
 })
 
+describe('the debate socket', () => {
+  it('is offered only by the process the internet can reach', async () => {
+    const ouvrier = await creerApplication('worker').request('/debat', {
+      headers: { Upgrade: 'websocket' },
+    })
+    expect(ouvrier.status).toBe(404)
+  })
+})
+
 describe('the public pages', () => {
   it('answers the duel invitation with the page itself, whatever the token', async () => {
     const app = creerApplication('temps-reel', relatif)

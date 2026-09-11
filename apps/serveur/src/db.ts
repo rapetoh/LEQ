@@ -736,3 +736,120 @@ export async function listerUtilisateursAnonymesExpires(
   )
   return rows.map((row) => String(row['id']))
 }
+
+// --------------------------------------------------------------------------------------------
+// The face-à-face (Phase 8)
+// --------------------------------------------------------------------------------------------
+
+export interface DebatOuvertLigne {
+  id: string
+  these_texte: string
+  ton_adversaire: string
+  duree_max_s: number
+  secondes_parlees: number
+  statut: string
+}
+
+/** The session, read as its owner: a debate belongs to one person and to nobody else. */
+export async function lireDebatOuvert(
+  ex: Executeur,
+  debatId: string,
+  utilisateurId: string,
+): Promise<DebatOuvertLigne | null> {
+  const { rows } = await ex.query(
+    `select id, these_texte, ton_adversaire, duree_max_s, secondes_parlees, statut
+       from public.debats
+      where id = $1 and utilisateur_id = $2`,
+    [debatId, utilisateurId],
+  )
+  const ligne = rows[0]
+  if (!ligne) return null
+  return {
+    id: String(ligne['id']),
+    these_texte: String(ligne['these_texte']),
+    ton_adversaire: String(ligne['ton_adversaire']),
+    duree_max_s: Number(ligne['duree_max_s']),
+    secondes_parlees: Number(ligne['secondes_parlees']),
+    statut: String(ligne['statut']),
+  }
+}
+
+export interface TourDebatLigne {
+  numero: number
+  locuteur: 'utilisateur' | 'retor'
+  texte: string
+}
+
+export async function lireToursDebat(ex: Executeur, debatId: string): Promise<TourDebatLigne[]> {
+  const { rows } = await ex.query(
+    'select numero, locuteur, texte from public.tours_debat where debat_id = $1 order by numero',
+    [debatId],
+  )
+  return rows.map((r) => ({
+    numero: Number(r['numero']),
+    locuteur: r['locuteur'] === 'retor' ? 'retor' : 'utilisateur',
+    texte: String(r['texte']),
+  }))
+}
+
+export async function enregistrerTourDebat(
+  ex: Executeur,
+  debatId: string,
+  numero: number,
+  locuteur: 'utilisateur' | 'retor',
+  texte: string,
+  dureeS: number | null,
+): Promise<void> {
+  await ex.query('select public.enregistrer_tour($1, $2, $3, $4, $5)', [
+    debatId,
+    numero,
+    locuteur,
+    texte,
+    dureeS,
+  ])
+}
+
+export async function cloturerDebat(ex: Executeur, debatId: string, issue: string): Promise<void> {
+  await ex.query('select public.cloturer_debat($1, $2)', [debatId, issue])
+}
+
+/** The written transcript, for the debrief. Never the audio: there is none (chapter 2). */
+export async function lireTranscriptionDebat(
+  ex: Executeur,
+  debatId: string,
+): Promise<{ these: string; ton: string; tours: TourDebatLigne[] } | null> {
+  const { rows } = await ex.query(
+    'select these_texte, ton_adversaire from public.debats where id = $1',
+    [debatId],
+  )
+  const ligne = rows[0]
+  if (!ligne) return null
+  return {
+    these: String(ligne['these_texte']),
+    ton: String(ligne['ton_adversaire']),
+    tours: await lireToursDebat(ex, debatId),
+  }
+}
+
+/** True when the debate already carries its note: a retry leaves it alone. */
+export async function debriefDejaEcrit(ex: Executeur, debatId: string): Promise<boolean> {
+  const { rows } = await ex.query(
+    'select debrief is not null as fait from public.debats where id = $1',
+    [debatId],
+  )
+  return rows[0]?.['fait'] === true
+}
+
+export async function enregistrerDebrief(
+  ex: Executeur,
+  debatId: string,
+  moments: readonly string[],
+  axe: string,
+): Promise<void> {
+  await ex.query(
+    `update public.debats
+        set debrief = jsonb_build_object('moments', $2::jsonb, 'axe', $3::text)
+      where id = $1`,
+    [debatId, JSON.stringify(moments), axe],
+  )
+}

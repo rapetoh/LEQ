@@ -1,6 +1,14 @@
 // Entry point. HTTP always; the worker loop only when PROCESS=worker.
 import { chargerConfig } from './config.js'
+import * as db from './db.js'
 import { creerPool, echouerJob, reclamerJob, terminerJob, TYPES_JOB } from './db.js'
+import {
+  Conduite,
+  choisirAdversaire,
+  choisirTranscripteurFlux,
+  choisirVoix,
+  type Canal,
+} from './debat/index.js'
 import { demarrerHttp } from './http.js'
 import { creerHandlers } from './jobs/index.js'
 import { creerLogger } from './log.js'
@@ -16,10 +24,55 @@ async function principal(): Promise<void> {
     worker_id: config.workerId,
   })
 
-  const http = demarrerHttp(config, log)
-  const fermetures: Array<() => Promise<void>> = [http.fermer]
+  const fermetures: Array<() => Promise<void>> = []
   let boucle: Promise<void> = Promise.resolve()
   let worker: Worker | undefined
+
+  // The public process runs the face-à-face: one session per socket, over its own pool.
+  let debat: { creerConduite(canal: Canal): Conduite } | undefined
+  if (config.processus === 'temps-reel') {
+    const pool = creerPool(config.databaseUrl)
+    const supabase = creerClientSupabase(config.supabaseUrl, config.supabaseSecretKey)
+    const journalDebat = creerLogger(config.logLevel, { module: 'debat' })
+    const adversaire = choisirAdversaire(config.adversaire)
+    debat = {
+      creerConduite: (canal) =>
+        new Conduite(
+          {
+            depot: {
+              utilisateurDuJeton: async (jeton) => {
+                const { data, error } = await supabase.auth.getUser(jeton)
+                return error ? null : (data.user?.id ?? null)
+              },
+              lireDebat: (id, uid) => db.lireDebatOuvert(pool, id, uid),
+              lireTours: (id) => db.lireToursDebat(pool, id),
+              ecrireTour: (id, numero, locuteur, texte, dureeS) =>
+                db.enregistrerTourDebat(pool, id, numero, locuteur, texte, dureeS),
+              cloturer: (id, issue) => db.cloturerDebat(pool, id, issue),
+              demanderDebrief: (id) =>
+                db.creerJob(pool, 'debriefer_debat', { debat_id: id }, `debrief:${id}`),
+            },
+            transcripteur: choisirTranscripteurFlux(config.transcripteurFlux),
+            adversaire,
+            voix: choisirVoix(config.voix),
+            log: journalDebat,
+          },
+          canal,
+        ),
+    }
+    fermetures.push(() => pool.end())
+    log.info(
+      {
+        transcripteur: config.transcripteurFlux,
+        adversaire: config.adversaire,
+        voix: config.voix,
+      },
+      'face-a-face pret',
+    )
+  }
+
+  const http = demarrerHttp(config, log, debat)
+  fermetures.unshift(http.fermer)
 
   if (config.processus === 'worker') {
     const pool = creerPool(config.databaseUrl)

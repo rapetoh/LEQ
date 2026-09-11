@@ -1,7 +1,7 @@
 // HTTP surface. Both processes answer GET /sante. Only temps-reel is reachable from the
-// internet, so it carries the two public things: the WebSocket /debat (which for now tells the
-// client the feature is not there yet, Phase 8 replaces the handler with the debate loop) and
-// the static pages of apps/web, whose duel invitation must work without the application.
+// internet, so it carries the two public things: the WebSocket /debat, which runs one
+// face-à-face per connection (Phase 8), and the static pages of apps/web, whose duel invitation
+// must work without the application.
 import {
   serve,
   upgradeWebSocket,
@@ -12,6 +12,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { WebSocketServer } from 'ws'
 import type { Config, Processus } from './config.js'
+import type { Canal, Conduite } from './debat/index.js'
 import type { Logger } from './log.js'
 
 /** Routes of apps/web that the browser may open directly: each one is answered with the page. */
@@ -22,7 +23,16 @@ export const MESSAGE_DEBAT_INDISPONIBLE = {
   message: 'Le face-à-face arrive plus tard.',
 } as const
 
-export function creerApplication(processus: Processus, dossierWeb?: string): Hono {
+/** What /debat needs to run a session. Absent on a worker, and on a server without a database. */
+export interface DependancesDebat {
+  creerConduite(canal: Canal): Conduite
+}
+
+export function creerApplication(
+  processus: Processus,
+  dossierWeb?: string,
+  debat?: DependancesDebat,
+): Hono {
   const app = new Hono()
 
   app.get('/sante', (c) => c.json({ ok: true, processus }))
@@ -40,12 +50,38 @@ export function creerApplication(processus: Processus, dossierWeb?: string): Hon
   if (processus === 'temps-reel') {
     app.get(
       '/debat',
-      upgradeWebSocket(() => ({
-        onOpen(_evenement, ws) {
-          ws.send(JSON.stringify(MESSAGE_DEBAT_INDISPONIBLE))
-          ws.close(1000, 'indisponible')
-        },
-      })),
+      upgradeWebSocket(() => {
+        // Without the providers wired in (a worker, or a server with no database), the socket
+        // says so plainly instead of hanging.
+        if (!debat) {
+          return {
+            onOpen(_evenement, ws) {
+              ws.send(JSON.stringify(MESSAGE_DEBAT_INDISPONIBLE))
+              ws.close(1000, 'indisponible')
+            },
+          }
+        }
+        let conduite: Conduite | null = null
+        return {
+          onOpen(_evenement, ws) {
+            conduite = debat.creerConduite({
+              envoyer: (message) => ws.send(JSON.stringify(message)),
+              fermer: () => ws.close(1000, 'fin'),
+            })
+          },
+          onMessage(evenement) {
+            const donnees = evenement.data
+            if (typeof donnees !== 'string') return
+            void conduite?.recevoir(donnees)
+          },
+          onClose() {
+            // The session decides whether this was our cut; it always is, unless it had
+            // already ended on its own.
+            void conduite?.surFermeture()
+            conduite = null
+          },
+        }
+      }),
     )
   }
 
@@ -65,8 +101,9 @@ export interface ServeurHttp {
 export function demarrerHttp(
   config: Pick<Config, 'port' | 'processus' | 'dossierWeb'>,
   log: Logger,
+  debat?: DependancesDebat,
 ): ServeurHttp {
-  const app = creerApplication(config.processus, config.dossierWeb)
+  const app = creerApplication(config.processus, config.dossierWeb, debat)
   const wss = new WebSocketServer({ noServer: true })
   // ws types `options.noServer` as `boolean | undefined`; Hono wants `noServer?: boolean`. Same
   // runtime shape, so the cast only bridges exactOptionalPropertyTypes.

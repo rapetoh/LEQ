@@ -279,7 +279,12 @@ Written before the work started. Cahier chapter 10, plan Phase 8. Everything shi
    - [x] `@leq/domaine` schemas (`debat.ts`) with `consommeUneSession`, tested. Configuration key `quota_face_a_face_gratuit` added so the free plan's zero is a setting, not a hidden constant
    - [x] Three defects found by the suite and fixed before anything ran: a retried turn counted its seconds twice against the cap, seconds were rounded on every turn, and opening a debate silently answered the session already open
 2. Server
-   - [ ] The WebSocket protocol on `temps-reel`, per-turn persistence, the resume, the cut that does not count, the debrief
+   - [x] The protocol (`debat/protocole.ts`): typed messages both ways, and a reader that refuses anything it does not know, because a socket is an open door. The answer is sent as text before the voice that says it, and the transcription is sent while the person is still speaking, so the app always has something to show. That is the whole point of chapter 10: the hard part is the waiting
+   - [x] The session rules as a pure state machine (`debat/session.ts`): no socket, no database, no provider. The cap counts what the person said and never what Rétor said; the cap ends the session and still writes the last turn; a cut on our side ends it as `interrompue_par_nous`; a finished session ignores everything that arrives late
+   - [x] The three providers behind their own interfaces with stubs (`debat/fournisseurs.ts`), named separately in the configuration because the bench may not pick one company for streaming transcription, for the model and for the voice
+   - [x] The conductor (`debat/conduite.ts`): writes a turn before answering it, so a machine that dies between the two loses the connection and not the debate. A voice that fails is a degraded turn, not a dead debate. Anything breaking on our side ends the session as our own cut
+   - [x] `/debat` on `temps-reel` runs one session per socket; the worker does not offer the route at all. Job `debriefer_debat` writes the note from the written transcript, idempotently
+   - [x] 39 server tests for this alone (72 in the workspace). Checked against the real project over a real socket: upgrade, Supabase authentication, refusal and clean close in 889 ms, writing nothing
 3. Mobile
    - [ ] E0 (the face-à-face row on Moi), E2 (prepare), E3 (the debate), E3b (interrupted), E4 (the debrief)
 4. Admin

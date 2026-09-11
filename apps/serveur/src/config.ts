@@ -13,6 +13,16 @@ export type NiveauLog = (typeof NIVEAUX_LOG)[number]
 export const TRANSCRIPTEURS = ['stub'] as const
 export type NomTranscripteur = (typeof TRANSCRIPTEURS)[number]
 
+// The face-à-face needs three providers, and the bench may not pick one company for all three:
+// the best French streaming transcription and the best French voice are not obviously the same
+// supplier. Each is named on its own so any of them can be swapped without touching the others.
+export const TRANSCRIPTEURS_FLUX = ['stub'] as const
+export type NomTranscripteurFlux = (typeof TRANSCRIPTEURS_FLUX)[number]
+export const ADVERSAIRES = ['stub'] as const
+export type NomAdversaire = (typeof ADVERSAIRES)[number]
+export const VOIX = ['stub'] as const
+export type NomVoix = (typeof VOIX)[number]
+
 // prosodie/extraire.py sits one level above src/ and above dist/, so the same
 // relative path works for `tsx src/index.ts` and for `node dist/index.js`.
 const cheminScriptParDefaut = path.resolve(
@@ -36,6 +46,11 @@ const SchemaEnv = z.object({
   LOG_LEVEL: z.enum(NIVEAUX_LOG).default('info'),
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   TRANSCRIPTEUR: z.enum(TRANSCRIPTEURS).default('stub'),
+  // The three providers of the face-à-face. Only the stubs exist until the bench decides and
+  // the keys arrive; the loop runs end to end on them (Phase 8).
+  TRANSCRIPTEUR_FLUX: z.enum(TRANSCRIPTEURS_FLUX).default('stub'),
+  ADVERSAIRE: z.enum(ADVERSAIRES).default('stub'),
+  VOIX: z.enum(VOIX).default('stub'),
   FFMPEG_PATH: z.string().min(1).default('ffmpeg'),
   // Built bundle of apps/web, served by the public process. Unset means no public pages,
   // which is what a local worker or a developer's machine wants.
@@ -55,6 +70,9 @@ export interface Config {
   logLevel: NiveauLog
   port: number
   transcripteur: NomTranscripteur
+  transcripteurFlux: NomTranscripteurFlux
+  adversaire: NomAdversaire
+  voix: NomVoix
   ffmpegPath: string
   dossierWeb: string | undefined
   pythonPath: string
@@ -94,6 +112,9 @@ export function chargerConfig(env: NodeJS.ProcessEnv = process.env): Config {
     logLevel: e.LOG_LEVEL,
     port: e.PORT,
     transcripteur: e.TRANSCRIPTEUR,
+    transcripteurFlux: e.TRANSCRIPTEUR_FLUX,
+    adversaire: e.ADVERSAIRE,
+    voix: e.VOIX,
     ffmpegPath: e.FFMPEG_PATH,
     dossierWeb: e.DOSSIER_WEB,
     pythonPath: e.PYTHON_PATH,

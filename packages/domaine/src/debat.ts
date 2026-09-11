@@ -52,6 +52,13 @@ export function consommeUneSession(issue: IssueDebat | null): boolean {
   return issue !== null && issue !== 'interrompue_par_nous'
 }
 
+/** The note at the end of a debate (E4), written from the transcript and never from audio. */
+export const DebriefSchema = z.object({
+  moments: z.array(z.string()),
+  axe: z.string(),
+})
+export type Debrief = z.output<typeof DebriefSchema>
+
 export const DebatSchema = z.object({
   id: UuidSchema,
   utilisateur_id: UuidSchema,
@@ -66,6 +73,7 @@ export const DebatSchema = z.object({
   commence_le: IsoTimestampSchema,
   derniere_activite_le: IsoTimestampSchema,
   termine_le: IsoTimestampSchema.nullable(),
+  debrief: DebriefSchema.nullable(),
   cree_le: IsoTimestampSchema,
   modifie_le: IsoTimestampSchema,
 })

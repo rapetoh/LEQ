@@ -15,6 +15,7 @@ export const TYPES_JOB = [
   'fermer_duels',
   'supprimer_audio_public',
   'envoyer_resultat_arene',
+  'debriefer_debat',
 ] as const
 export const TypeJobSchema = z.enum(TYPES_JOB)
 export type TypeJob = z.infer<typeof TypeJobSchema>
@@ -67,6 +68,9 @@ export const ChargeSupprimerAudioPublicSchema = z.object({})
 /** Inserted by `roter_sujet_arene` when a week closes: the podium of that week (Phase 7, C8). */
 export const ChargeEnvoyerResultatAreneSchema = z.object({ sujet_id: UuidSchema })
 export type ChargeEnvoyerResultatArene = z.infer<typeof ChargeEnvoyerResultatAreneSchema>
+/** Inserted when a debate reaches its end: the note written from the transcript (Phase 8, E4). */
+export const ChargeDebrieferDebatSchema = z.object({ debat_id: UuidSchema })
+export type ChargeDebrieferDebat = z.infer<typeof ChargeDebrieferDebatSchema>
 
 /** One charge schema per job type. */
 export const CHARGES_JOB = {
@@ -79,6 +83,7 @@ export const CHARGES_JOB = {
   fermer_duels: ChargeFermerDuelsSchema,
   supprimer_audio_public: ChargeSupprimerAudioPublicSchema,
   envoyer_resultat_arene: ChargeEnvoyerResultatAreneSchema,
+  debriefer_debat: ChargeDebrieferDebatSchema,
 } as const satisfies Record<TypeJob, z.ZodType>
 
 export type ChargeJob<T extends TypeJob = TypeJob> = z.output<(typeof CHARGES_JOB)[T]>
