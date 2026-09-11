@@ -12,6 +12,8 @@ const DISPONIBLES = [
   { vers: '/grille', ...fr.accueil.cartes.grille },
   { vers: '/annonces', ...fr.accueil.cartes.annonces },
   { vers: '/ateliers', ...fr.accueil.cartes.ateliers },
+  { vers: '/sujets', ...fr.accueil.cartes.sujets },
+  { vers: '/moderation', ...fr.accueil.cartes.moderation },
   { vers: '/utilisateurs', ...fr.accueil.cartes.utilisateurs },
   { vers: '/exports', ...fr.accueil.cartes.exports },
 ] as const

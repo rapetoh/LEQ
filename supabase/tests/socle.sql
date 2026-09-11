@@ -630,14 +630,24 @@ select throws_ok(
 select is((select count(*) from storage.objects where bucket_id = 'audio-tentatives'), 0::bigint, 'A cannot list own uploads');
 reset role;
 -- A direct delete cannot be exercised here: hosted projects refuse any direct delete on
--- storage.objects (storage.protect_delete), so the absence of client policies is checked instead.
+-- storage.objects (storage.protect_delete), so the policies are checked instead. A client never
+-- updates or deletes an object; the only client read is the one of Phase 7, which lets a
+-- listener hear a public take under the rule of chapter 11 (migration 0012).
 select is(
   (select count(*) from pg_policies
     where schemaname = 'storage' and tablename = 'objects'
-      and cmd in ('SELECT', 'UPDATE', 'DELETE')
+      and cmd in ('UPDATE', 'DELETE')
       and policyname like 'audio_%'),
   0::bigint,
-  'no client select, update or delete policy on audio objects'
+  'no client update or delete policy on audio objects'
+);
+select is(
+  (select count(*) from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and cmd = 'SELECT'
+      and policyname like 'audio_%'),
+  1::bigint,
+  'exactly one client read policy on audio objects: the public takes of Phase 7'
 );
 
 select tests_leq.connecter('33333333-3333-4333-8333-333333333333', true, 'utilisateur');

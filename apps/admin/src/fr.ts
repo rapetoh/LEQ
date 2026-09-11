@@ -31,6 +31,8 @@ export const fr = {
     grille: 'Grille',
     annonces: 'Annonces',
     ateliers: 'Ateliers',
+    sujets: "Sujets de l'Arène",
+    moderation: 'Modération',
     utilisateurs: 'Utilisateurs',
     exports: 'Demandes de données',
     seDeconnecter: 'Se déconnecter',
@@ -106,6 +108,16 @@ export const fr = {
         titre: 'Les ateliers',
         texte: "Tes ateliers, en salle ou en ligne, tels que l'application les montre.",
         action: 'Ouvrir les ateliers',
+      },
+      sujets: {
+        titre: "Les sujets de l'Arène",
+        texte: 'La banque des sujets, dans leur ordre de passage. Un par semaine.',
+        action: 'Ouvrir les sujets',
+      },
+      moderation: {
+        titre: 'La modération',
+        texte: 'Les prises publiques à relire avant publication, et celles à retirer.',
+        action: 'Ouvrir la modération',
       },
       utilisateurs: {
         titre: 'Les utilisateurs',
@@ -551,6 +563,67 @@ export const fr = {
     motif: 'Motif',
     suspendu: 'Compte suspendu.',
     reactive: 'Compte réactivé.',
+  },
+
+  sujets: {
+    titre: "Les sujets de l'Arène",
+    intro:
+      "La banque des sujets, dans leur ordre de passage. Le serveur active le suivant quand la semaine du précédent est finie ; rien ne s'active tant que la banque est vide.",
+    creer: 'Créer un sujet',
+    vide: 'Aucun sujet dans la banque. Crée le premier.',
+    erreurChargement: 'Impossible de charger les sujets.',
+    erreur: 'Enregistrement impossible.',
+    erreurDoublon: 'Un sujet porte déjà cette clé, ou cet ordre.',
+    cree: 'Sujet créé.',
+    enregistre: 'Sujet enregistré.',
+    modifier: 'Modifier',
+    duree: (secondes: number) => `${secondes} s de parole`,
+    actifDepuis: (date: string) => `actif depuis le ${date}`,
+    etats: {
+      passe: 'Passé',
+      en_cours: 'En cours',
+      a_venir: 'À venir',
+      inactif: 'Inactif',
+    },
+    champs: {
+      texte: 'Le sujet',
+      texteAide: 'La question, telle que les gens la lisent. Une phrase.',
+      consigne: 'Consigne',
+      consigneAide: 'Optionnel : ce que tu attends du passage, en une ligne.',
+      ordre: 'Ordre de passage',
+      ordreAide: 'Le serveur prend le plus petit ordre pas encore activé.',
+      duree: 'Durée maximale',
+      provisoireAide: "Tant que c'est coché, le sujet vient de la maquette et attend ta version.",
+      actifAide: 'Un sujet inactif ne sera jamais activé.',
+    },
+  },
+
+  moderation: {
+    titre: 'La modération',
+    intro:
+      "On bloque le déchet, pas les sujets difficiles : le contenu sexuel, le harcèlement de personnes réelles et ce qui est illégal. La politique, la religion et l'éthique restent.",
+    tous: 'Toutes',
+    vide: 'Rien dans cette liste.',
+    erreurChargement: 'Impossible de charger les prises.',
+    erreur: "La décision n'a pas pu être enregistrée.",
+    traite: 'Décision enregistrée.',
+    sansSujet: 'Sujet inconnu',
+    audioSupprime: 'audio supprimé',
+    publier: 'Publier',
+    retirer: 'Retirer',
+    retirerTitre: 'Retirer cette prise',
+    retirerAide:
+      "Le motif est gardé dans le journal. La prise disparaît de l'Arène et son audio est supprimé.",
+    motif: 'Motif',
+    statuts: {
+      en_moderation: 'À relire',
+      publiee: 'Publiée',
+      retiree: 'Retirée',
+    },
+    contextes: {
+      arene: 'Arène',
+      duel: 'Duel',
+    },
   },
 
   exports: {

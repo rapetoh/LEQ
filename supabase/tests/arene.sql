@@ -92,9 +92,19 @@ select lives_ok($$ select public.publier_prise((select tc from prises)) $$, 'C p
 reset role; select tests_leq.deconnecter();
 select is((select count(*) from public.prises_publiques), 3::bigint, 'three public takes');
 
--- an anonymous account publishes nothing -----------------------------------------------------------
+-- an anonymous account publishes nothing in the Arena (it would be ranked) --------------------------
 select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
-select throws_ok($$ select public.publier_prise((select ta from prises)) $$, '42501', 'compte_requis', 'an anonymous account cannot publish');
+select throws_ok(
+  $$ insert into public.tentatives (id, utilisateur_id, type, enregistre_le, fuseau_horaire, decalage_minutes, statut)
+     values (gen_random_uuid(), '55555555-5555-4555-8555-555555555555', 'arene', now(), 'Europe/Paris', 120, 'envoyee') $$,
+  '42501', null, 'an anonymous account cannot even record for the Arena');
+reset role; select tests_leq.deconnecter();
+-- and the function guards the Arena too, whatever the row came from
+create temp table prise_anon as select
+  tests_leq.prise_analysee('55555555-5555-4555-8555-555555555555', 'arene', null, 15) as t;
+grant select on prise_anon to authenticated;
+select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
+select throws_ok($$ select public.publier_prise((select t from prise_anon)) $$, '42501', 'compte_requis', 'an anonymous account cannot publish in the Arena');
 reset role; select tests_leq.deconnecter();
 
 -- takes stay hidden until you have spoken, and until moderation lets them through --------------------
@@ -174,6 +184,26 @@ select lives_ok($$ select public.publier_prise((select tb from duelprises)) $$, 
 reset role; select tests_leq.deconnecter();
 select is(public.cloturer_duel((select id from duel)), 'invite', 'the higher grid total wins, and the app says the verdict is automatic');
 select is((select count(*) from public.prises_publiques where duel_id = (select id from duel) and date_suppression is null), 0::bigint, 'the duel audio is marked for deletion at closing');
+-- an invitee without the app answers by the link, as an anonymous principal (chapter 11) ------------
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+create temp table duel_anon as select * from public.creer_duel('Sans application');
+grant select on duel_anon to authenticated;
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
+select is((select (public.lire_duel_par_jeton((select jeton from duel_anon))) ->> 'sujet'), 'Sans application', 'the anonymous invitee reads the subject');
+select lives_ok($$ select public.rejoindre_duel((select jeton from duel_anon)) $$, 'the anonymous invitee joins');
+select lives_ok(
+  $$ insert into public.tentatives (id, utilisateur_id, type, duel_id, enregistre_le, fuseau_horaire, decalage_minutes, statut)
+     values ('dddddddd-0000-4000-8000-000000000001', '55555555-5555-4555-8555-555555555555', 'duel',
+             (select id from duel_anon), now(), 'Europe/Paris', 120, 'envoyee') $$,
+  'the anonymous invitee records a duel take');
+reset role; select tests_leq.deconnecter();
+update public.tentatives set statut = 'retour_disponible' where id = 'dddddddd-0000-4000-8000-000000000001';
+insert into public.evaluations (tentative_id, note_totale) values ('dddddddd-0000-4000-8000-000000000001', 19);
+select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
+select lives_ok($$ select public.publier_prise('dddddddd-0000-4000-8000-000000000001') $$, 'and publishes it, without an account');
+reset role; select tests_leq.deconnecter();
+
 -- a duel with one take only expires without verdict
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 create temp table duel2 as select * from public.creer_duel('Un seul parle');
