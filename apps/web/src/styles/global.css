@@ -1,0 +1,438 @@
+/*
+ * The public surface wears the app's clothes, not the admin's: the mockup's bleu nuit hero,
+ * the "or" of Bulle, Manrope, one column sized for a phone held in one hand. Someone opening
+ * this link has never heard of LEQ, and this page is the whole first impression.
+ */
+:root {
+  --bleu-nuit: #001636;
+  --bleu-nuit-carte: #0d2a4e;
+  --bleu: #114da8;
+  --or: #ffbd59;
+  --or-doux: #fff1d6;
+  --orange: #ff5e01;
+  --encre: #33415c;
+  --encre-2: #8fa3c4;
+  --encre-3: #c7d3e8;
+  --fond-chaud: #f6f3ef;
+  --blanc: #ffffff;
+  --vert: #2c7a4b;
+  --rouge: #c2410c;
+
+  --rayon-s: 12px;
+  --rayon-m: 16px;
+  --rayon-l: 20px;
+  --rayon-xl: 28px;
+  --pilule: 100px;
+
+  --police: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bleu-nuit);
+  color: var(--blanc);
+  font-family: var(--police);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#racine {
+  min-height: 100dvh;
+}
+
+/* One column, phone width, always centred. */
+.ecran {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
+}
+
+.ecran-centre {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.pousse {
+  margin-top: auto;
+}
+
+/* Type. */
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 34px;
+}
+
+h2 {
+  font-size: 20px;
+  line-height: 26px;
+  letter-spacing: -0.2px;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--or);
+  text-underline-offset: 3px;
+}
+
+.surtitre {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--or);
+}
+
+.corps {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--encre-3);
+}
+
+.petit {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--encre-2);
+}
+
+.centre {
+  text-align: center;
+}
+
+/* Bulle greets, then steps aside: she sits with the overline, not above the whole page. */
+.entete-bulle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* Cards on bleu nuit, as in the mockup. */
+.carte {
+  padding: 20px;
+  border-radius: var(--rayon-l);
+  background: var(--bleu-nuit-carte);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.carte-sujet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 4px solid var(--or);
+}
+
+.carte-sujet .texte {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.etiquette-delai {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: var(--pilule);
+  background: rgba(255, 189, 89, 0.16);
+  color: var(--or);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Buttons: verbs, full width, thumb sized. */
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--pilule);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease,
+    transform 90ms ease;
+}
+
+.bouton:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.bouton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bouton-principal {
+  background: var(--orange);
+  color: var(--blanc);
+}
+
+.bouton-principal:not(:disabled):hover {
+  background: #e85500;
+}
+
+.bouton-secondaire {
+  background: transparent;
+  color: var(--blanc);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.bouton-secondaire:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bouton-texte {
+  width: auto;
+  min-height: 44px;
+  background: transparent;
+  color: var(--encre-3);
+  font-weight: 600;
+}
+
+.bouton-texte:not(:disabled):hover {
+  color: var(--blanc);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--or);
+  outline-offset: 3px;
+}
+
+/* The recorder: a gold ring around the timer, as on the phone. */
+.enregistreur {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.anneau {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 216px;
+  height: 216px;
+  border-radius: 50%;
+  background: conic-gradient(var(--or) var(--part), rgba(255, 255, 255, 0.14) 0);
+}
+
+.anneau::after {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--bleu-nuit);
+}
+
+.anneau-contenu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.minuteur {
+  font-size: 44px;
+  line-height: 48px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.point-rouge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Bulle floats, unless the person asked their system for calm. */
+.bulle-flotte {
+  animation: flotte 1.9s ease-in-out infinite alternate;
+}
+
+@keyframes flotte {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+.barre-parle {
+  transform-origin: center;
+  animation: parle 0.75s ease-in-out infinite alternate;
+}
+
+.barre-parle:nth-of-type(2) {
+  animation-duration: 0.85s;
+}
+
+.barre-parle:nth-of-type(3) {
+  animation-duration: 0.7s;
+}
+
+@keyframes parle {
+  from {
+    transform: scaleY(0.4);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bulle-flotte,
+  .barre-parle,
+  .point-rouge {
+    animation: none;
+  }
+
+  .bouton {
+    transition: none;
+  }
+}
+
+/* Messages: information, never decoration. */
+.message {
+  padding: 16px;
+  border-radius: var(--rayon-m);
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.message-erreur {
+  background: rgba(194, 65, 12, 0.18);
+  border: 1px solid rgba(255, 94, 1, 0.45);
+  color: #ffd9c2;
+}
+
+.message-calme {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--encre-3);
+}
+
+.verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 20px;
+  border-radius: var(--rayon-l);
+  background: var(--bleu-nuit-carte);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.verdict h1 {
+  font-size: 26px;
+  line-height: 32px;
+}
+
+.verdict-gagne {
+  color: var(--or);
+}
+
+/* Legal pages read like a document, not like the app. */
+.document {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 24px calc(56px + env(safe-area-inset-bottom));
+}
+
+.document h1 {
+  margin-bottom: 4px;
+}
+
+.document h2 {
+  margin-top: 16px;
+}
+
+.document p {
+  color: var(--encre-3);
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.visuellement-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

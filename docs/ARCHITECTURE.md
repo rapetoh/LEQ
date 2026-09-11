@@ -23,11 +23,11 @@ flowchart LR
     end
     subgraph Fly["Fly.io, cdg (Paris), apps/serveur"]
         W[worker: pipeline, jobs, opérations privilégiées]
-        TR[temps-reel: WebSocket du face-à-face]
+        TR[temps-reel: WebSocket du face-à-face, pages publiques d'apps/web]
         Praat[prosodie CLI, Python + parselmouth]
     end
     Admin[apps/admin, SPA Rebecca]
-    Web[apps/web, invitation de duel, Phase 7]
+    Web[apps/web, invitation de duel, pages légales]
     STT[Fournisseur STT]
     Claude[Anthropic Claude]
     TTS[Fournisseur TTS, Phase 8]
@@ -53,27 +53,29 @@ flowchart LR
     Admin --> Auth
     Admin --> PG
     Admin -->|écritures privilégiées| W
+    TR -->|fichiers statiques| Web
     Web --> Auth
+    Web --> PG
     Web --> Sto
     RC --> EF --> PG
 ```
 
 ## What lives where
 
-| Concern                                                                 | Where                                                         | Notes                                                                        |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Domain schema, RLS, triggers, cron schedules                            | `supabase/migrations`                                         | Contract in DATA-MODEL.md                                                    |
-| Domain types and validation                                             | `packages/domaine`                                            | Zod 4; imported by every app                                                 |
-| Measures from PCM plus transcript                                       | `packages/moteur`                                             | No I/O; tested on fixtures                                                   |
-| Pitch and intensity tracks                                              | `apps/serveur/prosodie`                                       | Praat through parselmouth, ADR-008                                           |
-| Pipeline orchestration, job loop, storage deletion, push, provider keys | `apps/serveur` (`worker`)                                     | Service role, direct Postgres connection                                     |
-| Debate loop                                                             | `apps/serveur` (`temps-reel`)                                 | Phase 8                                                                      |
-| Recording, local queue, offline retry, local notifications              | `apps/mobile`                                                 | Client-only states live here                                                 |
-| Configuration, flags, grid, banks, moderation, announcements            | `apps/admin`                                                  | Reads and writes under RLS as admin; privileged writes go through the server |
-| Duel invitation in the browser, legal pages                             | `apps/web`                                                    | Phase 7                                                                      |
-| Subscriptions                                                           | RevenueCat, webhook to `abonnements` through an Edge Function | Phase 4                                                                      |
-| Push delivery                                                           | Expo push, sent by the worker                                 | Phase 1 for "ton retour est prêt"                                            |
-| Tunables                                                                | `configuration` and `drapeaux` tables                         | Read at app startup; edited by Rebecca                                       |
+| Concern                                                                 | Where                                                              | Notes                                                                        |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Domain schema, RLS, triggers, cron schedules                            | `supabase/migrations`                                              | Contract in DATA-MODEL.md                                                    |
+| Domain types and validation                                             | `packages/domaine`                                                 | Zod 4; imported by every app                                                 |
+| Measures from PCM plus transcript                                       | `packages/moteur`                                                  | No I/O; tested on fixtures                                                   |
+| Pitch and intensity tracks                                              | `apps/serveur/prosodie`                                            | Praat through parselmouth, ADR-008                                           |
+| Pipeline orchestration, job loop, storage deletion, push, provider keys | `apps/serveur` (`worker`)                                          | Service role, direct Postgres connection                                     |
+| Debate loop                                                             | `apps/serveur` (`temps-reel`)                                      | Phase 8                                                                      |
+| Recording, local queue, offline retry, local notifications              | `apps/mobile`                                                      | Client-only states live here                                                 |
+| Configuration, flags, grid, banks, moderation, announcements            | `apps/admin`                                                       | Reads and writes under RLS as admin; privileged writes go through the server |
+| Duel invitation in the browser, legal pages                             | `apps/web`, built into the server image and served by `temps-reel` | ADR-010; anonymous principal, every rule in RLS                              |
+| Subscriptions                                                           | RevenueCat, webhook to `abonnements` through an Edge Function      | Phase 4                                                                      |
+| Push delivery                                                           | Expo push, sent by the worker                                      | Phase 1 for "ton retour est prêt"                                            |
+| Tunables                                                                | `configuration` and `drapeaux` tables                              | Read at app startup; edited by Rebecca                                       |
 
 ## Data flow of an attempt
 

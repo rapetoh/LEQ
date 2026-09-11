@@ -37,6 +37,9 @@ const SchemaEnv = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   TRANSCRIPTEUR: z.enum(TRANSCRIPTEURS).default('stub'),
   FFMPEG_PATH: z.string().min(1).default('ffmpeg'),
+  // Built bundle of apps/web, served by the public process. Unset means no public pages,
+  // which is what a local worker or a developer's machine wants.
+  DOSSIER_WEB: z.string().min(1).optional(),
   PYTHON_PATH: z.string().min(1).default('python3'),
   PROSODIE_SCRIPT: z.string().min(1).default(cheminScriptParDefaut),
   INTERVALLE_INACTIF_MS: z.coerce.number().int().min(100).default(2000),
@@ -53,6 +56,7 @@ export interface Config {
   port: number
   transcripteur: NomTranscripteur
   ffmpegPath: string
+  dossierWeb: string | undefined
   pythonPath: string
   prosodieScript: string
   intervalleInactifMs: number
@@ -91,6 +95,7 @@ export function chargerConfig(env: NodeJS.ProcessEnv = process.env): Config {
     port: e.PORT,
     transcripteur: e.TRANSCRIPTEUR,
     ffmpegPath: e.FFMPEG_PATH,
+    dossierWeb: e.DOSSIER_WEB,
     pythonPath: e.PYTHON_PATH,
     prosodieScript: e.PROSODIE_SCRIPT,
     intervalleInactifMs: e.INTERVALLE_INACTIF_MS,

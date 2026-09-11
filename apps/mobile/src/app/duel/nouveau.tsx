@@ -17,7 +17,9 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 // C5 · Défier un ami. The subject, then the link. The person answers within 48 hours, alone,
 // and the link works even without the app. Rebecca's bank of subjects arrives with her.
 
-const BASE_LIEN = process.env.EXPO_PUBLIC_LIEN_DUEL ?? 'https://leq.app'
+// Where the public pages live. Today that is the Fly process that serves apps/web; Phase 9
+// points EXPO_PUBLIC_LIEN_DUEL at the real domain, and nothing else changes.
+const BASE_LIEN = process.env.EXPO_PUBLIC_LIEN_DUEL ?? 'https://leq-serveur.fly.dev'
 
 export default function NouveauDuel() {
   const theme = useTheme()

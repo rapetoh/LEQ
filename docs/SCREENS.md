@@ -65,6 +65,16 @@ Status values: not started, placeholder, in progress, done. "Placeholder" means 
 | G1  | G, profile and settings      | Moi                                | `/moi` (tab)                                                                                        | 0 (tab shell), 5 (content)                                                                        | done (streak, points, weeks won from the ledgers; face-à-face and abonnement rows wait)   |
 | G3  | G                            | Réglages et confidentialité        | `/reglages`                                                                                         | 1 (privacy text, deletion, data copy request), 5 (streak recovery), 6 (four notification toggles) | done (Phase 1 parts, streak protection, local reminders, region)                          |
 
+## The public web surface (`apps/web`)
+
+Not screens of the mockup: pages a stranger opens from a link, with no application installed. They wear the same clothes (bleu nuit, Bulle, Manrope, the gold recording ring) because for that person they are LEQ.
+
+| Route              | What it is                                                                                                                                                                                | Phase | Status |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ |
+| `/duel/:jeton`     | The duel invitation. The subject, the ceiling, what is left of the 48 h, then recording in the browser, sending, waiting, verdict. Never the inviter's take before the invitee has spoken | 7     | done   |
+| `/confidentialite` | The chapter 2 statement, plus what an anonymous duel identity is                                                                                                                          | 7     | done   |
+| `/conditions`      | Placeholder until a lawyer writes them, and the page says so                                                                                                                              | 7     | draft  |
+
 Phase 0 acceptance requires only the shell: four tabs (Aujourd'hui, Défis, Progrès, Moi) with the Arena tab hidden by the flags, and placeholder routes for A1 and B1. Once the integration step verifies them, update A1 and B1 to "placeholder".
 
 ## Where the mockup and the cahier disagree

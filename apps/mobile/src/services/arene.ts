@@ -17,13 +17,14 @@ import {
   type SujetArene,
 } from '@leq/domaine'
 
-export type { PaireAVoter, RefusArene, SujetArene, Duel, ClassementArene, PrisePublique }
 import { useQuery, type QueryClient, type UseQueryResult } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { t, type CleTexte } from '@/i18n/fr'
 
 import { supabase, useSession } from './supabase'
+
+export type { PaireAVoter, RefusArene, SujetArene, Duel, ClassementArene, PrisePublique }
 
 export const CLE_SUJET = ['sujet_arene'] as const
 export const CLE_MA_PRISE = ['ma_prise_arene'] as const
