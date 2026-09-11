@@ -413,6 +413,37 @@ Rebecca's space, completed (cahier chapters 8 and 12): workshops and announcemen
 - `leq_supprimer_audio_public` (`*/30 * * * *`): inserts `supprimer_audio_public`; the worker deletes the objects of `prises_publiques` whose `date_suppression` has passed and stamps `audio_supprime_le`.
 - Job `envoyer_resultat_arene` `{sujet_id}` (worker): queued by the rotation handler when a week closes, never by pg_cron. One push per active token of the people who published a take on that week, keep `notif_social` on and are not suspended. Claimed with `reserver_resultat_arene()` before the first push leaves. Its data carries `sujet_id`, which opens that week's podium (C8).
 
+## Phase 8 additions (migrations `0015_face_a_face`, `0016_correctifs_face_a_face`)
+
+The debate against Rétor, cahier chapter 10, shipped off behind the `face_a_face` flag. Four rules of that chapter live here and not in the interface.
+
+### theses
+
+- `id`, `cle unique`, `texte`, `ton_suggere` (ferme, provocateur, academique, bienveillant), `ordre unique`, `actif`, `provisoire`, timestamps.
+- The bank prepared in advance and fed from Rebecca's space. Offered first, because most people asked to invent a debate subject freeze or pick something they cannot defend, and the session is lost before it starts. RLS: authenticated read the active ones, admin writes.
+- `theses_proposees(n)` answers the first `n` active theses, in order.
+
+### debats
+
+- `id`, `utilisateur_id`, `these_id` (nullable), `these_texte`, `origine_these` (banque, personnelle), `ton_adversaire`, `duree_max_s`, `statut` (ouverte, terminee, interrompue, abandonnee), `issue` (terminee, interrompue_par_nous, abandonnee), `secondes_parlees numeric`, `commence_le`, `derniere_activite_le`, `termine_le`, timestamps.
+- **This table is the quota ledger** (ADR-009): one row per session carrying its own outcome, and the month is counted by replaying them. `quota_debats()` counts the sessions of the current month, in the person's own zone, whose `issue` is set and is not `interrompue_par_nous`. A session we cut ourselves keeps its row and costs nothing, because charging a quota for our own outage is the shortest road to refund requests.
+- `these_texte` is copied into the session, so editing the bank never rewrites a past debate.
+- RLS: the owner reads their own sessions and nothing else. **The admin does not read a debate either**: it is practice, not public speech. No client policy writes a session or a turn at all; everything goes through the functions.
+- `ouvrir_debat(these_id, these_texte, ton)`: checks the flag, an account, no suspension, the thesis, then refuses with `debat_en_cours` when a session is open and still fresh, then the quota. It never silently answers a session nobody asked for.
+- `debat_a_reprendre()` answers the open session inside the `reprise_debat_minutes` window (E3b). `abandonner_debat()` closes it when the person chooses to start another.
+- `cloturer_debat(debat, issue)` is service role only: the server decides whether a cut was ours.
+
+### tours_debat
+
+- `id`, `debat_id`, `numero`, `locuteur` (utilisateur, retor), `texte`, `duree_s`, `cree_le`, unique `(debat_id, numero)`.
+- Written turn by turn as the debate happens, which is what makes a resume possible: a machine that dies mid-debate loses the connection, not the debate. **Text only, never audio**, so chapter 2 holds whole: the debrief reads the written transcript and nothing of the voice is ever stored.
+- `enregistrer_tour(...)` is service role only and idempotent by `(debat, numero)`: a turn rewritten by a retry replaces itself and adds only the difference in duration to `secondes_parlees`. Adding it twice would charge the person for our own retry.
+- `transcription_debat(debat)` answers the turns in order, to the owner or to the server.
+
+### Configuration keys used
+
+`quota_face_a_face_gratuit` (0: the face-à-face is a Complet entitlement, and the zero is a setting rather than a locked door), `quota_face_a_face_complet` (8), `duree_face_a_face_gratuit_s` (180), `duree_face_a_face_complet_s` (480), `reprise_debat_minutes` (30).
+
 ## Phase 7 additions (migration `0010_arene`)
 
 The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the app until the `arene` and `duels` flags are on. The rules live here, not in the interface.

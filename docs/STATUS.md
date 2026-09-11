@@ -268,6 +268,25 @@ Written before the work started. Cahier chapter 11, plan Phase 7. Everything shi
    - [x] `npm run check` and `npm run format:check` green: server 33 tests, mobile 74, admin 35, web 30, domaine 32, moteur 33
    - [ ] Simulator walkthrough of the Arena with the flags on, on a week that has actually closed. The podium's wording and its awkward cases (one speaker, a tie, someone who did not speak, nobody at all) are covered by a component test; what is not yet seen on a device is a podium with real votes, which needs Rebecca's subject bank and a week gone by
 
+## Phase 8 checklist (the face-à-face, shipped off)
+
+Written before the work started. Cahier chapter 10, plan Phase 8. Everything ships behind the `face_a_face` flag. The live pieces (speech to text, Claude, a voice) need keys Roch has not provided yet, so the loop is built and tested against a stub, exactly as flow A was built before the transcription provider existed.
+
+1. Contract and database (migrations `0015_face_a_face`, `0016_correctifs_face_a_face`)
+   - [x] `theses` (the bank fed from Rebecca's space), `debats` (a session, and the quota ledger: one row per session with its own outcome), `tours_debat` (the written transcript, turn by turn, no audio ever)
+   - [x] `quota_debats()`, `theses_proposees()`, `ouvrir_debat()`, `debat_a_reprendre()`, `abandonner_debat()`, `enregistrer_tour()`, `cloturer_debat()`, `transcription_debat()`; RLS gives a debate to its owner and to nobody else, the admin included
+   - [x] pgTAP `tests/face_a_face.sql`: 53 assertions green on the hosted project (the flag gates everything, an account is required, the free plan has no session and says so as a quota, the bank and a thesis of one's own, the thesis copied into the session, opening again is refused rather than silently answering the old session, a stale session is abandoned and costs its slot, a session we cut costs nothing, a retried turn adds only its difference, nobody reads someone else's debate)
+   - [x] `@leq/domaine` schemas (`debat.ts`) with `consommeUneSession`, tested. Configuration key `quota_face_a_face_gratuit` added so the free plan's zero is a setting, not a hidden constant
+   - [x] Three defects found by the suite and fixed before anything ran: a retried turn counted its seconds twice against the cap, seconds were rounded on every turn, and opening a debate silently answered the session already open
+2. Server
+   - [ ] The WebSocket protocol on `temps-reel`, per-turn persistence, the resume, the cut that does not count, the debrief
+3. Mobile
+   - [ ] E0 (the face-à-face row on Moi), E2 (prepare), E3 (the debate), E3b (interrupted), E4 (the debrief)
+4. Admin
+   - [ ] The thesis bank
+5. Verification
+   - [ ] The measured cost and the per-turn latency of one real five-minute session, which chapter 9 requires before the plan containing the face-à-face can be priced. Needs the provider keys
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.

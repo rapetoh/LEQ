@@ -18,6 +18,7 @@ export const CLES_CONFIGURATION = [
   'duree_etape_min_s',
   'heure_alerte_serie',
   'mots_bequilles',
+  'quota_face_a_face_gratuit',
   'quota_face_a_face_complet',
   'plafond_annonces_par_mois',
   'purge_anonymes_heures',
@@ -100,6 +101,10 @@ export const DEFINITIONS_CONFIGURATION = {
     description: "Mots béquilles repérés par l'analyse (liste, minuscules)",
     schema: z.array(z.string().trim().min(1)).min(1),
   },
+  quota_face_a_face_gratuit: nombre(
+    0,
+    'Face-à-face par mois en formule Gratuit (0 = réservé à Complet)',
+  ),
   quota_face_a_face_complet: nombre(8, 'Face-à-face par mois en formule Complet'),
   plafond_annonces_par_mois: nombre(2, 'Annonces de Rebecca envoyées par mois, maximum'),
   purge_anonymes_heures: nombre(72, 'Délai avant suppression des comptes anonymes sans compte'),
