@@ -247,7 +247,9 @@ Written before the work started. Cahier chapter 11, plan Phase 7. Everything shi
 2. Server
    - [x] Jobs `roter_sujet_arene` (hourly check, rotates once the week is over), `fermer_duels` (every 15 minutes: closes when both have spoken, expires at the deadline) and `supprimer_audio_public` (every 30 minutes: deletes the audio of closed weeks, finished duels and withdrawn takes, keeps the rows so the ranking is never lost); pg_cron schedules pushed and verified on the hosted project; 5 tests (22 server tests)
 3. Mobile
-   - [ ] C1 to C8: the Arena tab in its states (subject, record, hidden takes, pair voting, ranking), the duel invitation and its verdict
+   - [x] C1 to C4: the Arena tab with its two toggles, the subject of the week with its day counter, recording a passage, the take once sent (published or waiting for moderation), the open votes, the anonymous ranking; the duels in progress and finished
+   - [x] C5 to C7: creating a duel with its invitation link (copied to the clipboard, works without the app), the duel verdict said to be rendered by the analysis, the duel take, and pair voting with playback of the two takes through signed URLs (migration 0012 lets a listener read only what chapter 11 allows)
+   - [ ] C8 the podium at the end of the week, and the notifications that open it
 4. Web (`apps/web`)
    - [ ] The invitation page: listen, record in the browser, upload as an anonymous principal, see the verdict, install link
 5. Admin
