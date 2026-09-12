@@ -20,7 +20,7 @@ export const fr = {
     surtitre: 'Duel de parole',
     titre: 'Tu as été défié·e.',
     intro:
-      "Vous répondez au même sujet, chacun de votre côté. La réponse de l'autre ne t'est montrée qu'une fois la tienne enregistrée.",
+      "Vous répondez au même sujet, chacun de votre côté. Tu ne verras sa réponse qu'après avoir enregistré la tienne.",
     sujetTitre: 'Le sujet',
     delai: (heures: string) => `Il te reste ${heures} pour répondre.`,
     delaiCourt: "Il te reste moins d'une heure pour répondre.",

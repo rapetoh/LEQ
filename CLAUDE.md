@@ -11,8 +11,28 @@ negotiable: **read `docs/STRINGS.md` in full before writing or changing a single
 string**, including a placeholder, an error, a push notification, a store listing, a seeded
 `consigne`, or a prompt that will make a model generate French at runtime.
 
-The section that matters most is "How the text must not sound". In short, and this is the part that
-is always got wrong:
+**The rule above all the others: LEQ speaks, it never describes itself.** A model's default voice
+is explaining, because explaining is what it does all day, so left alone it writes _about_ the
+product instead of writing the product. It captions the screen, defines its own buttons, and
+justifies its own rules. Every sentence comes out true, plain and grammatical, and the whole thing
+still reads as machine-written. This is the failure that survives every other correction, so check
+for it first.
+
+> Chaque ligne est une personne qui a dépensé ses points. Honorer : tu l'as contactée et la
+> récompense est donnée. Annuler : les points lui reviennent.
+
+became
+
+> Contacte la personne, puis marque l'échange honoré. L'annuler lui rend ses points.
+
+**The test for any string: would a French speaker say this out loud to the person in front of
+them?** If it only works as a caption, a legend or a manual entry, it does not ship. Concretely,
+never open on a definition (`Chaque ligne est une personne qui…`), never gloss your own controls
+(`Honorer : …`), never justify a rule instead of stating it (`…, pour que ta réponse ne soit pas
+influencée par la leur`), and never let internal vocabulary reach a screen (`le seed`, `la
+migration`, `le serveur`, `chapitre 7`, `docs/DATA-MODEL.md`).
+
+Beneath the voice, these sentence-level tells are banned too:
 
 - **Never state a fact and then negate its opposite.** "Seuls tes résultats sont conservés", never
   "on garde tes résultats, jamais l'audio". "Bulle écoute.", never "Bulle écoute. Personne

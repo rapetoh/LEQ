@@ -43,7 +43,7 @@ export const fr = {
 
   connexion: {
     titre: 'Se connecter',
-    intro: 'Connecte-toi avec ton adresse e-mail et ton mot de passe.',
+    intro: 'Entre ton adresse e-mail et ton mot de passe.',
     email: 'Adresse e-mail',
     motDePasse: 'Mot de passe',
     valider: 'Se connecter',
@@ -60,7 +60,7 @@ export const fr = {
 
   accueil: {
     titre: 'Accueil',
-    intro: "Ce qui t'attend, ce que fait l'application, et ce qu'il reste à écrire.",
+    intro: "Ce qui t'attend, et ce qu'il reste à écrire.",
     erreurChargement: 'Impossible de charger le tableau de bord.',
 
     attente: {
@@ -101,8 +101,7 @@ export const fr = {
 
     ecrire: {
       titre: 'Ce qui attend ton texte',
-      intro:
-        "Ces contenus viennent de la maquette et tiennent la place en attendant les tiens. Tant qu'il en reste, l'application montre des mots qui ne sont pas de toi.",
+      intro: "L'application montre encore des textes provisoires. Remplace-les par les tiens.",
       rien: 'Tout le contenu est de toi.',
       defis: 'Défis provisoires',
       exercices: 'Exercices provisoires',
@@ -114,8 +113,7 @@ export const fr = {
 
   configuration: {
     titre: 'Configuration',
-    intro:
-      "Chaque valeur est lue par l'application au démarrage. Un changement s'applique aux prochains lancements.",
+    intro: "Une modification s'applique au prochain lancement de l'application.",
     colonnes: {
       cle: 'Clé',
       description: 'Description',
@@ -133,7 +131,7 @@ export const fr = {
       nettoyage: 'Nettoyage',
       autres: 'Autres',
     },
-    vide: 'Aucune valeur dans la base. Lance la migration et le seed.',
+    vide: "Aucune valeur n'est encore réglée.",
     erreurChargement: 'Impossible de charger la configuration.',
     erreurs: {
       nombre: 'Saisis un nombre.',
@@ -160,9 +158,8 @@ export const fr = {
 
   drapeaux: {
     titre: 'Drapeaux',
-    intro:
-      'Une fonction en ligne devient visible pour tout le monde au prochain lancement de leur application.',
-    vide: 'Aucun drapeau dans la base. Lance la migration et le seed.',
+    intro: 'Une fonction en ligne devient visible par tout le monde au prochain lancement.',
+    vide: "Aucune fonction n'est encore réglable ici.",
     erreurChargement: 'Impossible de charger les drapeaux.',
     etats: {
       enLigne: 'En ligne',
@@ -176,19 +173,19 @@ export const fr = {
         nom: "L'Arène",
         objet: "l'Arène",
         description: 'Le sujet de la semaine, les prises publiques et les votes.',
-        confirmation: "Allumer l'Arène la rend visible à tous les utilisateurs. Continuer ?",
+        confirmation: "L'Arène deviendra visible par tous les utilisateurs. Continuer ?",
       },
       duels: {
         nom: 'Les duels',
         objet: 'les duels',
         description: "Les défis entre deux personnes, avec un verdict rendu par l'analyse.",
-        confirmation: 'Allumer les duels les rend visibles à tous les utilisateurs. Continuer ?',
+        confirmation: 'Les duels deviendront visibles par tous les utilisateurs. Continuer ?',
       },
       face_a_face: {
         nom: 'Le face-à-face',
         objet: 'le face-à-face',
         description: 'Le débat en direct avec Rétor.',
-        confirmation: 'Allumer le face-à-face le rend visible à tous les utilisateurs. Continuer ?',
+        confirmation: 'Le face-à-face deviendra visible par tous les utilisateurs. Continuer ?',
       },
     },
     toasts: {
@@ -221,15 +218,15 @@ export const fr = {
     },
     champs: {
       cle: 'Clé technique',
-      cleAide: 'Unique, en minuscules, sans espace : elle ne change plus après la création.',
+      cleAide: 'En minuscules, sans espace. Elle ne change plus après la création.',
       titre: 'Titre',
       consigne: 'Consigne',
       consigneAide: 'Ce que la personne lit avant de parler, dans tes mots.',
       competence: 'Compétence travaillée',
-      competenceAide: 'Le même mot relie un défi et ses exercices de rattrapage.',
+      competenceAide: 'Le même mot relie ce défi à ses exercices de rattrapage.',
       provisoire: 'Provisoire',
       provisoireAide:
-        "Tant que c'est coché, l'application dit que la consigne attend Rebecca. Décoche quand le texte est le tien.",
+        "Coché, l'application signale que la consigne attend ta version. Décoche quand le texte est le tien.",
       actif: 'Actif',
       actifAide: "Un défi inactif n'entre plus dans les nouveaux parcours.",
       actifAideExercice: "Un exercice inactif n'est plus proposé.",
@@ -239,9 +236,9 @@ export const fr = {
   defis: {
     titre: 'Les défis',
     intro:
-      "Le parcours, acte par acte. Un titre ou une consigne modifiée s'affiche tout de suite pour tout le monde ; l'ordre et le seuil de réussite s'appliquent aux parcours créés ensuite.",
+      "Un titre ou une consigne modifiée s'applique tout de suite. L'ordre et le seuil de réussite ne valent que pour les parcours créés ensuite.",
     creer: 'Créer un défi',
-    vide: 'Aucun défi dans la base. Lance le seed, ou crée le premier.',
+    vide: 'Aucun défi pour le moment. Crée le premier.',
     erreurChargement: 'Impossible de charger les défis.',
     acte: (ordre: number) => `Acte ${ordre}`,
     nombreDefis: (n: number) => (n === 1 ? '1 défi' : `${n} défis`),
@@ -267,18 +264,19 @@ export const fr = {
       ordre: "Ordre dans l'acte",
       format: 'Format',
       formatAide:
-        'Défi : deux minutes de parole. Défi texte : un texte à lire, puis à défendre. Grand format : une préparation, puis cinq minutes.',
+        'Défi : deux minutes de parole. Défi texte : lire un texte, puis le défendre. Grand format : préparer, puis parler cinq minutes.',
       focus: 'Ce que le retour regardera',
-      focusAide: 'Annoncé dans le brief : « Le retour regardera : … ». Un seul point à la fois.',
+      focusAide: 'La personne le lit avant de parler. Un seul point à la fois.',
       dureeMax: 'Durée maximale de parole',
       points: 'Points',
       seuil: 'Seuil de réussite',
-      seuilAide: 'Note totale de la grille à atteindre. Sans grille publiée, le défi reste ouvert.',
+      seuilAide:
+        'Note totale à atteindre sur la grille. Sans grille publiée, le défi reste ouvert.',
       texte: 'Le texte à lire',
       dureeLecture: 'Durée de lecture estimée',
       preparation: 'Durée de préparation',
       plan: 'Les appuis du plan',
-      planAide: 'Affichés pendant la préparation et la prise. Trois, en général.',
+      planAide: 'Affichés pendant la préparation et la prise. Trois en général.',
       appuiTitre: "Titre de l'appui",
       appuiDetail: 'Détail',
       ajouterAppui: 'Ajouter un appui',
@@ -287,11 +285,11 @@ export const fr = {
       marquerValide: 'Marquer comme validé',
       marquerValideTitre: 'Marquer ce défi comme validé',
       marquerValideMessage:
-        "L'application cessera de dire que la consigne est provisoire. Vérifie que le texte est bien le tien. Continuer ?",
+        "L'application cessera de signaler la consigne comme provisoire. Continuer ?",
       desactiver: 'Désactiver',
       desactiverTitre: 'Désactiver ce défi',
       desactiverMessage:
-        "Il n'entrera plus dans les nouveaux parcours. Les personnes qui l'ont déjà dans leur chemin le gardent. Continuer ?",
+        "Il n'entrera plus dans les nouveaux parcours. Les personnes qui l'ont déjà le gardent. Continuer ?",
       reactiver: 'Réactiver',
       cree: 'Défi créé.',
       enregistre: 'Défi enregistré.',
@@ -302,10 +300,9 @@ export const fr = {
 
   exercices: {
     titre: 'Les exercices',
-    intro:
-      'Les exercices de rattrapage : après deux échecs sur un défi, la personne se voit proposer le premier exercice actif de la même compétence, avant un troisième essai.',
+    intro: 'Proposés après deux échecs sur un défi, avant un troisième essai.',
     creer: 'Créer un exercice',
-    vide: 'Aucun exercice dans la base. Lance le seed, ou crée le premier.',
+    vide: 'Aucun exercice pour le moment. Crée le premier.',
     erreurChargement: 'Impossible de charger les exercices.',
     duree: (secondes: number) => `${secondes} s`,
     competence: (competence: string) => `compétence : ${competence}`,
@@ -322,10 +319,10 @@ export const fr = {
   recompenses: {
     titre: 'Les récompenses',
     intro:
-      "La boutique du chapitre 7. Un coût en points par récompense ; un plafond par mois pour ce qui te coûte de l'argent réel : au-delà, elle attend le mois suivant. Une distinction ne s'achète pas.",
+      "Un coût en points par récompense. Mets un plafond mensuel sur celles qui te coûtent de l'argent réel.",
     creer: 'Créer une récompense',
     nouvelle: 'Nouvelle récompense',
-    vide: 'Aucune récompense dans la base. Lance le seed, ou crée la première.',
+    vide: 'Aucune récompense pour le moment. Crée la première.',
     erreurChargement: 'Impossible de charger les récompenses.',
     modifier: 'Modifier',
     cout: (points: number) => `${new Intl.NumberFormat('fr-FR').format(points)} pts`,
@@ -339,7 +336,7 @@ export const fr = {
     champs: {
       type: 'Type',
       typeAide:
-        "Contenu, réduction, atelier : s'échangent contre des points. Distinction : attribuée, sans coût en points.",
+        "Contenu, réduction et atelier s'échangent contre des points. Une distinction s'attribue, sans coût.",
       ordre: 'Ordre dans la boutique',
       sousTitre: 'Sous-titre',
       image: 'Image',
@@ -347,18 +344,17 @@ export const fr = {
       description: 'Description',
       cout: 'Coût en points',
       plafond: 'Plafond par mois',
-      plafondAide: "Vide = sans limite. À remplir dès que la récompense te coûte de l'argent réel.",
-      distinctionAide:
-        "Une distinction n'a ni coût ni plafond : elle se gagne, par exemple pour le n°1 du mois.",
-      provisoireAide: "Tant que c'est coché, l'application dit que la récompense attend Rebecca.",
+      plafondAide:
+        "Laisse vide pour ne pas limiter. À remplir dès que la récompense te coûte de l'argent réel.",
+      distinctionAide: "Ni coût ni plafond : elle s'attribue, par exemple au n°1 du mois.",
+      provisoireAide: "Coché, l'application signale que la récompense attend ta version.",
       actifAide: "Une récompense inactive n'apparaît plus dans la boutique.",
     },
   },
 
   echanges: {
     titre: 'Les échanges',
-    intro:
-      "Chaque ligne est une personne qui a dépensé ses points. Honorer : tu l'as contactée et la récompense est donnée. Annuler : les points lui reviennent.",
+    intro: "Contacte la personne, puis marque l'échange honoré. L'annuler lui rend ses points.",
     tous: 'Tous',
     vide: 'Aucun échange dans cette liste.',
     erreurChargement: 'Impossible de charger les échanges.',
@@ -381,8 +377,8 @@ export const fr = {
   grille: {
     titre: 'La grille',
     intro:
-      'Ta grille, en versions. Un brouillon se modifie critère par critère ; une fois publiée, une version ne bouge plus et chaque nouvelle prise est notée avec la version publiée la plus récente. Les prises déjà notées gardent leur version.',
-    vide: 'Aucune version. Crée la première pour écrire tes critères.',
+      'Un brouillon se modifie critère par critère. Une fois publiée, une version ne bouge plus et note toutes les nouvelles prises.',
+    vide: 'Aucune version pour le moment. Crée la première pour écrire tes critères.',
     erreurChargement: 'Impossible de charger la grille.',
     erreur: 'Enregistrement impossible.',
     premiereVersion: 'Créer la première version',
@@ -397,7 +393,7 @@ export const fr = {
     nbElements: (n: number) => (n === 1 ? '1 mesure' : `${n} mesures`),
     surMax: (max: number) => `sur ${max}`,
     lectureSeule:
-      'Cette version est publiée : elle ne se modifie plus. Crée une nouvelle version pour changer un critère.',
+      'Une version publiée ne se modifie plus. Crée une nouvelle version pour changer un critère.',
     ajouterCritere: 'Ajouter un critère',
     aucunCritere: 'Aucun critère dans cette version.',
     modifier: 'Modifier',
@@ -408,30 +404,30 @@ export const fr = {
     publier: 'Publier cette version',
     publierTitre: (v: number) => `Publier la version ${v}`,
     publierMessage:
-      'À partir de maintenant, chaque nouvelle prise est notée avec cette version et le défi du jour se valide sur ses notes. Une version publiée ne se dépublie pas : pour changer, crée une nouvelle version. Continuer ?',
+      'Chaque nouvelle prise sera notée avec cette version, et le défi du jour se validera sur ses notes. Une version publiée ne se dépublie pas. Continuer ?',
     publiee: 'Version publiée. Elle note les prochaines prises.',
     critereEnregistre: 'Critère enregistré.',
     critereSupprime: 'Critère supprimé.',
     champs: {
       cle: 'Clé technique',
-      cleAide: 'Minuscules, chiffres, tirets bas. Elle nomme la sous-note dans chaque retour.',
+      cleAide: 'En minuscules, sans espace. Elle nomme la sous-note dans chaque retour.',
       nom: 'Nom montré',
       scoreMax: 'Note maximale',
       scoreMaxAide: 'La somme des notes maximales des critères fait la note totale de la grille.',
       definition: 'Définition',
-      definitionAide: 'Ce que le critère écoute, en une phrase. Montré à côté du nom.',
+      definitionAide: 'En une phrase, montrée à côté du nom.',
       elements: 'Les mesures écoutées',
       elementsAide:
-        "Chaque mesure lit un chiffre de l'analyse et le range dans une bande ; la note du critère est la moyenne pondérée des bandes, ramenée à la note maximale.",
+        'La note du critère est la moyenne pondérée des bandes, ramenée à la note maximale.',
       mesure: 'Mesure',
-      mesureAide: "Un chemin dans les mesures de l'analyse (docs/DATA-MODEL.md).",
+      mesureAide: "Le chiffre de l'analyse que ce critère écoute.",
       parType: 'un mot béquille précis…',
       mot: 'Le mot',
       poids: 'Poids',
       poidsAide: "Une mesure de poids 2 compte deux fois plus qu'une mesure de poids 1.",
       bandes: 'Les bandes',
       bandesAide:
-        'De min (inclus) à max (exclu) : la note de la bande. Laisse min ou max vide pour une bande ouverte. Une valeur hors de toute bande vaut 0.',
+        'De min inclus à max exclu. Laisse min ou max vide pour une bande ouverte ; une valeur hors de toute bande vaut 0.',
       min: 'min',
       max: 'max',
       score: 'note',
@@ -445,15 +441,14 @@ export const fr = {
   annonces: {
     titre: 'Les annonces',
     intro:
-      "Un message poussé sur les téléphones des personnes qui ont laissé ces notifications actives. Deux par mois au plus, comptées sur l'ensemble de la base ; choisis des régions pour un atelier en salle, aucune pour un atelier en ligne.",
+      'Deux annonces par mois au plus. Choisis des régions pour un atelier en salle, aucune pour un atelier en ligne.',
     compteur: (n: number, plafond: number) => `${n} sur ${plafond} ce mois-ci`,
     envoyer: 'Envoyer maintenant',
     apercu: 'Aperçu',
     apercuTitre: 'Le titre de ton annonce',
-    apercuCorps: 'Le message tel que les gens le liront sur leur écran verrouillé.',
-    apercuAide:
-      "Une annonce part une seule fois et ne se rattrape pas. Relis-la ici avant d'envoyer.",
-    envoyee: 'Annonce envoyée. Le serveur la pousse dans les prochaines minutes.',
+    apercuCorps: 'Tel que les gens le liront sur leur écran verrouillé.',
+    apercuAide: "Une annonce ne se rattrape pas. Relis-la avant d'envoyer.",
+    envoyee: 'Annonce envoyée. Elle arrivera sur les téléphones dans les prochaines minutes.',
     plafondAtteint:
       'Le plafond du mois est atteint. La prochaine annonce attendra le mois prochain.',
     erreur: "L'annonce n'a pas été envoyée.",
@@ -461,8 +456,7 @@ export const fr = {
     erreurChargement: 'Impossible de charger les annonces.',
     historique: 'Envoyées',
     vide: 'Aucune annonce envoyée pour le moment.',
-    videTexte:
-      'Les annonces que tu envoies apparaîtront ici, avec le nombre de personnes touchées.',
+    videTexte: 'Tes annonces apparaîtront ici, avec le nombre de personnes touchées.',
     toutLeMonde: 'Tout le monde',
     nbRegions: (n: number) => (n === 1 ? '1 région' : `${n} régions`),
     enCours: 'Envoi en cours',
@@ -473,26 +467,24 @@ export const fr = {
     champs: {
       titre: 'Titre',
       titreAide:
-        'Court : il tient sur un écran verrouillé. Exemple : « Rebecca ouvre un atelier ».',
+        'Assez court pour tenir sur un écran verrouillé. Par exemple : « Rebecca ouvre un atelier ».',
       corps: 'Message',
       corpsAide: "L'atelier, la date et les places, sur le ton d'une invitation.",
       atelier: 'Atelier lié',
       atelierAide:
-        "Optionnel : l'application ouvre sa fiche quand la personne touche la notification.",
+        "Optionnel. L'application ouvrira sa fiche quand la personne touchera la notification.",
       sansAtelier: 'Aucun',
       regions: 'Régions',
       image: 'Image',
-      imageAide:
-        "Optionnel. Elle apparaît dans la notification et sur la fiche de l'atelier dans l'application.",
+      imageAide: "Optionnel. Elle apparaît dans la notification et sur la fiche de l'atelier.",
       regionsAide:
-        'Aucune région cochée : tout le monde. Un atelier en salle : sa région et les voisines.',
+        "Sans région cochée, l'annonce part à tout le monde. Pour un atelier en salle, coche sa région et les voisines.",
     },
   },
 
   ateliers: {
     titre: 'Les ateliers',
-    intro:
-      "Ce que l'application montre dans « Avec Rebecca, ce mois-ci » et sur l'écran qui te présente. Un atelier publié est visible ; un brouillon ne l'est pas.",
+    intro: "Un atelier publié apparaît dans l'application. Un brouillon reste ici.",
     creer: 'Créer un atelier',
     vide: 'Aucun atelier. Crée le premier.',
     erreurChargement: 'Impossible de charger les ateliers.',
@@ -512,20 +504,19 @@ export const fr = {
       description: 'Description',
       image: 'Image',
       imageAide: "Optionnel. Montrée dans l'application, sur la carte de l'atelier.",
-      descriptionAide: 'Deux phrases : le format, ce que la personne en retire.',
+      descriptionAide: 'Deux phrases : le format, et ce que la personne en retire.',
       enLigne: 'En ligne',
       enLigneAide: 'Un atelier en ligne concerne tout le monde, sans filtre de région.',
       lieu: 'Lieu',
       lieuAide: 'La ville, ou « En ligne ».',
       region: 'Région',
-      regionAide: 'Pour le filtre des annonces et la carte des personnes concernées.',
+      regionAide: 'Sert à filtrer les annonces par région.',
       sansRegion: 'Non précisée',
       places: 'Places',
       lien: 'Lien de réservation',
       lienAide: "La réservation se fait chez toi, hors de l'application.",
       recompense: 'Récompense qui donne une place',
-      recompenseAide:
-        "Optionnel : la récompense de la boutique qui s'échange contre une place ici.",
+      recompenseAide: "Optionnel. La récompense de la boutique qui s'échange contre une place ici.",
       sansRecompense: 'Aucune',
       publie: 'Publié',
       publieAide: "Visible dans l'application dès l'enregistrement.",
@@ -535,7 +526,7 @@ export const fr = {
   utilisateurs: {
     titre: 'Les utilisateurs',
     intro:
-      "Les profils, sans adresse e-mail (elle reste dans l'authentification). Suspendre un compte lui coupe l'enregistrement et la boutique ; la personne garde la lecture, la copie de ses données et la suppression.",
+      "Suspendre un compte coupe l'enregistrement et la boutique. La personne garde ses données et peut les supprimer.",
     nombre: (n: number) => (n === 1 ? '1 profil' : `${n} profils`),
     rechercher: 'Chercher un prénom ou un identifiant',
     filtres: { tous: 'Tous', suspendus: 'Suspendus', admins: 'Admins' },
@@ -550,7 +541,7 @@ export const fr = {
     reactiver: 'Réactiver',
     suspendreTitre: (nom: string) => `Suspendre ${nom}`,
     suspendreMessage:
-      "Le motif est gardé dans le journal, il n'est pas montré à la personne. Elle verra un écran qui dit que son compte est suspendu.",
+      'Le motif reste interne. La personne verra seulement que son compte est suspendu.',
     motif: 'Motif',
     suspendu: 'Compte suspendu.',
     reactive: 'Compte réactivé.',
@@ -559,10 +550,10 @@ export const fr = {
   sujets: {
     titre: "Les sujets de l'Arène",
     intro:
-      "La banque des sujets, dans leur ordre de passage. Le serveur active le suivant quand la semaine du précédent est finie ; rien ne s'active tant que la banque est vide.",
+      "Un sujet par semaine, dans cet ordre. Le suivant s'active quand la semaine du précédent est finie.",
     creer: 'Créer un sujet',
     modifierTitre: 'Modifier le sujet',
-    vide: 'Aucun sujet dans la banque. Crée le premier.',
+    vide: 'Aucun sujet pour le moment. Crée le premier.',
     erreurChargement: 'Impossible de charger les sujets.',
     erreur: 'Enregistrement impossible.',
     erreurDoublon: 'Un sujet porte déjà cette clé, ou cet ordre.',
@@ -579,13 +570,13 @@ export const fr = {
     },
     champs: {
       texte: 'Le sujet',
-      texteAide: 'La question, telle que les gens la lisent. Une phrase.',
+      texteAide: 'La question, en une phrase, telle que les gens la liront.',
       consigne: 'Consigne',
-      consigneAide: 'Optionnel : ce que tu attends du passage, en une ligne.',
+      consigneAide: 'Optionnel. Ce que tu attends du passage, en une ligne.',
       ordre: 'Ordre de passage',
-      ordreAide: 'Le serveur prend le plus petit ordre pas encore activé.',
+      ordreAide: 'Le prochain sujet activé sera le plus petit ordre pas encore passé.',
       duree: 'Durée maximale',
-      provisoireAide: "Tant que c'est coché, le sujet vient de la maquette et attend ta version.",
+      provisoireAide: 'Coché, le sujet attend ta version.',
       actifAide: 'Un sujet inactif ne sera jamais activé.',
     },
   },
@@ -611,11 +602,11 @@ export const fr = {
   theses: {
     titre: 'Les thèses du face-à-face',
     intro:
-      "La banque des sujets de débat. C'est ce que l'application propose en premier, parce que la plupart des gens à qui on demande d'inventer un sujet se figent ou en choisissent un qu'ils ne savent pas défendre. Rétor défend la thèse ; la personne la contredit.",
+      "Rétor défend la thèse, la personne la contredit. Les premières de la liste sont proposées dans l'application.",
     creer: 'Créer une thèse',
     creerAide: 'Rétor défendra cette thèse ; la personne la contredira.',
     modifierTitre: 'Modifier la thèse',
-    vide: 'Aucune thèse dans la banque. Crée la première.',
+    vide: 'Aucune thèse pour le moment. Crée la première.',
     erreurChargement: 'Impossible de charger les thèses.',
     erreur: 'Enregistrement impossible.',
     erreurDoublon: 'Une thèse porte déjà cette clé, ou cet ordre.',
@@ -637,7 +628,7 @@ export const fr = {
       tonAide: 'Le ton proposé par défaut. La personne peut en choisir un autre.',
       ordre: 'Ordre',
       ordreAide: "L'application propose les premières thèses actives, dans cet ordre.",
-      provisoireAide: "Tant que c'est coché, la thèse attend ta version.",
+      provisoireAide: 'Coché, la thèse attend ta version.',
       actifAide: "Une thèse inactive n'est jamais proposée.",
     },
   },
@@ -645,7 +636,7 @@ export const fr = {
   moderation: {
     titre: 'La modération',
     intro:
-      "Sont retirés le contenu sexuel, le harcèlement de personnes réelles et ce qui est illégal. Les sujets difficiles restent : la politique, la religion et l'éthique.",
+      "Retire le contenu sexuel, le harcèlement de personnes réelles et ce qui est illégal. La politique, la religion et l'éthique restent.",
     tous: 'Toutes',
     vide: 'Rien dans cette liste.',
     erreurChargement: 'Impossible de charger les prises.',
@@ -656,8 +647,7 @@ export const fr = {
     publier: 'Publier',
     retirer: 'Retirer',
     retirerTitre: 'Retirer cette prise',
-    retirerAide:
-      "Le motif est gardé dans le journal. La prise disparaît de l'Arène et son audio est supprimé.",
+    retirerAide: "Le motif reste interne. La prise disparaît de l'Arène et son audio est supprimé.",
     motif: 'Motif',
     statuts: {
       en_moderation: 'À relire',
@@ -672,8 +662,7 @@ export const fr = {
 
   exports: {
     titre: 'Les demandes de données',
-    intro:
-      "Chaque ligne est une personne qui a demandé une copie de ses données (chapitre 2). Tu la prépares et l'envoies par e-mail, puis tu marques la demande traitée.",
+    intro: 'Prépare la copie, envoie-la par e-mail, puis marque la demande traitée.',
     voirTraitees: 'Voir les traitées',
     masquerTraitees: 'Masquer les traitées',
     vide: 'Aucune demande à traiter.',

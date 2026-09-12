@@ -28,12 +28,57 @@ Every string a person can read in LEQ is French, and it is written to one standa
 13. Product names are fixed: LEQ, Bulle (the mascot), Rétor (the AI opponent), l'Arène, le face-à-face, Gratuit and Complet (the two offers), la série, les points, la carte des actes.
 14. Domain words follow the cahier: une prise (a recording), un défi (the day's step), une étape, un acte, le retour (the feedback), un levier, une force, un passage (an Arena take), un duel, un débat.
 
+## The voice: LEQ speaks, it never describes itself
+
+This is the rule the rest of this section serves, and it is the one to apply to a string that has
+not been written yet.
+
+**A model's default voice is explaining, because explaining is what it does all day.** Left alone it
+writes _about_ the product instead of writing the product: it captions the screen, defines the
+buttons, and justifies the rules. That register is what makes an interface read as machine-written,
+and it survives every other correction, because each sentence is individually true, plain and
+grammatical.
+
+The screen that made this obvious, under the title "Les échanges":
+
+> Chaque ligne est une personne qui a dépensé ses points. Honorer : tu l'as contactée et la
+> récompense est donnée. Annuler : les points lui reviennent.
+
+Nothing there is false. It is still slop, because it is written in the voice of a manual: it opens
+on a definition ("Chaque ligne est une personne qui…"), then glosses its own two buttons back at a
+reader assumed never to have seen a button. It now reads:
+
+> Contacte la personne, puis marque l'échange honoré. L'annuler lui rend ses points.
+
+Same facts, addressed to Rebecca, about her work, in verbs she acts on.
+
+**The test, for any string, anywhere:** would a French speaker say this out loud to the person in
+front of them? If it only makes sense as a caption, a legend or a manual entry, it does not ship.
+
+Four shapes this takes, all banned:
+
+1. **The definitional opener.** "Chaque ligne est une personne qui…", "Un message poussé sur les
+   téléphones des personnes qui…", "Ta grille, en versions." An interface does not define its own
+   contents.
+2. **Glossing your own controls.** "Honorer : tu l'as contactée et la récompense est donnée."
+   Name the button well and say what happens.
+3. **Justifying the rule instead of stating it.** "Les passages des autres restent masqués tant que
+   tu n'as pas parlé, pour que ta réponse ne soit pas influencée par la leur." State the rule. The
+   reason is design work, not interface text.
+4. **Internal vocabulary.** "Lance la migration et le seed", "Le serveur prend le plus petit ordre",
+   "La boutique du chapitre 7", "(docs/DATA-MODEL.md)". Rebecca does not know there is a server, a
+   seed, or a cahier with chapters. Neither does anyone else reading a screen.
+
+Plain does not mean cold, and this is not a licence to delete. A sentence that carries information
+the person needs stays; it gets rewritten into the voice, not cut. What goes is the narration
+wrapped around it.
+
 ## How the text must not sound
 
-An interface reads as machine-written long before it says anything untrue. It is a matter of
-rhythm, and four constructions account for almost all of it. They are banned, and the first three
-are checked by `npm run strings` (`scripts/verifier-strings.mjs`), which runs inside `npm run
-check`.
+Below the voice sit four constructions that carry the same fingerprint at sentence level. They are
+symptoms of the rule above, not a separate standard, and they are banned too. `npm run strings`
+(`scripts/verifier-strings.mjs`, inside `npm run check`) checks the mechanical ones, including the
+definitional openers and the internal vocabulary named above.
 
 ### 1. The contrastive pair, the main offender
 
@@ -132,6 +177,9 @@ Run it on every diff that touches a `fr.ts`.
 - [ ] Tutoiement, no "vous".
 - [ ] Buttons are verbs; none is a noun or an adjective ("OK", "Suivant" alone is tolerated only for a pager).
 - [ ] Each message says what happened and what comes next; no message is a decoration.
+- [ ] Said out loud to the person, it sounds like speech, not like a caption or a manual entry.
+- [ ] No sentence that defines the screen's contents, glosses a control, or justifies a rule.
+- [ ] No internal vocabulary: no seed, no migration, no server, no chapter of the cahier, no doc path.
 - [ ] No aphorism, no slogan, no joke, no exclamation mark unless quoting a person.
 - [ ] No contrastive pair: no sentence whose second half only negates the opposite of the first.
 - [ ] No loading or connection state written as the application narrating itself.

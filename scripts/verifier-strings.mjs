@@ -39,6 +39,16 @@ const EXCEPTIONS = new Map([
 
 const REGLES = [
   {
+    nom: 'the application describing itself instead of speaking',
+    motif: /\b(?:Voici ce que|Chaque ligne est|Ce que l'application montre|Ici, tu)\b/u,
+    aide: 'LEQ never captions its own screens. Say the thing, do not announce it. "Contacte la personne, puis marque l\'échange honoré", not "Chaque ligne est une personne qui a dépensé ses points".',
+  },
+  {
+    nom: 'internal vocabulary leaking into the interface',
+    motif: /\b(?:le seed|la migration|dans la base|le serveur|chapitre \d|docs\/|DATA-MODEL)\b/iu,
+    aide: 'Nobody reading this screen knows what a seed, a server or a chapter of the cahier is. Say what the person sees or does.',
+  },
+  {
     nom: 'contrastive pair ("X, pas Y" / "X, jamais Y")',
     motif: /,\s(?:pas|jamais|non pas)\s/u,
     aide: 'State the fact and stop. "Seuls tes résultats sont conservés", not "on garde tes résultats, jamais l\'audio".',

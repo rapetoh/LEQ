@@ -56,7 +56,7 @@ export const fr = {
   questions: {
     compteur: 'Question {{numero}} sur {{total}}',
     continuer: 'Continuer',
-    note: 'Tes réponses servent à personnaliser ton retour',
+    note: 'Tes réponses personnalisent ton retour',
   },
   prise: {
     surtitre: 'Ta prise de départ',
@@ -104,9 +104,9 @@ export const fr = {
   profil: {
     surtitre: 'Mesuré sur ta prise',
     titre: "Ton profil d'orateur",
-    intro: 'Voici ce que Bulle a mesuré sur ta prise.',
+    intro: 'Ce que Bulle a mesuré sur ta prise.',
     debit: 'mots par minute',
-    debitZone: 'Le débit le plus confortable à suivre se situe entre 130 et 150 mots par minute.',
+    debitZone: 'Entre 130 et 150 mots par minute, on te suit sans effort.',
     bequilles: 'mots béquilles',
     bequillesAucun: 'Aucun mot béquille repéré.',
     bequillesDetail: 'Le plus fréquent : « {{mot}} », {{fois}} fois.',
@@ -176,7 +176,7 @@ export const fr = {
       annoncesDetail: 'Deux par mois au plus, selon ta région',
       note: 'Les rappels arriveront avec le parcours. Tes choix sont déjà enregistrés.',
       noteRappels:
-        "Le rappel et l'alerte sont des notifications de ton téléphone. Les événements sociaux et les annonces arrivent avec l'Arène et les ateliers.",
+        "Les événements sociaux et les annonces arriveront avec l'Arène et les ateliers.",
     },
     confort: {
       titre: 'Confort',
@@ -189,7 +189,7 @@ export const fr = {
     },
     region: {
       titre: 'Ta région',
-      detail: "Sert uniquement à t'envoyer les annonces d'ateliers près de chez toi.",
+      detail: "Sert à t'envoyer les annonces d'ateliers près de chez toi.",
       aucune: 'Non précisée',
       choisir: 'Choisir',
     },
@@ -270,8 +270,7 @@ export const fr = {
       duree: '{{secondes}} s',
       faire: "L'exercice de {{secondes}} secondes",
       retenter: 'Retenter le défi directement',
-      exerciceIndisponible:
-        "Pas d'exercice prévu pour ce défi pour l'instant. Tu peux le retenter directement.",
+      exerciceIndisponible: 'Aucun exercice prévu pour ce défi. Tu peux le retenter directement.',
       commencer: "Commencer l'exercice",
       enCours: 'Bulle écoute.',
       fait: "C'est fait",
@@ -291,7 +290,7 @@ export const fr = {
       retenter: 'Retenter le défi',
       exerciceDabord: "L'exercice plus court, d'abord",
       grilleAttend:
-        'La grille de Rebecca dira si le défi est validé. En attendant, voici ce que Bulle a mesuré.',
+        'La grille de Rebecca dira si le défi est validé. En attendant, voici tes mesures.',
       suivant: 'Défi suivant · {{titre}}',
       carte: 'Retour à la carte',
       refaire: "Refais l'exercice",
@@ -316,7 +315,7 @@ export const fr = {
     detailResultat: '{{debit}} mots/min · {{bequilles}} béquilles · {{quand}}',
     note: '{{note}} / {{max}}',
     conservation:
-      'Les prises ne sont pas conservées, leurs résultats le sont. Tu peux suivre tes béquilles défi après défi.',
+      'Tes prises ne sont pas conservées. Leurs résultats restent, et tu peux suivre tes béquilles défi après défi.',
     verrouille: 'Se déverrouille après le défi précédent',
     enCoursMajuscules: 'Acte {{acte}} · en cours',
     ouvrir: 'Ouvrir',
@@ -387,7 +386,7 @@ export const fr = {
     conservation: 'Ta prise reste en ligne le temps du sujet, puis elle est supprimée.',
     passageDedans: 'Ton passage est dedans',
     passageDetail:
-      'Tu peux le réécouter ou le retirer tant que le sujet est ouvert. Une seule version est acceptée, parce que tu as entendu les autres.',
+      'Tu peux le réécouter ou le retirer tant que le sujet est ouvert. Une seule version est acceptée.',
     enModeration: 'En attente de publication',
     enModerationDetail: "Ta prise est envoyée. Elle rejoint les autres dès qu'elle est relue.",
     votesOuverts: 'Votes ouverts',
@@ -395,8 +394,7 @@ export const fr = {
     aucunSujetTitre: 'Pas de sujet cette semaine.',
     aucunSujetCorps: 'Le prochain sujet arrivera avec Rebecca. Ton défi du jour reste ouvert.',
     parleDAbordTitre: "Parle d'abord.",
-    parleDAbordCorps:
-      "Les passages des autres restent masqués tant que tu n'as pas parlé, pour que ta réponse ne soit pas influencée par la leur.",
+    parleDAbordCorps: "Les passages des autres restent masqués tant que tu n'as pas parlé.",
     rienAComparerTitre: 'Tu as tout écouté.',
     rienAComparerCorps: "De nouvelles paires apparaîtront quand d'autres auront parlé.",
     classement: 'Le classement',
@@ -475,8 +473,7 @@ export const fr = {
 
     // E2 · Préparer.
     preparerTitre: 'Quelle thèse veux-tu contredire ?',
-    preparerCorps:
-      "Rétor défend la thèse, tu la contredis. Ses réponses s'appuient sur ce que tu viens de dire.",
+    preparerCorps: 'Rétor défend la thèse, tu la contredis. Il répond à ce que tu viens de dire.',
     choisirSujet: 'Choisis un sujet',
     banqueVide: 'Les sujets de Rebecca arrivent bientôt.',
     banqueVideCorps: 'En attendant, écris la thèse que tu veux contredire.',
@@ -536,7 +533,7 @@ export const fr = {
   defis: {
     titre: 'Défis',
     placeholder:
-      'La carte des actes arrivera avec le parcours : trois actes, Poser sa voix, Tenir sa ligne, Emporter la salle. Chaque nœud ouvre un défi.',
+      'La carte des actes arrivera avec le parcours : trois actes, Poser sa voix, Tenir sa ligne, Emporter la salle.',
   },
   progres: {
     titre: 'Progrès',
@@ -698,7 +695,7 @@ export const fr = {
     retour: "Retour à Aujourd'hui",
     individuel: 'Ses formations individuelles',
     individuelCourt: 'Une heure, seule à seule',
-    individuelDetail: "Se réservent chez Rebecca, hors de l'app.",
+    individuelDetail: "Se réservent chez Rebecca, hors de l'application.",
     voirRecompenses: 'Voir mes récompenses',
     plusTard: 'Une autre fois',
   },
