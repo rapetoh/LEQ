@@ -557,6 +557,77 @@ It leaves out what is not the person's to receive: no audio, because there is no
 person's identifier and the invitation token of a duel; and which voice they preferred in the
 Arena. The file says so at the top, in French.
 
+## Réunion Rebecca du 12 septembre 2026
+
+Read from the transcript, which is the source of truth, with Roch's summary alongside it. The
+transcript and the two working notes stay out of git (`.gitignore`): they carry private speech.
+What was decided is here, and in the code.
+
+### La note change de forme (chapitre 5 réécrit)
+
+A performance is scored out of 30, over six axes of five. **Four axes are measured** from the
+audio: débit, mots béquilles, silences et respiration, énergie de la voix. **Two are judged** by
+the model against Rebecca's reference, anchored by a worked example at 5 and at 2 for each:
+structure du propos, conviction. Roughly 65 % measure and 35 % judgement, **both weights
+configurable from the admin**, because the first real scores will move them.
+
+Two consequences that are not optional:
+
+- **The model listens to the whole performance, not only what the grid covers.** Someone who says
+  « euh » two hundred times is told so even if no criterion mentions filler words. What falls
+  outside the grid reaches the person's feedback without entering the score, and is flagged to
+  Rebecca as a gap in her criteria. No one can enumerate in advance everything people do at a
+  microphone, so the grid has to grow from what the app actually hears.
+- **Provisional threshold: 18 out of 30.** Below it the step is retried; after two failures the
+  targeted exercise. Rebecca's to move.
+
+The grid draft is with her. Until it comes back, everything up to the measurement engine is built
+and every threshold stays a setting.
+
+### Ce que Rebecca a demandé, écran par écran
+
+Application:
+
+1. A short onboarding, three screens after the welcome, showing how the app works.
+2. The analysis screen needs real motion. Three static bullets do not read as something happening.
+3. Bulle glitches.
+4. The face-à-face is buried under « mon profil d'orateur ». It belongs with l'Arène, where people
+   look for it.
+5. « Créer ton compte pour débattre » is red text at the bottom of a screen. It is a modal.
+6. Padding and centring are off on the Arène tabs and on « avec Rebecca ce mois-ci ».
+7. The duel invitation captures no identity: someone opens the link, records, and nobody knows who
+   they are. Ask the invitee for a name and an e-mail before they record.
+
+Espace d'administration:
+
+8. **A challenge cannot be added inside an acte.** The button does not exist. This is what stops
+   her filling the app today.
+9. Technical keys are typed by hand. Generate them.
+10. Duplicate a challenge, assign one challenge to several actes, schedule a recurring weekly
+    challenge with varying content.
+11. Arena subjects need scheduled dates, finished subjects sort to the bottom, the list needs
+    filters.
+12. A view per Arena subject: who spoke, who voted, who won.
+13. A revenue and subscription dashboard: who paid, when, monthly totals.
+14. The left menu goes white when scrolled.
+
+Produit:
+
+15. **L'Arène: six is a listening limit, not a speaking one.** Rebecca's own value in the
+    transcript is « pas de hiérarchie, liberté pour tous », and she worried about sitting through
+    twelve takes on one subject. So anyone may speak on the active subject, and a voter is never
+    shown more than six takes in a session. Ranking stays by vote count.
+16. **Long challenges.** She cares about them and described arcade territory: guardians at doors,
+    word-collecting runners. Not v1. V1 is a long-form arc inside the path: a goal stated up front,
+    roughly two weeks, six or seven recorded steps building to it, a final take scored against the
+    whole arc. Same engine, same grid. The arcade is a separate project after launch.
+17. **Tiers.** Two at launch, contents fully configurable from the admin so a third is a setting
+    and not a release. Community access, if it happens, is a flag on a tier. Prices live in App
+    Store Connect and Play Console and block nothing.
+
+Design (flat, too beige, wants illustration and play) goes to Claude Design, not here, unless a
+structural change is needed to support it.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

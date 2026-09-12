@@ -40,3 +40,12 @@ npm-debug.log*
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea/
+
+# Réunions avec Rebecca : transcriptions et notes de travail.
+# Elles portent des paroles privées et ne partent pas sur GitHub. Ce qui en sort de décidé
+# est recopié dans docs/ et dans le code.
+Brainstorming/Meetiing-Rebecca*.md
+Brainstorming/Meeting-Rebecca*.md
+Brainstorming/Claude summary of the meeting*.md
+Brainstorming/Evalution Grid thoughts.md
+Brainstorming/Evaluation Grid thoughts.md
