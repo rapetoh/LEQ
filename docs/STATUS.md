@@ -308,7 +308,10 @@ Written before the work started. Cahier chapter 10, plan Phase 8. Everything shi
 3. Release plumbing
    - [ ] Crash reporting (**Roch**: a Sentry account and a DSN)
    - [ ] Provider DPAs, one per processor, after the bench picks them (**Roch**)
-   - [ ] Backups verified and written down
+   - [x] Backups verified and written down (`docs/RUNBOOK.md`): the schema is the migrations in
+         git, Rebecca's content is saved by `sauvegarde-contenu.mjs` and the file is replayed
+         before it is handed over, and people's data is the hosting provider's retention, which
+         **Roch has to confirm in the dashboard**: on the free plan there is none
    - [ ] The sentence that defines "version one is done" (**Roch** and Rebecca, chapter 18)
 
 ## Build 8 in TestFlight (2026-09-12)

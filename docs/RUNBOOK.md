@@ -184,6 +184,34 @@ take, publishes it, presses G3's button (`demander_suppression_compte`, nothing 
 then looks everywhere: profile, takes, analyses, published takes, points, path, and both storage
 buckets. Eighteen checks. It removes what it made whatever happens.
 
+## Backups: what is where, and what to do about it
+
+Three kinds of thing live in this project, and only one of them needs a procedure of ours.
+
+**The schema** is `supabase/migrations/`, in git. An empty project becomes this one with
+`supabase db push --linked`, and every suite runs against it afterwards. Nothing to back up.
+
+**What Rebecca wrote** lives only in the database: the grid and its criteria, the challenges, the
+exercises, the rewards, the Arena subjects, the theses, the workshops, the announcements, the
+configuration and the flags. Losing it means asking her to write it all again. That is what this
+saves:
+
+```
+SUPABASE_PROJECT_REF=<ref> SUPABASE_DB_PASSWORD=<mdp> \
+  node supabase/tests/sauvegarde-contenu.mjs [fichier.sql]
+```
+
+A plain SQL file of inserts, in the order the foreign keys need, replayable on any project whose
+migrations are applied. A backup nobody has replayed is a file and not a backup, so the script
+replays it before handing it over: into empty tables shaped like the real ones, inside a
+transaction it rolls back, checking every row lands. Run it after a session of authoring, and keep
+the file somewhere that is not this database.
+
+**People's takes, results, points and history** are what the hosting provider's own backups are
+for. Supabase's retention depends on the plan and the dashboard is the only place that states it:
+on the free plan there is no automated backup at all. **Roch: confirm which plan this project is
+on.** The schema survives either way; that data does not.
+
 ## Answering a request for a copy of someone's data
 
 G3 says out loud « Tu recevras une copie de tes données par e-mail », and the request lands in
