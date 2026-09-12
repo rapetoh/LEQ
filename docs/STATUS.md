@@ -377,6 +377,36 @@ unfolding the form between two rows where it was easy to lose track of what was 
 exercices, récompenses, sujets, thèses, ateliers and les critères de la grille. Checked in a
 browser on the deployed space, including that Escape closes each one.
 
+## Review findings closed (2026-09-12)
+
+Four adversarial review passes over the whole codebase produced about thirty-five findings. What
+was closed in this last batch, and why each one mattered:
+
+- **Un débat, une connexion.** Two sockets could hold the same debate (a phone reconnecting
+  before the old socket was collected). Both wrote turn n+1 and the upsert on `(debat_id, numero)`
+  let the loser replace the live turn, while its close wrote `interrompue` over a session someone
+  was still speaking into. `debats.session_id` now names the holder, `prendre_session_debat()`
+  claims it, and the connection left behind is refused (55006) and closes nothing. It is told
+  `autre_appareil` and stops there.
+- **Une coupure gratuite ne le reste pas indéfiniment.** Killing the app instead of pressing
+  « Terminer » closed the session as our own cut, which costs nothing, and nothing ever reopened
+  the question: a free face-à-face, every time. `fermer_debats_interrompus()` runs every ten
+  minutes and counts a session nobody came back to, unless nothing was ever said in it.
+- **Un job réussi n'est plus écrit en échec.** The work and the bookkeeping sat in one `try`, so a
+  `terminer_job` that could not be written sent the loop into the catch and the job ran a second
+  time. They are separated; a claim that cannot be closed simply expires and comes back once
+  (`liberer_jobs_bloques`, already on pg_cron every five minutes).
+- **Plus aucun fournisseur n'est attendu sans limite.** Rétor's answer, the final transcript of a
+  turn and each chunk of voice now have a deadline. A provider that hangs ends the session as our
+  own cut, which costs nothing, instead of leaving a person watching a silent screen while the
+  session holds its slot.
+- **Un job définitivement échoué peut être remis en file.** `creerJob` re-queues on the
+  idempotency key when, and only when, the existing job is `echoue`.
+- **Le tableau de bord n'a plus à lire toute la table.** `tentatives (cree_le)`, a partial index
+  for the validated steps, and `profils (cree_le)`.
+
+Verified: 91 server tests, 480 database assertions across the eight suites, `npm run check` green.
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.

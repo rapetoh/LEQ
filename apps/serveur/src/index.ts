@@ -46,9 +46,10 @@ async function principal(): Promise<void> {
               },
               lireDebat: (id, uid) => db.lireDebatOuvert(pool, id, uid),
               lireTours: (id) => db.lireToursDebat(pool, id),
-              ecrireTour: (id, numero, locuteur, texte, dureeS) =>
-                db.enregistrerTourDebat(pool, id, numero, locuteur, texte, dureeS),
-              cloturer: (id, issue) => db.cloturerDebat(pool, id, issue),
+              prendreSession: (id) => db.prendreSessionDebat(pool, id),
+              ecrireTour: (id, numero, locuteur, texte, dureeS, session) =>
+                db.enregistrerTourDebat(pool, id, numero, locuteur, texte, dureeS, session),
+              cloturer: (id, issue, session) => db.cloturerDebat(pool, id, issue, session),
               reprendre: (id) => db.reprendreDebat(pool, id),
               demanderDebrief: (id) =>
                 db.creerJob(pool, 'debriefer_debat', { debat_id: id }, `debrief:${id}`),

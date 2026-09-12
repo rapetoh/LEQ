@@ -375,10 +375,23 @@ export async function creerJob(
   charge: Record<string, unknown>,
   cleIdempotence: string,
 ): Promise<void> {
+  // A job that exhausted its retries keeps its idempotence key, so asking for the same work
+  // again used to be a silent no-op for ever: one provider outage of a few minutes meant that
+  // debate never got its debrief, with hand-written SQL as the only repair. A key belonging to
+  // a job that failed for good is put back to work; one belonging to a job that is waiting,
+  // running or done is left exactly as it is.
   await ex.query(
     `insert into public.jobs (type, charge, cle_idempotence)
      values ($1, $2::jsonb, $3)
-     on conflict (cle_idempotence) do nothing`,
+     on conflict (cle_idempotence) do update
+       set statut = 'en_attente',
+           charge = excluded.charge,
+           essais = 0,
+           erreur = null,
+           disponible_a = now(),
+           verrouille_a = null,
+           verrouille_par = null
+     where public.jobs.statut = 'echoue'`,
     [type, JSON.stringify(charge), cleIdempotence],
   )
 }
@@ -845,14 +858,26 @@ export async function enregistrerTourDebat(
   locuteur: 'utilisateur' | 'retor',
   texte: string,
   dureeS: number | null,
+  session: string | null,
 ): Promise<void> {
-  await ex.query('select public.enregistrer_tour($1, $2, $3, $4, $5)', [
+  await ex.query('select public.enregistrer_tour($1, $2, $3, $4, $5, $6)', [
     debatId,
     numero,
     locuteur,
     texte,
     dureeS,
+    session,
   ])
+}
+
+/**
+ * Claims an open debate for this connection. Two sockets on one debate used to overwrite each
+ * other's turns; now the newest one holds it and the other is refused.
+ */
+export async function prendreSessionDebat(ex: Executeur, debatId: string): Promise<string | null> {
+  const { rows } = await ex.query('select public.prendre_session_debat($1) as session', [debatId])
+  const session = rows[0]?.['session']
+  return typeof session === 'string' ? session : null
 }
 
 /** Reopens a session our own cut closed, inside the resume window. Null when it cannot. */
@@ -877,8 +902,13 @@ export async function reprendreDebat(
   }
 }
 
-export async function cloturerDebat(ex: Executeur, debatId: string, issue: string): Promise<void> {
-  await ex.query('select public.cloturer_debat($1, $2)', [debatId, issue])
+export async function cloturerDebat(
+  ex: Executeur,
+  debatId: string,
+  issue: string,
+  session: string | null,
+): Promise<void> {
+  await ex.query('select public.cloturer_debat($1, $2, $3)', [debatId, issue, session])
 }
 
 /** The written transcript, for the debrief. Never the audio: there is none (chapter 2). */

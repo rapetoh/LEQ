@@ -25,6 +25,7 @@ function monter(debat: Partial<DebatOuvert> = {}, uid: string | null = 'u1') {
   const clotures: string[] = []
   const debriefs: string[] = []
   let ferme = false
+  let repriseAilleurs = false
 
   const canal: Canal = {
     envoyer: (message) => envoyes.push(message),
@@ -36,7 +37,9 @@ function monter(debat: Partial<DebatOuvert> = {}, uid: string | null = 'u1') {
     utilisateurDuJeton: async () => uid,
     lireDebat: async () => ({ ...DEBAT, ...debat }),
     lireTours: async () => [],
+    prendreSession: async () => 's1',
     ecrireTour: async (_id, numero, locuteur, texte) => {
+      if (repriseAilleurs) throw Object.assign(new Error('session_perdue'), { code: '55006' })
       ecrits.push({ numero, locuteur, texte })
     },
     cloturer: async (_id, issue) => {
@@ -57,7 +60,17 @@ function monter(debat: Partial<DebatOuvert> = {}, uid: string | null = 'u1') {
     },
     canal,
   )
-  return { conduite, envoyes, ecrits, clotures, debriefs, estFerme: () => ferme }
+  return {
+    conduite,
+    envoyes,
+    ecrits,
+    clotures,
+    debriefs,
+    estFerme: () => ferme,
+    reprendreAilleurs: () => {
+      repriseAilleurs = true
+    },
+  }
 }
 
 const BONJOUR = JSON.stringify({ type: 'bonjour', jeton: 'j', debat_id: 'd1' })
@@ -194,6 +207,7 @@ describe('when something breaks on our side', () => {
           utilisateurDuJeton: async () => 'u1',
           lireDebat: async () => DEBAT,
           lireTours: async () => [],
+          prendreSession: async () => 's1',
           ecrireTour: async () => undefined,
           cloturer: async (_id, issue) => {
             monte.clotures.push(issue)
@@ -228,6 +242,7 @@ describe('reprendre après notre propre coupure', () => {
           utilisateurDuJeton: async () => 'u1',
           lireDebat: async () => ({ ...DEBAT, statut: 'interrompue' }),
           lireTours: async () => [{ numero: 1, locuteur: 'utilisateur', texte: 'déjà dit' }],
+          prendreSession: async () => 's1',
           ecrireTour: async () => undefined,
           cloturer: async () => undefined,
           reprendre: async () => {
@@ -260,6 +275,7 @@ describe('reprendre après notre propre coupure', () => {
           utilisateurDuJeton: async () => 'u1',
           lireDebat: async () => ({ ...DEBAT, statut: 'terminee' }),
           lireTours: async () => [],
+          prendreSession: async () => 's1',
           ecrireTour: async () => undefined,
           cloturer: async () => undefined,
           reprendre: async () => null,
@@ -274,5 +290,86 @@ describe('reprendre après notre propre coupure', () => {
     )
     await conduite.recevoir(BONJOUR)
     expect(envoyes[0]).toMatchObject({ type: 'erreur', code: 'debat_clos' })
+  })
+})
+
+// Two sockets held the same debate when a phone reconnected before the old one was collected,
+// and the loser's writes replaced the live turns while its close ended a session someone was
+// still speaking into.
+describe('quand une autre connexion reprend le débat', () => {
+  it("n'écrit plus rien et laisse la session vivante", async () => {
+    const monte = monter()
+    await monte.conduite.recevoir(BONJOUR)
+    monte.reprendreAilleurs()
+    await monte.conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    await monte.conduite.attendre()
+    await monte.conduite.surFermeture()
+    expect(monte.ecrits).toEqual([])
+    expect(monte.clotures).toEqual([])
+    expect(monte.envoyes.at(-1)).toMatchObject({ type: 'erreur', code: 'autre_appareil' })
+    expect(monte.estFerme()).toBe(true)
+  })
+
+  it('refuse la connexion quand le débat ne peut plus être pris', async () => {
+    const envoyes: MessageSortant[] = []
+    const conduite = new Conduite(
+      {
+        depot: {
+          utilisateurDuJeton: async () => 'u1',
+          lireDebat: async () => DEBAT,
+          lireTours: async () => [],
+          prendreSession: async () => null,
+          ecrireTour: async () => undefined,
+          cloturer: async () => undefined,
+          reprendre: async () => null,
+          demanderDebrief: async () => undefined,
+        },
+        transcripteur: new TranscripteurFluxStub(),
+        adversaire: new AdversaireStub(),
+        voix: new VoixStub(),
+        log,
+      },
+      { envoyer: (m) => envoyes.push(m), fermer: () => undefined },
+    )
+    await conduite.recevoir(BONJOUR)
+    expect(envoyes[0]).toMatchObject({ type: 'erreur', code: 'debat_clos' })
+  })
+})
+
+// A provider that never answers used to leave the session open with a person watching a silent
+// screen, holding a slot of the month until the socket died on its own.
+describe('quand un fournisseur ne répond jamais', () => {
+  it("coupe de notre côté au lieu d'attendre indéfiniment", async () => {
+    const envoyes: MessageSortant[] = []
+    const clotures: string[] = []
+    const adversaire = new AdversaireStub()
+    vi.spyOn(adversaire, 'repondre').mockReturnValue(new Promise(() => undefined))
+    const conduite = new Conduite(
+      {
+        depot: {
+          utilisateurDuJeton: async () => 'u1',
+          lireDebat: async () => DEBAT,
+          lireTours: async () => [],
+          prendreSession: async () => 's1',
+          ecrireTour: async () => undefined,
+          cloturer: async (_id, issue) => {
+            clotures.push(issue)
+          },
+          reprendre: async () => null,
+          demanderDebrief: async () => undefined,
+        },
+        transcripteur: new TranscripteurFluxStub(),
+        adversaire,
+        voix: new VoixStub(),
+        log,
+        delais: { adversaireMs: 5, morceauVoixMs: 5, finDeTourMs: 5 },
+      },
+      { envoyer: (m) => envoyes.push(m), fermer: () => undefined },
+    )
+    await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    await conduite.attendre()
+    expect(envoyes.some((m) => m.type === 'erreur' && m.code === 'interne')).toBe(true)
+    expect(clotures).toEqual(['interrompue_par_nous'])
   })
 })

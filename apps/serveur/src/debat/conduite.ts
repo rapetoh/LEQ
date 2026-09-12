@@ -41,18 +41,45 @@ export interface DepotDebat {
   utilisateurDuJeton(jeton: string): Promise<string | null>
   lireDebat(debatId: string, utilisateurId: string): Promise<DebatOuvert | null>
   lireTours(debatId: string): Promise<TourPublie[]>
+  /**
+   * Claims the debate for this connection and answers the identifier its writes must carry.
+   * Null when the debate is no longer open. The newest connection wins: a socket left behind by
+   * a reconnection stops being able to write, instead of overwriting the live turns.
+   */
+  prendreSession(debatId: string): Promise<string | null>
   ecrireTour(
     debatId: string,
     numero: number,
     locuteur: 'utilisateur' | 'retor',
     texte: string,
     dureeS: number | null,
+    session: string | null,
   ): Promise<void>
-  cloturer(debatId: string, issue: IssueDebat): Promise<void>
+  cloturer(debatId: string, issue: IssueDebat, session: string | null): Promise<void>
   /** Reopens a session our own cut closed, when the person comes back inside the window. */
   reprendre(debatId: string): Promise<DebatOuvert | null>
   /** Queues the debrief, which reads the written transcript (chapter 10). */
   demanderDebrief(debatId: string): Promise<void>
+}
+
+/**
+ * How long a provider may take before the session gives up on it. Nothing is waited on for ever:
+ * a debate that hangs is a person holding a phone in silence, and the session would sit open,
+ * holding its slot, until the socket eventually died.
+ */
+export interface DelaisConduite {
+  /** Rétor's answer, from the end of the turn to the first word back. */
+  adversaireMs: number
+  /** One chunk of spoken audio. A voice that stalls degrades the turn, it does not end it. */
+  morceauVoixMs: number
+  /** The final transcript of a turn, once the person has stopped speaking. */
+  finDeTourMs: number
+}
+
+export const DELAIS_CONDUITE: DelaisConduite = {
+  adversaireMs: 30_000,
+  morceauVoixMs: 15_000,
+  finDeTourMs: 20_000,
 }
 
 export interface DependancesConduite {
@@ -61,6 +88,7 @@ export interface DependancesConduite {
   adversaire: Adversaire
   voix: Voix
   log: Logger
+  delais?: DelaisConduite
 }
 
 export class Conduite {
@@ -77,12 +105,20 @@ export class Conduite {
   private debutParole: number | null = null
   /** Set while a turn is being flushed, so two `fin_tour` frames cannot flush it twice. */
   private finDeTourEnCours = false
+  /** The identifier this connection writes with, from the moment it claimed the debate. */
+  private session: string | null = null
+  /** Set when another connection took the debate over. This one then touches nothing more. */
+  private cede = false
   private traitement: Promise<void> = Promise.resolve()
+
+  private readonly delais: DelaisConduite
 
   constructor(
     private readonly deps: DependancesConduite,
     private readonly canal: Canal,
-  ) {}
+  ) {
+    this.delais = deps.delais ?? DELAIS_CONDUITE
+  }
 
   /** Frames are handled one at a time, in order: a debate is a conversation, not a race. */
   recevoir(brut: string): Promise<void> {
@@ -128,7 +164,7 @@ export class Conduite {
         if (this.etat.phase !== 'ecoute' || !this.flux || this.finDeTourEnCours) return
         this.finDeTourEnCours = true
         try {
-          await this.flux.terminer()
+          await avecDelai(this.flux.terminer(), this.delais.finDeTourMs, 'fin de tour')
         } finally {
           this.finDeTourEnCours = false
         }
@@ -152,6 +188,10 @@ export class Conduite {
       debat = (await this.deps.depot.reprendre(debatId)) ?? debat
     }
     if (debat.statut !== 'ouverte') return this.refuser('debat_clos')
+
+    // From here the debate is ours, and no longer whoever held it before.
+    this.session = await this.deps.depot.prendreSession(debatId)
+    if (!this.session) return this.refuser('debat_clos')
 
     this.debat = debat
     this.tours = await this.deps.depot.lireTours(debatId)
@@ -202,13 +242,17 @@ export class Conduite {
 
   private async tourDeLUtilisateur(texte: string, dureeS: number): Promise<void> {
     await this.appliquer(avancer(this.etat, { type: 'tour_utilisateur', texte, dureeS }))
-    if (this.etat.phase !== 'reflexion' || !this.debat) return
+    if (this.cede || this.etat.phase !== 'reflexion' || !this.debat) return
 
-    const reponse = await this.deps.adversaire.repondre({
-      these: this.debat.these_texte,
-      ton: this.debat.ton_adversaire,
-      tours: this.tours,
-    })
+    const reponse = await avecDelai(
+      this.deps.adversaire.repondre({
+        these: this.debat.these_texte,
+        ton: this.debat.ton_adversaire,
+        tours: this.tours,
+      }),
+      this.delais.adversaireMs,
+      'reponse de Retor',
+    )
     await this.appliquer(avancer(this.etat, { type: 'tour_retor', texte: reponse }))
     await this.direAVoixHaute(this.etat.dernierTour, reponse)
     this.debutParole = null
@@ -216,7 +260,11 @@ export class Conduite {
 
   private async direAVoixHaute(numero: number, texte: string): Promise<void> {
     try {
-      for await (const morceau of this.deps.voix.dire(texte)) {
+      for await (const morceau of parMorceau(
+        this.deps.voix.dire(texte),
+        this.delais.morceauVoixMs,
+        'voix',
+      )) {
         this.canal.envoyer({
           type: 'reponse_audio',
           numero,
@@ -233,10 +281,23 @@ export class Conduite {
 
   /** Writes what the session decided, then says it. Never the other way round. */
   private async appliquer(decision: DecisionSession): Promise<void> {
+    if (this.cede) return
     this.etat = decision.etat
     if (decision.ecrire) {
       const { numero, locuteur, texte, dureeS } = decision.ecrire
-      await this.deps.depot.ecrireTour(this.etat.debatId ?? '', numero, locuteur, texte, dureeS)
+      try {
+        await this.deps.depot.ecrireTour(
+          this.etat.debatId ?? '',
+          numero,
+          locuteur,
+          texte,
+          dureeS,
+          this.session,
+        )
+      } catch (erreur) {
+        if (estSessionPerdue(erreur)) return this.ceder()
+        throw erreur
+      }
       this.tours = [...this.tours, { numero, locuteur, texte }]
     }
     for (const message of decision.envoyer) this.canal.envoyer(message)
@@ -249,7 +310,7 @@ export class Conduite {
     this.flux = null
     if (!debatId) return this.canal.fermer()
     try {
-      await this.deps.depot.cloturer(debatId, issue)
+      await this.deps.depot.cloturer(debatId, issue, this.session)
       if (issue === 'terminee') await this.deps.depot.demanderDebrief(debatId)
     } catch (erreur) {
       this.deps.log.error({ err: erreur, debat_id: debatId }, 'debat: cloture impossible')
@@ -257,9 +318,27 @@ export class Conduite {
     this.canal.fermer()
   }
 
+  /**
+   * Another connection took the debate over. This one stops where it stands: it writes nothing
+   * more, and above all it does not close a session someone else is speaking into.
+   */
+  private ceder(): void {
+    this.cede = true
+    this.flux?.fermer()
+    this.flux = null
+    this.deps.log.warn({ debat_id: this.etat.debatId }, 'debat: session reprise ailleurs')
+    this.canal.envoyer({
+      type: 'erreur',
+      code: 'autre_appareil',
+      message: MESSAGES_ERREUR_DEBAT.autre_appareil,
+    })
+    this.canal.fermer()
+  }
+
   /** The socket went away. If the debate was still running, the cut is ours. */
   async surFermeture(): Promise<void> {
     await this.attendre()
+    if (this.cede) return
     if (this.etat.phase === 'terminee' || this.etat.phase === 'connexion') {
       this.flux?.fermer()
       return
@@ -268,7 +347,7 @@ export class Conduite {
   }
 
   private async abandonnerSurErreur(): Promise<void> {
-    if (this.etat.phase === 'terminee') return
+    if (this.cede || this.etat.phase === 'terminee') return
     this.canal.envoyer({
       type: 'erreur',
       code: 'interne',
@@ -282,6 +361,46 @@ export class Conduite {
     this.canal.envoyer({ type: 'erreur', code, message: MESSAGES_ERREUR_DEBAT[code] })
     this.canal.fermer()
   }
+}
+
+/** Waits for a provider, but not for ever. */
+async function avecDelai<T>(travail: Promise<T>, ms: number, quoi: string): Promise<T> {
+  let minuteur: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      travail,
+      new Promise<never>((_resoudre, rejeter) => {
+        minuteur = setTimeout(() => rejeter(new Error(`${quoi} : rien en ${ms} ms`)), ms)
+      }),
+    ])
+  } finally {
+    if (minuteur) clearTimeout(minuteur)
+  }
+}
+
+/** The same, chunk by chunk: a stream that stops arriving is a stream that has stopped. */
+async function* parMorceau<T>(
+  source: AsyncIterable<T>,
+  ms: number,
+  quoi: string,
+): AsyncIterable<T> {
+  const iterateur = source[Symbol.asyncIterator]()
+  try {
+    for (;;) {
+      const suivant = await avecDelai(iterateur.next(), ms, quoi)
+      if (suivant.done) return
+      yield suivant.value
+    }
+  } finally {
+    await iterateur.return?.().catch(() => undefined)
+  }
+}
+
+/** Postgres says 55006, object_in_use: another connection holds this debate now. */
+function estSessionPerdue(erreur: unknown): boolean {
+  return (
+    typeof erreur === 'object' && erreur !== null && (erreur as { code?: unknown }).code === '55006'
+  )
 }
 
 function decoderBase64(donnees: string): Uint8Array {

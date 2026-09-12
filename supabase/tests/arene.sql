@@ -48,6 +48,7 @@ on conflict (cle) do nothing;
 -- The suite owns this bank: the project holds real rows whose `ordre` would collide with
 -- the fixtures, and whose presence would change what the rotation answers. Rolled back
 -- with everything else.
+delete from public.prises_publiques where sujet_id is not null;
 delete from public.sujets_arene;
 insert into public.sujets_arene (cle, texte, ordre) values
   ('sujet_un', 'Faut-il dire la vérité à tout prix ?', 1),
@@ -240,6 +241,27 @@ select lives_ok($$ select public.moderer_prise((select id from public.prises_pub
 select is((select statut from public.prises_publiques where utilisateur_id = (select c from ctx) limit 1), 'retiree', 'the take is withdrawn');
 select is((select count(*) from public.moderations), 1::bigint, 'the decision is logged');
 reset role; select tests_leq.deconnecter();
+
+-- the guards the review asked for -----------------------------------------------------------------
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select throws_ok($$ select public.creer_duel('Un sujet') $$, 'P0001', 'duels_eteints',
+  'no duel is created while the feature is not open, whatever the interface shows')
+  from (select 1) x where not public.drapeau_actif('duels');
+reset role; select tests_leq.deconnecter();
+
+-- One take per person per week: a duel already had its unique index, the Arena had none, so one
+-- person could hold three places on the podium and be offered against themselves to a voter.
+select ok(
+  exists (select 1 from pg_indexes
+           where schemaname = 'public' and indexname = 'prises_publiques_une_par_semaine_idx'),
+  'one published take per person per week');
+
+-- The ranking must survive tidying up a subject: it used to cascade away with every vote under it.
+select is(
+  (select confdeltype from pg_constraint
+    where conname = 'prises_publiques_sujet_id_fkey'),
+  'r'::"char",
+  'deleting a subject is restricted, so a week''s ranking cannot be erased');
 
 select * from finish();
 rollback;

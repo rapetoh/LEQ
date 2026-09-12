@@ -88,10 +88,14 @@ export function creerHandlerBalayerAudio(deps: DependancesBalayage): HandlerJob 
       abandons.push(tentative.id)
     }
 
-    await deps.stockage.supprimer(BUCKET_AUDIO_TENTATIVES, aSupprimer)
+    // The rows are marked before the objects go. The other order lost them: deletion runs in
+    // batches and throws on the first failing one, so the objects already gone were never listed
+    // again and their attempts stayed in `envoyee` for ever, with no job and no file, telling
+    // the person their analysis was still running.
     for (const id of cheminsASupprimer) await marquerCheminAudioSupprime(deps.ex, id)
     for (const id of abandons)
       await marquerAbandonTechnique(deps.ex, id, true, MESSAGE_ABANDON_BALAYAGE)
+    await deps.stockage.supprimer(BUCKET_AUDIO_TENTATIVES, aSupprimer)
 
     log.info(
       {

@@ -209,5 +209,73 @@ select lives_ok($$ insert into public.theses (cle, texte, ordre) values ('these_
   'the admin writes the bank');
 reset role; select tests_leq.deconnecter();
 
+-- one debate, one connection ------------------------------------------------------------------------------
+-- Two sockets held the same debate when a phone reconnected before the old one was collected.
+-- Both wrote turn n+1, and the upsert on (debat_id, numero) let the loser replace the live turn.
+update public.configuration set valeur = '8' where cle = 'quota_face_a_face_complet';
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+create temp table debat5 as select * from public.ouvrir_debat(null, 'Le silence est une réponse.');
+grant select on debat5 to authenticated;
+reset role; select tests_leq.deconnecter();
+create temp table sessions as
+  select public.prendre_session_debat((select id from debat5)) as premiere,
+         null::uuid as seconde;
+select isnt((select premiere from sessions), null, 'the first connection takes the debate');
+select lives_ok($$ select public.enregistrer_tour((select id from debat5), 1, 'utilisateur', 'Un premier tour.', 5, (select premiere from sessions)) $$,
+  'and writes with the identifier it was given');
+update sessions set seconde = public.prendre_session_debat((select id from debat5));
+select isnt((select seconde from sessions), (select premiere from sessions),
+  'a second connection takes it over with an identifier of its own');
+select throws_ok(
+  $$ select public.enregistrer_tour((select id from debat5), 1, 'utilisateur', 'Écrasé.', 5, (select premiere from sessions)) $$,
+  '55006', 'session_perdue', 'the connection left behind writes nothing more');
+select is((select texte from public.tours_debat where debat_id = (select id from debat5) and numero = 1),
+  'Un premier tour.', 'so the live turn stands');
+select lives_ok($$ select public.cloturer_debat((select id from debat5), 'interrompue_par_nous', (select premiere from sessions)) $$,
+  'and its close raises nothing');
+select is((select statut from public.debats where id = (select id from debat5)), 'ouverte',
+  'but it closes nothing either: someone is still speaking on the other side');
+select lives_ok($$ select public.enregistrer_tour((select id from debat5), 2, 'retor', 'Une réponse.', null, (select seconde from sessions)) $$,
+  'the connection that holds the debate keeps writing');
+select lives_ok($$ select public.cloturer_debat((select id from debat5), 'terminee', (select seconde from sessions)) $$,
+  'and it is the one that ends the session');
+select is((select statut from public.debats where id = (select id from debat5)), 'terminee', 'the row says finished');
+select is((select session_id from public.debats where id = (select id from debat5)), null,
+  'a closed debate holds no connection');
+
+-- une coupure gratuite ne le reste pas indéfiniment ---------------------------------------------------------
+-- Killing the app instead of pressing « Terminer » closed the session as our own cut, and nothing
+-- ever reopened the question: the whole face-à-face was free, every time.
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+create temp table debat6 as select * from public.ouvrir_debat(null, 'Il faut se taire pour écouter.');
+grant select on debat6 to authenticated;
+reset role; select tests_leq.deconnecter();
+select lives_ok($$ select public.enregistrer_tour((select id from debat6), 1, 'utilisateur', 'Un tour bien réel.', 40) $$,
+  'the person speaks');
+select lives_ok($$ select public.cloturer_debat((select id from debat6), 'interrompue_par_nous') $$,
+  'then the socket dies without « Terminer »');
+select is(public.fermer_debats_interrompus(), 0,
+  'inside the window nothing is closed: the session is waiting to be resumed');
+update public.debats set derniere_activite_le = now() - interval '2 hours' where id = (select id from debat6);
+select is(public.fermer_debats_interrompus(), 1, 'past the window it is closed');
+select is((select issue from public.debats where id = (select id from debat6)), 'abandonnee',
+  'as abandoned, since the person did speak');
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select is(((public.quota_debats()) ->> 'utilises')::integer, 5, 'and it costs a session of the month');
+reset role; select tests_leq.deconnecter();
+
+-- a session where nothing was ever said stays free
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+create temp table debat7 as select * from public.ouvrir_debat(null, 'Le doute est une méthode.');
+grant select on debat7 to authenticated;
+reset role; select tests_leq.deconnecter();
+select lives_ok($$ select public.cloturer_debat((select id from debat7), 'interrompue_par_nous') $$,
+  'our outage cut it before a word was said');
+update public.debats set derniere_activite_le = now() - interval '2 hours' where id = (select id from debat7);
+select is(public.fermer_debats_interrompus(), 0, 'that one is left alone');
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select is(((public.quota_debats()) ->> 'utilises')::integer, 5, 'and it still costs nothing');
+reset role; select tests_leq.deconnecter();
+
 select * from finish();
 rollback;

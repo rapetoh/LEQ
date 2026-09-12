@@ -75,3 +75,31 @@ describe('Worker', () => {
     expect(appels.every((a) => a.startsWith('reclamer:'))).toBe(true)
   })
 })
+
+// A `terminer` that could not be written used to send the loop into the catch, so a job that had
+// done its work was recorded as failed and ran a second time. An announcement went out twice.
+describe('quand la file est injoignable après le travail', () => {
+  it('ne marque pas en échec un job qui a réussi', async () => {
+    const echecs: Array<{ id: number; erreur: string }> = []
+    let travaux = 0
+    const worker = new Worker({
+      reclamer: async () => job('analyser_tentative'),
+      terminer: async () => {
+        throw new Error('base injoignable')
+      },
+      echouer: async (id, erreur) => {
+        echecs.push({ id, erreur })
+      },
+      handlers: {
+        analyser_tentative: async () => {
+          travaux += 1
+        },
+      },
+      log,
+      intervalleInactifMs: 1,
+    })
+    await expect(worker.iteration()).rejects.toThrow('base injoignable')
+    expect(travaux).toBe(1)
+    expect(echecs).toEqual([])
+  })
+})

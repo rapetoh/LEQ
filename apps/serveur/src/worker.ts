@@ -44,14 +44,23 @@ export class Worker {
 
     const debut = Date.now()
     log.info('job demarre')
+    // The work and the bookkeeping are separated on purpose. Both used to sit in one try, so a
+    // `terminer` that could not be written sent the loop into the catch and recorded a job that
+    // had done its work as failed, which then ran it again.
+    let echec: string | null = null
     try {
       await handler(job, { log, dernierEssai: job.essais >= job.essais_max })
+    } catch (erreur) {
+      echec = messageErreur(erreur)
+      log.error({ err: erreur, duree_ms: Date.now() - debut }, 'job echoue')
+    }
+    if (echec === null) {
+      // If this throws, the job stays claimed and the claim expires on its own: it comes back
+      // once, rather than being written down as a failure it never was.
       await this.deps.terminer(job.id)
       log.info({ duree_ms: Date.now() - debut }, 'job termine')
-    } catch (erreur) {
-      const message = messageErreur(erreur)
-      log.error({ err: erreur, duree_ms: Date.now() - debut }, 'job echoue')
-      await this.deps.echouer(job.id, message)
+    } else {
+      await this.deps.echouer(job.id, echec)
     }
     return 'traite'
   }

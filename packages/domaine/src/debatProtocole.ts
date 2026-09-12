@@ -130,6 +130,7 @@ export const CODES_ERREUR_DEBAT = [
   'jeton_invalide',
   'debat_introuvable',
   'debat_clos',
+  'autre_appareil',
   'protocole',
   'interne',
 ] as const
@@ -140,6 +141,7 @@ export const MESSAGES_ERREUR_DEBAT: Readonly<Record<CodeErreurDebat, string>> = 
   jeton_invalide: 'Ta session a expiré. Ouvre LEQ à nouveau.',
   debat_introuvable: 'Ce débat est introuvable.',
   debat_clos: 'Ce débat est terminé.',
+  autre_appareil: 'Ce face-à-face continue sur un autre appareil.',
   protocole: "Ça n'a pas marché. L'erreur vient de chez nous.",
   interne: "Ça n'a pas marché. L'erreur vient de chez nous.",
 }
