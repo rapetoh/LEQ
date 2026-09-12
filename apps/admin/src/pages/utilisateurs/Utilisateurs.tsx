@@ -189,9 +189,14 @@ export function Utilisateurs() {
                 type="button"
                 className="bouton bouton-principal"
                 disabled={motif.trim() === '' || suspension.isPending}
+                // The panel stays open until the write lands: closing it first left the typed
+                // reason in state, so a failed suspension pre-filled the next person's panel
+                // with somebody else's words and armed the confirm button.
                 onClick={() => {
-                  suspension.mutate({ uid: aSuspendre.id, motif: motif.trim() })
-                  setASuspendre(null)
+                  suspension.mutate(
+                    { uid: aSuspendre.id, motif: motif.trim() },
+                    { onSuccess: () => setASuspendre(null) },
+                  )
                 }}
               >
                 {fr.utilisateurs.suspendre}

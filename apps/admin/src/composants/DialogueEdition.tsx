@@ -31,11 +31,20 @@ export function DialogueEdition({
   const idTitre = useId()
   const refFermer = useRef<HTMLButtonElement>(null)
 
+  // `onFermer` is written inline at every call site, so it is a new function on every render.
+  // Keeping it in a ref means the effect below runs when the dialog opens and closes, and not
+  // on every re-render: it used to steal focus back to the close button each time the page
+  // re-rendered, which put Enter on "close" while someone was typing.
+  const refFermer_ = useRef(onFermer)
+  useEffect(() => {
+    refFermer_.current = onFermer
+  })
+
   useEffect(() => {
     if (!ouvert) return
     refFermer.current?.focus()
     const surTouche = (evenement: KeyboardEvent) => {
-      if (evenement.key === 'Escape') onFermer()
+      if (evenement.key === 'Escape') refFermer_.current()
     }
     document.addEventListener('keydown', surTouche)
     // The page behind must not scroll under the dialog.
@@ -45,14 +54,16 @@ export function DialogueEdition({
       document.removeEventListener('keydown', surTouche)
       document.body.style.overflow = debordement
     }
-  }, [ouvert, onFermer])
+  }, [ouvert])
 
   if (!ouvert) return null
 
   return (
     <div
       className={styles.voile}
-      onMouseDown={(evenement) => {
+      // On the click, not on the press: starting a text selection inside the dialog and
+      // releasing outside it used to count as dismissing, and took the whole form with it.
+      onClick={(evenement) => {
         if (evenement.target === evenement.currentTarget) onFermer()
       }}
     >

@@ -147,7 +147,12 @@ export const fr = {
     toasts: {
       succes: (cle: string) => `Valeur enregistrée : ${cle}.`,
       enregistrees: (n: number) => (n === 1 ? 'Valeur enregistrée.' : `${n} valeurs enregistrées.`),
-      erreur: 'Enregistrement impossible. La valeur précédente est rétablie.',
+      erreur: "Enregistrement impossible. Rien n'a été changé.",
+      partiel: (ecrites: number, echouees: number) => {
+        const sauvees =
+          ecrites > 1 ? `${ecrites} valeurs enregistrées` : `${ecrites} valeur enregistrée`
+        return `${sauvees}, ${echouees} en échec. Les valeurs en échec sont restées à l'écran.`
+      },
     },
     champ: {
       valeurDe: (cle: string) => `Valeur de ${cle}`,

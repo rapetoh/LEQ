@@ -70,25 +70,52 @@ export function Configuration() {
   })
 
   const enregistrement = useMutation({
+    // Each value is its own row and its own write; there is no transaction across them. So the
+    // mutation never throws: it reports what was written and what was not, and the page keeps
+    // exactly the edits that did not land. Saying "the previous value is restored" while two of
+    // five were already live was worse than the failure itself.
     mutationFn: async () => {
       if (!session) throw new Error('Session absente')
+      const ecrites: string[] = []
+      const echouees: Array<{ cle: string; raison: string }> = []
       for (const cle of clesModifiees) {
         const ligne = parCle.get(cle)
         const saisie = modifications[cle]
         if (!ligne || saisie === undefined) continue
         const validation = validerSaisie(ligne.cle, ligne.type, saisie)
-        if (!validation.ok) throw new Error(`${ligne.cle} : ${validation.erreur}`)
-        await enregistrerConfiguration({
-          cle,
-          valeur: validation.valeur,
-          modifiePar: session.user.id,
+        if (!validation.ok) {
+          echouees.push({ cle, raison: validation.erreur })
+          continue
+        }
+        try {
+          await enregistrerConfiguration({
+            cle,
+            valeur: validation.valeur,
+            modifiePar: session.user.id,
+          })
+          ecrites.push(cle)
+        } catch (erreur) {
+          echouees.push({ cle, raison: erreur instanceof Error ? erreur.message : String(erreur) })
+        }
+      }
+      return { ecrites, echouees }
+    },
+    onSuccess: ({ ecrites, echouees }) => {
+      // What was written is no longer an edit; what failed stays on screen, still dirty.
+      setModifications((courantes) => {
+        const reste = { ...courantes }
+        for (const cle of ecrites) delete reste[cle]
+        return reste
+      })
+      if (echouees.length === 0) {
+        notifier({ type: 'succes', message: fr.configuration.toasts.enregistrees(ecrites.length) })
+      } else {
+        notifier({
+          type: 'erreur',
+          message: fr.configuration.toasts.partiel(ecrites.length, echouees.length),
+          details: echouees.map((e) => `${e.cle} : ${e.raison}`).join('\n'),
         })
       }
-      return clesModifiees.length
-    },
-    onSuccess: (nombre) => {
-      setModifications({})
-      notifier({ type: 'succes', message: fr.configuration.toasts.enregistrees(nombre) })
       void clientRequetes.invalidateQueries({ queryKey: cleRequeteConfiguration })
     },
     onError: (erreur: Error) => {

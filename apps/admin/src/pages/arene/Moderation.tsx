@@ -161,10 +161,18 @@ export function Moderation() {
                 type="button"
                 className="bouton bouton-principal"
                 disabled={motif.trim() === '' || decision.isPending}
+                // Same as suspension: the reason must not survive a failed write and land on
+                // the next take.
                 onClick={() => {
-                  decision.mutate({ id: aRetirer.id, statut: 'retiree', motif: motif.trim() })
-                  setARetirer(null)
-                  setMotif('')
+                  decision.mutate(
+                    { id: aRetirer.id, statut: 'retiree', motif: motif.trim() },
+                    {
+                      onSuccess: () => {
+                        setARetirer(null)
+                        setMotif('')
+                      },
+                    },
+                  )
                 }}
               >
                 {fr.moderation.retirer}
