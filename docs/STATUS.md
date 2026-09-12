@@ -297,6 +297,35 @@ Written before the work started. Cahier chapter 10, plan Phase 8. Everything shi
 5. Verification
    - [ ] The measured cost and the per-turn latency of one real five-minute session, which chapter 9 requires before the plan containing the face-à-face can be priced. Needs the provider keys
 
+## Phase 9 checklist (release)
+
+1. Store material
+   - [x] `docs/STORE.md`: the French listing (subtitle, promotional text, description, keywords), the App Store privacy labels and the Play Data safety answers, each line naming the table or bucket it comes from so it can be checked against the contract, and the notes for the reviewer
+   - [ ] Screenshots in both required sizes, taken once Rebecca's content replaces the provisional banks
+2. Legal
+   - [x] The honest draft of the chapter 2 statement, in `apps/web`, saying out loud that a lawyer has not read it yet
+   - [ ] A lawyer reads it (**Roch**)
+3. Release plumbing
+   - [ ] Crash reporting (**Roch**: a Sentry account and a DSN)
+   - [ ] Provider DPAs, one per processor, after the bench picks them (**Roch**)
+   - [ ] Backups verified and written down
+   - [ ] The sentence that defines "version one is done" (**Roch** and Rebecca, chapter 18)
+
+## Build 8 in TestFlight (2026-09-12)
+
+The first build carrying Phase 7 and Phase 8. To make it worth walking through, three things were
+switched on in the hosted project, all of them values Rebecca owns and can put back from the
+admin (`node supabase/tests/activer-essai.mjs --eteindre` does it in one go):
+
+- the `arene`, `duels` and `face_a_face` flags;
+- the first Arena subject activated, so the tab does not open on an empty room;
+- `quota_face_a_face_gratuit` set to 1, so the free plan can try one debate. The real value is
+  Rebecca's call and the face-à-face is meant to live in Complet.
+
+The banks of Arena subjects and debate theses are seeded provisional (`provisoire = true`, badged
+in the admin), the same way the path and the shop already were. Both screens were checked on the
+simulator with the flags on: no runtime error.
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.
