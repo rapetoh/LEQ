@@ -164,6 +164,26 @@ four turns in order, the outcome, the connection released, the month moved by on
 queued and written. It costs one session of the account's month and gives it back by deleting the
 row at the end.
 
+## Checking that a published take can be heard, and that deletion leaves nothing
+
+```
+URL=... CLE=... EMAIL=... MDP=... SUPABASE_PROJECT_REF=... SUPABASE_DB_PASSWORD=... \
+  node supabase/tests/verif-arene-audible.mjs
+URL=... CLE=... SUPABASE_PROJECT_REF=... SUPABASE_DB_PASSWORD=... \
+  node supabase/tests/verif-suppression-compte.mjs
+```
+
+pgTAP can say a column is not null; it cannot open a file. `verif-arene-audible.mjs` records a
+take, publishes it in the Arena, signs a playback URL, downloads it and compares the bytes with
+what was sent. Then it marks the copy for deletion and waits for the sweeper, because the public
+bucket is the worker's to empty and not a signed-in person's: deleting from the script answered
+nothing and left the object behind, which is how the first run leaked one.
+
+`verif-suppression-compte.mjs` is the other promise. It creates a throwaway account, records a
+take, publishes it, presses G3's button (`demander_suppression_compte`, nothing privileged), and
+then looks everywhere: profile, takes, analyses, published takes, points, path, and both storage
+buckets. Eighteen checks. It removes what it made whatever happens.
+
 ## Answering a request for a copy of someone's data
 
 G3 says out loud « Tu recevras une copie de tes données par e-mail », and the request lands in

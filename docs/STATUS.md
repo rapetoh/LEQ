@@ -454,6 +454,21 @@ The transcription provider still reads `stub` and the evaluation still says « g
 those are the two inputs that are not ours to invent, and the check reports them rather than
 hiding them.
 
+## Les deux promesses vérifiées contre la production (2026-09-12)
+
+**« On compare deux voix »**: `verif-arene-audible.mjs` records a take, publishes it, signs a
+playback URL, downloads it and compares the bytes. Fourteen checks green, the file identical to
+what was sent. It also proved something the first run got wrong: a signed-in person cannot empty
+the public bucket, and rightly so, so the copy is given back the way a closed week gives it back,
+marked for deletion and swept by the worker. The first run leaked one object doing it the other
+way; it was reclaimed through the same sweeper.
+
+**« Cette action est définitive »**: `verif-suppression-compte.mjs` creates a throwaway account,
+records a take, publishes it in the Arena, presses G3's button and looks everywhere afterwards.
+Eighteen checks green, the account gone in three seconds, nothing left in either bucket. That
+sentence in G3 is a legal one as much as a product one, and until today nobody had ever watched it
+happen on the real project.
+
 ## Un face-à-face entier, contre le serveur déployé (2026-09-12)
 
 `supabase/tests/verif-face-a-face.mjs` opens a session, connects to the socket on Fly, speaks two
