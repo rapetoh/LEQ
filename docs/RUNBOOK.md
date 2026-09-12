@@ -164,6 +164,35 @@ four turns in order, the outcome, the connection released, the month moved by on
 queued and written. It costs one session of the account's month and gives it back by deleting the
 row at the end.
 
+## Running the app on this Mac, without EAS
+
+EAS is for store binaries and nothing else. Building, installing and driving the app needs only
+Xcode, which is here: Xcode 26.6 with the iOS 26.5 SDK, both released, so the earlier note in the
+plan about a beta host OS forcing cloud builds was wrong. Apple rejects builds made with a beta
+**SDK**, not builds made on a beta macOS.
+
+```
+cd apps/mobile && npx expo run:ios --device "iPhone 17"
+```
+
+To drive it from a script once it is installed:
+
+```
+SIM=$(xcrun simctl list devices available | grep "iPhone 17 (" | grep -o "[0-9A-F-]\{36\}")
+xcrun simctl boot $SIM; xcrun simctl launch $SIM com.leqapp.mobile
+xcrun simctl io $SIM screenshot ecran.png
+xcrun simctl openurl $SIM "leq://reglages"      # any Expo Router route
+```
+
+A deep link raises an « Open in "LEQ"? » confirmation, which has to be tapped. There is no tap in
+`simctl`, so taps go through `cliclick` against the Simulator window. The mapping, for a window at
+`(wx, wy)` reported by System Events: a point `(x, y)` in device logical points (the screenshot is
+3x) is at `wx + 4.5 + x * 1.112`, `wy + y * 1.112`. Dragging near the bottom of the screen opens
+the React Native inspector; relaunching the app clears it.
+
+This is how the floating tab bar covering the Progrès button was found, and it is the cheapest way
+to look at a screen before asking anyone else to.
+
 ## Walking the daily loop and the browser duel against production
 
 ```

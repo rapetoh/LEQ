@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 
+import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { Bulle } from '@/components/Bulle'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
@@ -29,12 +30,13 @@ import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
 export default function Defis() {
   const theme = useTheme()
+  const espaceBarre = useEspaceBarreOnglets()
   const carte = useCarte()
   const releves = carte.data ? compterReleves(carte.data) : null
   const actes = carte.data ? [...carte.data].sort((a, b) => b.ordre - a.ordre) : []
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
+    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
       <EnteteEcran
         titre={t('carte.titre')}
         droite={
@@ -262,7 +264,7 @@ function Noeud({
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: 120 },
+  contenu: {},
   sections: { paddingHorizontal: espaces.xl, gap: espaces.s },
   bloc: { gap: espaces.m },
   bandeau: {

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
@@ -23,6 +24,7 @@ export default function Moi() {
   const drapeaux = useDrapeaux()
   const serie = useSerie()
   const points = usePoints()
+  const espaceBarre = useEspaceBarreOnglets()
   const profil = useProfil()
   const { session, reessayer } = useSession()
   const anonyme = session?.user.is_anonymous === true
@@ -43,7 +45,7 @@ export default function Moi() {
   ]
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
+    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
       <EnteteEcran titre={t('moi.titre')} />
 
       <View style={styles.sections}>
@@ -198,7 +200,7 @@ function Chiffre({
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: 120 },
+  contenu: {},
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
   compte: { gap: espaces.xs },
   identite: { flexDirection: 'row', alignItems: 'center', gap: espaces.m },

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteDefi } from '@/components/EnteteDefi'
 import { EnteteEcran } from '@/components/EnteteEcran'
@@ -42,11 +43,12 @@ export default function Aujourdhui() {
   const points = usePoints()
   const ateliers = useAteliers()
   const prochainAtelier = ateliers.data?.[0] ?? null
+  const espaceBarre = useEspaceBarreOnglets()
   const profil = useProfil()
   const prenom = profil.data?.prenom?.trim()
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
+    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
       <EnteteEcran
         surtitre={dateDuJour()}
         titre={
@@ -264,7 +266,7 @@ export function CarteDuJour() {
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: 120 },
+  contenu: {},
   sections: { paddingHorizontal: espaces.xl, gap: espaces.l },
   section: { gap: espaces.s },
   defi: { gap: espaces.m },

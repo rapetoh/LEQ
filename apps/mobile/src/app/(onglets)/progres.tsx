@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { Bulle } from '@/components/Bulle'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
@@ -44,6 +45,7 @@ export default function Progres() {
 
 function Progression({ resume }: { resume: ResumeProgres }) {
   const theme = useTheme()
+  const espaceBarre = useEspaceBarreOnglets()
   const router = useRouter()
   const { serie, mois, premiere, derniere } = resume
   const appuis = evolutionAppuis(resume.bequilles_semaines)
@@ -51,7 +53,7 @@ function Progression({ resume }: { resume: ResumeProgres }) {
   const memePrise = premiere?.enregistre_le === derniere?.enregistre_le
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
+    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
       <EnteteEcran surtitre={t('progres.surtitre')} titre={t('progres.titre')} />
       <View style={styles.sections}>
         <Carte style={styles.bloc}>
@@ -277,12 +279,13 @@ function PremierJour() {
   const theme = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const espaceBarre = useEspaceBarreOnglets()
   return (
     <ScrollView
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.vide,
-        { paddingTop: insets.top + espaces.xxl, paddingBottom: insets.bottom + espaces.xl },
+        { paddingTop: insets.top + espaces.xxl, paddingBottom: espaceBarre },
       ]}
     >
       <Bulle taille="moyenne" visage="sourit" style={styles.bulle} />
@@ -334,7 +337,7 @@ function Apercu({
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: 120 },
+  contenu: {},
   sections: { paddingHorizontal: espaces.xl, gap: espaces.m },
   bloc: { gap: espaces.s },
   majuscules: { textTransform: 'uppercase' },

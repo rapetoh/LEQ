@@ -7,6 +7,19 @@ import { couleurs, espaces, polices, rayons } from '@/theme/tokens'
 
 // The tab bar of the mockup: a floating pill centred at the bottom, round icons, and the
 // current tab opened into a bleu nuit pill with its icon in "or" and its name.
+//
+// It floats over the screens, so nothing underneath it is visible: every scrolling tab has to
+// leave room for it. The empty Progrès screen did not, and its one button sat entirely behind
+// the pill, unreadable and barely tappable.
+
+/** Height of the floating pill: a tab is 42 high inside 7 of padding on each side. */
+export const HAUTEUR_BARRE_ONGLETS = 56
+
+/** What a tab screen must leave free at the bottom so the bar covers none of its content. */
+export function useEspaceBarreOnglets(): number {
+  const insets = useSafeAreaInsets()
+  return HAUTEUR_BARRE_ONGLETS + insets.bottom + espaces.xs + espaces.l
+}
 
 export type DefinitionOnglet = { nom: string; titre: string; sf: NomSF; material: NomMaterial }
 

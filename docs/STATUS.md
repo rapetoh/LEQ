@@ -457,6 +457,22 @@ The transcription provider still reads `stub` and the evaluation still says « g
 those are the two inputs that are not ours to invent, and the check reports them rather than
 hiding them.
 
+## L'application tourne sur ce Mac, et un bouton était caché (2026-09-12)
+
+EAS is for store binaries and nothing else. Xcode 26.6 with the iOS 26.5 SDK is installed and both
+are released versions, so building and running the app locally needs nothing from anyone: the note
+in the plan about a beta host OS forcing cloud builds was wrong, because what Apple rejects is a
+beta **SDK**, not a beta macOS. `npx expo run:ios` builds and installs in under a minute, and
+`simctl` plus `cliclick` drive it from a script. `docs/RUNBOOK.md` carries the exact commands and
+the coordinate mapping.
+
+The first walk through it found one: **on the empty Progrès screen, the floating tab bar sat
+entirely on top of « Faire ma première prise »**, the one button on the page. Unreadable, barely
+tappable. The bar floats over every tab and nothing said how much room it needs; the other tabs
+happened to reserve 120 points by hand and the empty state reserved only the safe-area inset.
+`HAUTEUR_BARRE_ONGLETS` and `useEspaceBarreOnglets()` now say it once, and all five tabs use it
+instead of a number somebody has to remember.
+
 ## Ce qui est dans TestFlight, et la limite des builds (2026-09-12)
 
 **Build 15 est le dernier build iOS de ce mois-ci.** The Expo account is on the free plan, whose

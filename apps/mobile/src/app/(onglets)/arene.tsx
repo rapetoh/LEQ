@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
@@ -30,12 +31,13 @@ type Onglet = 'sujet' | 'duels'
 
 export default function Arene() {
   const theme = useTheme()
+  const espaceBarre = useEspaceBarreOnglets()
   const drapeaux = useDrapeaux()
   const duelsActifs = drapeaux.data?.duels === true
   const [onglet, setOnglet] = useState<Onglet>('sujet')
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={styles.contenu}>
+    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
       <EnteteEcran titre={t('arene.titre')} />
       <View style={styles.sections}>
         {duelsActifs ? (
@@ -300,7 +302,7 @@ function LigneDuel({ duel }: { duel: import('@leq/domaine').Duel }) {
 }
 
 const styles = StyleSheet.create({
-  contenu: { paddingBottom: 120 },
+  contenu: {},
   sections: { paddingHorizontal: espaces.xl, gap: espaces.m },
   section: { gap: espaces.s },
   bloc: { gap: espaces.s },
