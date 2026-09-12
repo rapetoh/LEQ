@@ -454,6 +454,17 @@ The transcription provider still reads `stub` and the evaluation still says « g
 those are the two inputs that are not ours to invent, and the check reports them rather than
 hiding them.
 
+## Un face-à-face entier, contre le serveur déployé (2026-09-12)
+
+`supabase/tests/verif-face-a-face.mjs` opens a session, connects to the socket on Fly, speaks two
+turns, ends it, and reads back what the database kept. Fifteen checks green: the protocol
+announced, the thesis, the four turns in order, the outcome `terminee`, the connection released,
+the month moved from 0 to 1, the debriefing queued and written and marked provisional. It costs
+one session and gives it back by deleting the row.
+
+Phase 8 had never been exercised anywhere but in memory: the conductor is tested against an
+array, and an array is not a socket on a machine in Paris.
+
 ## The copy of someone's data actually exists now (2026-09-12)
 
 G3 has said « Tu recevras une copie de tes données par e-mail » since Phase 1, the request has

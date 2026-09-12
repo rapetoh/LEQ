@@ -149,6 +149,21 @@ Without an audio file it speaks one, in French, with the Mac's own voice (`say` 
 The take it creates is deleted at the end, whatever happened. Run it after anything that touches
 the pipeline, and after any deploy of the worker.
 
+## Walking a whole face-à-face against the deployed server
+
+```
+URL=<supabase url> CLE=<publishable key> EMAIL=<compte> MDP=<mot de passe> \
+  SUPABASE_PROJECT_REF=<ref> SUPABASE_DB_PASSWORD=<mdp base> \
+  SERVEUR=wss://leq-serveur.fly.dev node supabase/tests/verif-face-a-face.mjs
+```
+
+Phase 8 is the only part of the product that lives on a socket, and a socket is what unit tests
+cannot reach: the conductor is tested against an array, not against Fly. This opens a session
+over `ouvrir_debat`, connects, speaks two turns, ends it, and checks what the database kept: the
+four turns in order, the outcome, the connection released, the month moved by one, the debriefing
+queued and written. It costs one session of the account's month and gives it back by deleting the
+row at the end.
+
 ## Answering a request for a copy of someone's data
 
 G3 says out loud « Tu recevras une copie de tes données par e-mail », and the request lands in
