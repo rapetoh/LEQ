@@ -441,6 +441,18 @@ Verified: 91 server tests, 88 mobile tests, 482 database assertions across the e
 `npm run check` and `npm run strings` green. Server deployed, migrations applied,
 `verif-securite`, `verif-medias` and `verif-anon` green against the hosted project.
 
+## The copy of someone's data actually exists now (2026-09-12)
+
+G3 has said « Tu recevras une copie de tes données par e-mail » since Phase 1, the request has
+landed in `demandes_export` since then, and the admin space has listed it since Phase 6. Nothing
+produced the copy. `supabase/tests/exporter-donnees.mjs` does, in sixteen sections, and
+`docs/RUNBOOK.md` says how to run it. Checked against a real account: three takes with their
+measures and transcripts, thirteen path steps, a duel with its two passages, 35 KB of JSON.
+
+It leaves out what is not the person's to receive: no audio, because there is none; the other
+person's identifier and the invitation token of a duel; and which voice they preferred in the
+Arena. The file says so at the top, in French.
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.

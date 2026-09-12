@@ -131,6 +131,29 @@ insert only; Storage refuses that and every upload failed.
 `verif-anon.mjs` asks, holding nothing but the publishable key, what still answers. That key ships
 inside every copy of the application, so anything it can reach is public.
 
+## Answering a request for a copy of someone's data
+
+G3 says out loud « Tu recevras une copie de tes données par e-mail », and the request lands in
+`demandes_export`, which the admin space lists. This produces the copy:
+
+```
+SUPABASE_PROJECT_REF=<ref> SUPABASE_DB_PASSWORD=<mdp> \
+  node supabase/tests/exporter-donnees.mjs <adresse e-mail ou uuid> [dossier]
+```
+
+It writes one JSON file and prints where, and it changes nothing: in particular it does not mark
+the request handled, because that happens once the copy has actually been sent. Sixteen sections,
+from the profile to the debates, each one every row of that table belonging to that person.
+
+What it deliberately leaves out: no audio, because there is none to give back; the other person's
+identifier and the invitation token of a duel, because the first is theirs and the second would
+let whoever holds the file answer an open duel; and which voice someone preferred in the Arena,
+because anonymity there holds for the people they compared. The file says all of this at the top,
+in French, so the person reading it knows what they have.
+
+Deleting an account is the other side of the same obligation and has its own script,
+`supprimer-compte.mjs`.
+
 ## Making an administrator
 
 `node supabase/tests/creer-admin.mjs <email> <mot-de-passe> [prenom]` creates the auth user
