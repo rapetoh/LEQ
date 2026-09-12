@@ -8,6 +8,7 @@ import {
   ecrireResultatAnnonce,
   lireAnnonce,
   listerJetonsPourAnnonce,
+  relacherAnnonce,
   reserverAnnonce,
   type Executeur,
 } from '../db.js'
@@ -73,5 +74,15 @@ export async function envoyerAnnonce(
   )
   await ecrireResultatAnnonce(deps.ex, annonceId, jetons.length, envoyes, echecs)
   journal.info({ destinataires: jetons.length, envoyes, echecs }, 'annonce envoyee')
+  // A push service that was down for the whole campaign is not a delivered announcement. Failing
+  // here retries the job instead of recording a total outage as a success: the claim lets a
+  // retry through precisely because nothing reached anyone, and Rebecca is allowed two
+  // announcements a month, so a silently lost one costs her half of them.
+  if (jetons.length > 0 && envoyes === 0) {
+    await relacherAnnonce(deps.ex, annonceId)
+    throw new Error(
+      `Aucune notification livrée sur ${jetons.length} (${echecs} échecs) : le service de push a refusé toute la campagne.`,
+    )
+  }
   return { destinataires: jetons.length, envoyes, echecs }
 }

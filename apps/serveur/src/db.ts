@@ -484,6 +484,18 @@ export async function listerJetonsPourAnnonce(
  * Claims the announcement before any push leaves: writes `destinataires` only when it is still
  * null. False means another run already claimed it, so a retry sends nothing twice.
  */
+/**
+ * Gives the claim back when a campaign delivered nothing at all, so the job can be retried.
+ * Only for a total outage: a partial send stays claimed, because the people already reached
+ * must not be told twice.
+ */
+export async function relacherAnnonce(ex: Executeur, id: string): Promise<void> {
+  await ex.query(
+    'update public.annonces set destinataires = null, envoyes = 0, echecs = 0 where id = $1',
+    [id],
+  )
+}
+
 export async function reserverAnnonce(
   ex: Executeur,
   id: string,

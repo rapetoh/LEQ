@@ -52,6 +52,10 @@ function fauxExecuteur(options: {
         resultats.push(['reservation', ...(values ?? [])])
         return reponse(options.dejaReservee ? [] : [{ id: ANNONCE }])
       }
+      if (text.includes('destinataires = null')) {
+        resultats.push(['relachee', ...(values ?? [])])
+        return reponse([])
+      }
       if (text.includes('update public.annonces')) {
         resultats.push(values ?? [])
         return reponse([])
@@ -179,5 +183,43 @@ describe('envoyerAnnonce', () => {
     const faux = fauxExecuteur({ annonce: null, jetons: [] })
     const bilan = await envoyerAnnonce({ ex: faux.ex, envoyer: async () => [] }, ANNONCE, log)
     expect(bilan).toEqual({ destinataires: 0, envoyes: 0, echecs: 0 })
+  })
+})
+
+// Rebecca gets two announcements a month. One recorded as delivered when the push service was
+// down for the whole campaign costs her half of them, and nothing on screen would say so.
+describe('quand le service de push est totalement indisponible', () => {
+  const jetons = [
+    { id: 'j1', jeton: 'a' },
+    { id: 'j2', jeton: 'b' },
+  ]
+
+  it('rend la réservation et échoue, pour que le job soit rejoué', async () => {
+    const faux = fauxExecuteur({ annonce: { regions: null, destinataires: null }, jetons })
+    await expect(
+      envoyerAnnonce(
+        {
+          ex: faux.ex,
+          envoyer: () => Promise.reject(new Error('Expo push HTTP 503')),
+        },
+        ANNONCE,
+        log,
+      ),
+    ).rejects.toThrow(/Aucune notification/)
+    expect(faux.resultats.some((r) => r[0] === 'relachee')).toBe(true)
+  })
+
+  it("ne rend rien quand une partie est passée : personne n'est prévenu deux fois", async () => {
+    const faux = fauxExecuteur({ annonce: { regions: null, destinataires: null }, jetons })
+    const bilan = await envoyerAnnonce(
+      {
+        ex: faux.ex,
+        envoyer: (messages) => Promise.resolve(messages.map(() => ({ status: 'ok' as const }))),
+      },
+      ANNONCE,
+      log,
+    )
+    expect(bilan.envoyes).toBe(2)
+    expect(faux.resultats.some((r) => r[0] === 'relachee')).toBe(false)
   })
 })
