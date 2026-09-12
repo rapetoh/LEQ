@@ -99,11 +99,20 @@ The admin's pages today: Configuration, Drapeaux, Défis (the bank act by act; a
 
 ## Making an administrator
 
-`node supabase/tests/creer-admin.mjs <email> <mot-de-passe>` creates the auth user (e-mail already
-confirmed), sets the password and puts `admin` on the profile in one go. It needs `SUPABASE_URL`,
-`SUPABASE_SECRET_KEY`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD`. Run again with the same
-address to reset a password. The role reaches the token at the next sign-in, so sign out and back
-in if the space says the access is reserved.
+`node supabase/tests/creer-admin.mjs <email> <mot-de-passe> [prenom]` creates the auth user
+(e-mail already confirmed), sets the password, writes the first name and puts `admin` on the
+profile in one go. It needs `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_PROJECT_REF` and
+`SUPABASE_DB_PASSWORD`. Run again with the same address to reset a password.
+
+To correct a mistyped address, add `--nouvel-email=<adresse>`: the account keeps its id, its role
+and everything attached to it, which is what makes this better than deleting and starting again.
+
+The role reaches the token at the next sign-in, so sign out and back in if the space says the
+access is reserved.
+
+Administrators so far: Roch (`rapetohsenyo@gmail.com`) and Rebecca (`beccalieben@gmmail.com`,
+created 2026-09-12 with the address exactly as given; `gmmail.com` looks like a typo for
+`gmail.com` and is waiting on Roch to confirm).
 
 ## Turning the Arena, duels and face-à-face on for a testing build
 
