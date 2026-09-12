@@ -58,7 +58,9 @@ export function FormulaireDefi({
       ...courante,
       [champ]: valeur,
       // The key follows the title until someone writes one themselves.
-      ...(champ === 'titre' && !cleTouchee ? { cle: cleDepuisTitre(String(valeur)) } : {}),
+      ...(champ === 'titre' && !cleTouchee && typeof valeur === 'string'
+        ? { cle: cleDepuisTitre(valeur) }
+        : {}),
     }))
     setErreurs((courantes) => {
       if (!(champ in courantes)) return courantes
