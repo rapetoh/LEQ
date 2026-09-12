@@ -43,6 +43,7 @@ export default function Voter() {
   const [gagnes, setGagnes] = useState(0)
   const [enCours, setEnCours] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
+  const [messageLecture, setMessageLecture] = useState<string | null>(null)
 
   const suivante = useCallback(async (numero: number, premier = false) => {
     if (!premier) setEtat({ phase: 'chargement' })
@@ -65,19 +66,29 @@ export default function Voter() {
   }, [suivante])
 
   const ecouter = async (priseId: string) => {
+    if (enCours !== null) return
+    setMessageLecture(null)
+    setEnCours(priseId)
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('prises_publiques')
         .select('chemin_audio')
         .eq('id', priseId)
         .maybeSingle()
+      if (error) throw new Error(error.message)
       const chemin = (data as { chemin_audio?: string | null } | null)?.chemin_audio
-      if (!chemin) return
-      setEnCours(priseId)
+      // A take whose audio is gone, or withdrawn by moderation: say it, rather than a button
+      // that does nothing twice and leaves the person voting on a voice they never heard.
+      if (!chemin) {
+        setEnCours(null)
+        setMessageLecture(t('arene.lectureIndisponible'))
+        return
+      }
       await lecteur.jouer(await urlSignee(chemin), () => setEnCours(null))
     } catch (erreur) {
       console.warn('arène: lecture impossible', erreur)
       setEnCours(null)
+      setMessageLecture(t('arene.lectureEchouee'))
     }
   }
 
@@ -122,14 +133,19 @@ export default function Voter() {
           <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
             {t('arene.anonymes')}
           </Text>
+          {messageLecture ? (
+            <Text style={[typographie.petit, { color: theme.accent }]}>{messageLecture}</Text>
+          ) : null}
           {[etat.paire.a, etat.paire.b].map((prise, index) => (
             <Carte key={prise.id} teinte={index === 0 ? 'voix' : 'douce'} style={styles.bloc}>
               <Text style={[typographie.titreCarte, { color: theme.texte }]}>
                 {index === 0 ? 'A' : 'B'}
               </Text>
               <Bouton
-                libelle={enCours === prise.id ? t('commun.chargement') : t('commun.continuer')}
+                libelle={enCours === prise.id ? t('commun.chargement') : t('arene.ecouter')}
                 variante="secondaire"
+                chargement={enCours === prise.id}
+                desactive={enCours !== null && enCours !== prise.id}
                 onPress={() => void ecouter(prise.id)}
               />
               <Bouton

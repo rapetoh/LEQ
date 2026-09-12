@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
-import { EcranChargement } from '@/components/EcransEtat'
+import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
@@ -54,6 +54,19 @@ export default function PreparerDebat() {
   const [message, setMessage] = useState<string | null>(null)
 
   if (theses.isPending || quota.isPending || reprise.isPending) return <EcranChargement />
+  // A failed quota reads as zero, which would tell the person they have used sessions they have
+  // not, and disable the only button on the screen. Say it failed and offer to try again.
+  if (quota.isError || theses.isError) {
+    return (
+      <EcranErreur
+        message={messageRefus(quota.error ?? theses.error)}
+        reessayer={() => {
+          void quota.refetch()
+          void theses.refetch()
+        }}
+      />
+    )
+  }
 
   const restantes = quota.data?.restants ?? 0
   const aReprendre = reprise.data ?? null

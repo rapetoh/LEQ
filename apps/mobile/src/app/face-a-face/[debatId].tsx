@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppState, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -42,6 +42,7 @@ export default function FaceAFace() {
   const [partiel, setPartiel] = useState('')
   const [restantes, setRestantes] = useState<number | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
+  const [microCoupe, setMicroCoupe] = useState(false)
 
   const audio = useRef(new AudioDebat())
   const client = useRef<ClientDebat | null>(null)
@@ -107,7 +108,17 @@ export default function FaceAFace() {
       try {
         await sonore.demarrer(
           (donnees) => clientDebat.envoyer({ type: 'audio', donnees }),
-          () => clientDebat.envoyer({ type: 'fin_tour' }),
+          (etat) => {
+            if (!vivant) return
+            if (etat === 'coupe') {
+              // A call or an alarm took the microphone. Say so, and end the turn with what was
+              // captured, rather than letting the person argue into a dead microphone.
+              setMicroCoupe(true)
+              clientDebat.envoyer({ type: 'fin_tour' })
+            } else {
+              setMicroCoupe(false)
+            }
+          },
         )
       } catch (erreurAudio) {
         if (vivant) {
@@ -115,6 +126,12 @@ export default function FaceAFace() {
           setPhase('interrompu')
         }
         console.warn('debat: micro indisponible', erreurAudio)
+        return
+      }
+      // The screen may have been left while the microphone was opening: hand it all back.
+      if (!vivant) {
+        clientDebat.fermer()
+        void sonore.arreter()
         return
       }
       sonore.ecouter(false)
@@ -132,6 +149,21 @@ export default function FaceAFace() {
   useEffect(() => {
     if (phase === 'termine') invaliderDebats(clientRequetes)
   }, [phase, clientRequetes])
+
+  // The app keeps the microphone in the background (the audio session says so), so leaving the
+  // screen for another app would otherwise keep sending the room's conversation to the server
+  // and writing it into the transcript.
+  useEffect(() => {
+    const abonnement = AppState.addEventListener('change', (etat) => {
+      if (etat === 'active') return
+      audio.current.ecouter(false)
+      if (phase === 'ecoute') {
+        setPhase('reflexion')
+        client.current?.envoyer({ type: 'fin_tour' })
+      }
+    })
+    return () => abonnement.remove()
+  }, [phase])
 
   const finirMonTour = () => {
     if (phase !== 'ecoute') return
@@ -253,11 +285,13 @@ export default function FaceAFace() {
 
       <View style={[styles.pied, { paddingBottom: insets.bottom + espaces.m }]}>
         <Text style={[typographie.corpsFort, styles.texteCentre, { color: theme.voix }]}>
-          {phase === 'ecoute'
-            ? t('debat.aToiDeParler')
-            : phase === 'reflexion'
-              ? t('debat.retorRepond')
-              : t('debat.retorParle')}
+          {microCoupe
+            ? t('debat.microCoupe')
+            : phase === 'ecoute'
+              ? t('debat.aToiDeParler')
+              : phase === 'reflexion'
+                ? t('debat.retorRepond')
+                : t('debat.retorParle')}
         </Text>
         <Bouton
           libelle={t('debat.jaiFini')}

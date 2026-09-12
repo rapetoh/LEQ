@@ -387,6 +387,9 @@ export const fr = {
     passageDedans: 'Ton passage est dedans',
     passageDetail:
       'Tu peux le réécouter ou le retirer tant que le sujet est ouvert. Une seule version est acceptée.',
+    passageRetire: 'Ton passage a été retiré',
+    passageRetireDetail:
+      "Il ne figure plus dans l'Arène. Rebecca peut t'en dire la raison par e-mail.",
     enModeration: 'En attente de publication',
     enModerationDetail: "Ta prise est envoyée. Elle rejoint les autres dès qu'elle est relue.",
     votesOuverts: 'Votes ouverts',
@@ -403,6 +406,9 @@ export const fr = {
     moi: 'toi',
     paire: 'Paire {{numero}}',
     anonymes: "Anonymes jusqu'à ton vote",
+    ecouter: 'Écouter',
+    lectureIndisponible: "Cet enregistrement n'est plus disponible.",
+    lectureEchouee: "La lecture n'a pas démarré. Réessaie dans un instant.",
     choisir: 'Celle-ci me convainc',
     pointsGagnes: '+{{points}} pts gagnés',
     merciVote: 'Merci. Tes points sont crédités.',
@@ -494,6 +500,7 @@ export const fr = {
     aToiDeParler: 'À toi de parler',
     retorRepond: 'Rétor répond',
     retorParle: 'Rétor parle',
+    microCoupe: 'Le micro a été coupé. On le récupère.',
     jaiFini: "J'ai fini de parler",
     terminer: 'Terminer le débat',
     tempsRestant: '{{temps}} de parole restante',

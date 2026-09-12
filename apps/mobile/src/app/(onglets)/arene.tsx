@@ -140,12 +140,16 @@ function Sujet() {
             <Text style={[typographie.titreCarte, { color: theme.texte }]}>
               {maPrise.data?.statut === 'publiee'
                 ? t('arene.passageDedans')
-                : t('arene.enModeration')}
+                : maPrise.data?.statut === 'retiree'
+                  ? t('arene.passageRetire')
+                  : t('arene.enModeration')}
             </Text>
             <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
               {maPrise.data?.statut === 'publiee'
                 ? t('arene.passageDetail')
-                : t('arene.enModerationDetail')}
+                : maPrise.data?.statut === 'retiree'
+                  ? t('arene.passageRetireDetail')
+                  : t('arene.enModerationDetail')}
             </Text>
           </Carte>
           <Carte teinte="orange" style={styles.bloc}>

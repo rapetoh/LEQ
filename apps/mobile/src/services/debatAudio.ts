@@ -36,6 +36,9 @@ export class ErreurDebatAudio extends Error {
 }
 
 export type EcouteurTrame = (donneesBase64: string) => void
+/** Why the microphone stopped feeding the debate, and whether it came back. */
+export type EtatMicro = 'coupe' | 'revenu'
+export type EcouteurInterruption = (etat: EtatMicro) => void
 
 /**
  * The microphone and the speaker of one debate. `demarrer` opens both, `muet` decides whether
@@ -48,9 +51,18 @@ export class AudioDebat {
   private abonnementInterruption: AudioEventSubscription | undefined
   private envoiActif = false
   private ouvert = false
+  /**
+   * Set as soon as `arreter` is called, even while `demarrer` is still awaiting the native
+   * layer. Leaving the screen during that window used to leave a running recorder on an object
+   * nobody held any more: the microphone stayed claimed and iOS kept showing its indicator.
+   */
+  private abandonne = false
+  private surInterruption: EcouteurInterruption | null = null
 
-  async demarrer(surTrame: EcouteurTrame, surInterruption: () => void): Promise<void> {
+  async demarrer(surTrame: EcouteurTrame, surInterruption: EcouteurInterruption): Promise<void> {
     if (this.ouvert) return
+    this.abandonne = false
+    this.surInterruption = surInterruption
     try {
       // playAndRecord in voiceChat: Apple's voice processing is welcome here, because a debate
       // is scored on its transcript and never on the sound of the voice.
@@ -83,20 +95,48 @@ export class AudioDebat {
       console.warn('debat: erreur micro', erreur.message)
     })
     const demarrage = await recorder.start()
+    this.recorder = recorder
     if (demarrage.status === 'error') {
       await this.arreter()
       throw new ErreurDebatAudio(demarrage.message)
     }
-    this.recorder = recorder
+    // The screen may have gone while the native layer was starting. Hand everything back now,
+    // rather than leaving a live microphone attached to nothing.
+    if (this.abandonne) {
+      await this.arreter()
+      return
+    }
 
     AudioManager.observeAudioInterruptions(true)
     this.abonnementInterruption = AudioManager.addSystemEventListener(
       'interruption',
       (evenement) => {
-        if (evenement.type === 'began') surInterruption()
+        if (evenement.type === 'began') {
+          this.envoiActif = false
+          this.surInterruption?.('coupe')
+          return
+        }
+        // Observing interruptions means the native layer stops resuming the engine for us, so
+        // a call or an alarm would kill the microphone for the rest of the debate with nothing
+        // on screen to say so. Restarting it here is the whole reason to handle 'ended'.
+        void this.reprendreApresInterruption()
       },
     )
     this.ouvert = true
+  }
+
+  /** Brings the microphone back after a call, an alarm, or anything else that took the session. */
+  private async reprendreApresInterruption(): Promise<void> {
+    if (!this.ouvert || this.abandonne || !this.recorder) return
+    try {
+      await AudioManager.setAudioSessionActivity(true)
+      const reprise = await this.recorder.start()
+      if (reprise.status === 'error') throw new ErreurDebatAudio(reprise.message)
+      this.surInterruption?.('revenu')
+    } catch (erreur) {
+      console.warn('debat: micro non repris', messageDe(erreur))
+      this.surInterruption?.('coupe')
+    }
   }
 
   /** Frames leave the phone only while this is on: half duplex, one speaker at a time. */
@@ -122,8 +162,10 @@ export class AudioDebat {
   }
 
   async arreter(): Promise<void> {
+    this.abandonne = true
     this.ouvert = false
     this.envoiActif = false
+    this.surInterruption = null
     this.abonnementInterruption?.remove()
     this.abonnementInterruption = undefined
     try {
