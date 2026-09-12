@@ -129,7 +129,7 @@ describe('CarteDuJour', () => {
       acte: null,
       defi: null,
     })
-    expect(ecran.getByText('Ton chemin se prépare.')).toBeTruthy()
+    expect(ecran.getByText('Ton parcours est en préparation.')).toBeTruthy()
   })
 
   it('offers a retry when the step cannot be loaded', async () => {

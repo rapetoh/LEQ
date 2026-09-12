@@ -71,16 +71,14 @@ describe('the podium of a closed week', () => {
   it('does not leave someone with no votes without a sentence', async () => {
     const ecran = await rendre([ligne(1), ligne(2, { moi: true, votes: 0 })])
     expect(
-      ecran.getByText('Aucune voix cette fois. La semaine prochaine, tu recommences.'),
+      ecran.getByText('Aucune voix cette fois. Un nouveau sujet ouvre la semaine prochaine.'),
     ).toBeTruthy()
   })
 
   it('points someone who did not speak at the week that is open now', async () => {
     const ecran = await rendre([ligne(1), ligne(2)])
     expect(ecran.getByText("Tu n'as pas parlé cette semaine.")).toBeTruthy()
-    expect(
-      ecran.getByText('Le sujet suivant est déjà ouvert. Prends ta place dedans.'),
-    ).toBeTruthy()
+    expect(ecran.getByText('Le sujet suivant est déjà ouvert.')).toBeTruthy()
   })
 
   it('lists everyone below the podium under their own heading', async () => {
@@ -102,7 +100,9 @@ describe('the podium of a closed week', () => {
   it('says the recordings are gone and the ranking stays (chapter 2)', async () => {
     const ecran = await rendre([ligne(1)])
     expect(
-      ecran.getByText('Les enregistrements de la semaine ont été supprimés. Le classement reste.'),
+      ecran.getByText(
+        'Les enregistrements de la semaine ont été supprimés. Le classement est conservé.',
+      ),
     ).toBeTruthy()
   })
 })

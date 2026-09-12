@@ -24,28 +24,28 @@ account he holds. The privacy policy and the terms still need a lawyer (cahier c
 
 **Subtitle, 30 characters max**
 
-> Parle mieux, pour de vrai.
+> Parler en public, chaque jour
 
 **Promotional text, 170 characters max**
 
-> Un défi de parole par jour, une analyse de ta voix en quelques minutes, et un retour qui te dit
-> quoi travailler. Rebecca t'accompagne.
+> Un défi de parole par jour. LEQ analyse ta voix en quelques minutes et t'indique quoi
+> travailler, sur les critères de Rebecca, coach en prise de parole.
 
 **Description**
 
 > LEQ t'entraîne à parler en public, tous les jours, en quelques minutes.
 >
-> Tu enregistres. LEQ écoute ton débit, tes silences, tes mots béquilles, la tenue de ta voix. Tu
-> reçois un retour clair, construit sur les critères de Rebecca, coach en prise de parole : ce qui
-> a marché, et la seule chose à travailler ensuite.
+> Tu enregistres. LEQ mesure ton débit, tes silences, tes mots béquilles et la tenue de ta voix.
+> Tu reçois un retour construit sur les critères de Rebecca, coach en prise de parole : ce qui a
+> marché, et le point à travailler ensuite.
 >
 > **Ton défi du jour**
 > Un parcours en trois actes, un défi par jour, du format court aux cinq minutes préparées. La
 > difficulté suit ce que tu sais déjà faire.
 >
-> **Ta voix ne reste pas**
-> Chaque prise est analysée puis effacée. On ne garde que tes résultats, du texte et des chiffres.
-> Il n'existe nulle part de bibliothèque de tes anciens enregistrements.
+> **Ta voix n'est pas conservée**
+> Chaque prise est analysée puis effacée. Seuls tes résultats sont conservés, sous forme de texte
+> et de chiffres. L'application ne garde aucune bibliothèque de tes enregistrements.
 >
 > **L'Arène et les duels**
 > Un sujet par semaine, les passages des autres, un vote par paires. Ou un duel privé : deux
@@ -57,7 +57,8 @@ account he holds. The privacy policy and the terms still need a lawyer (cahier c
 > argument. Le débriefing s'appuie sur le texte du débat.
 >
 > **Ta série**
-> Ce qui valide une journée, c'est d'enregistrer. Une récupération par mois quand la vie s'en mêle.
+> Une journée est validée dès que tu enregistres. Une récupération par mois est disponible en cas
+> de jour manqué.
 
 **Keywords, 100 characters** (no spaces after commas, Apple counts them)
 
@@ -65,7 +66,8 @@ account he holds. The privacy policy and the terms still need a lawyer (cahier c
 
 **What's new, first version**
 
-> La première version de LEQ : le parcours quotidien, l'analyse de ta voix et le retour de Rebecca.
+> La première version de LEQ : le parcours quotidien, l'analyse de ta voix et le retour construit
+> sur les critères de Rebecca.
 
 ## 3. App Store privacy labels
 
@@ -89,8 +91,8 @@ subscription state the store itself holds, no third-party analytics.
 **The sentence that explains the audio line**, for the reviewer and for the label's description:
 
 > La voix est enregistrée, envoyée pour analyse, puis supprimée. Seuls les résultats de l'analyse
-> sont conservés. Exception annoncée à l'utilisateur au moment de l'envoi : une prise d'Arène ou
-> de duel reste en ligne le temps du vote, puis elle est supprimée.
+> sont conservés. Une exception, annoncée à l'utilisateur au moment de l'envoi : une prise d'Arène
+> ou de duel reste en ligne le temps du vote, puis elle est supprimée.
 
 ## 4. Play Data safety
 

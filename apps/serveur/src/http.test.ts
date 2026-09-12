@@ -11,6 +11,8 @@ import { creerApplication } from './http.js'
 const PAGE = '<!doctype html><title>LEQ</title>'
 let dossier: string
 let relatif: string
+let dossierAdmin: string
+let relatifAdmin: string
 
 beforeAll(async () => {
   dossier = await mkdtemp(path.join(os.tmpdir(), 'leq-web-'))
@@ -20,9 +22,51 @@ beforeAll(async () => {
   await writeFile(path.join(dossier, 'assets', 'index.css'), 'body{}')
   // serveStatic resolves against the working directory, the way the image does.
   relatif = path.relative(process.cwd(), dossier)
+
+  dossierAdmin = await mkdtemp(path.join(os.tmpdir(), 'leq-admin-'))
+  await writeFile(path.join(dossierAdmin, 'index.html'), '<!doctype html><title>Espace</title>')
+  await writeFile(path.join(dossierAdmin, 'favicon.svg'), '<svg/>')
+  await mkdir(path.join(dossierAdmin, 'assets'))
+  await writeFile(path.join(dossierAdmin, 'assets', 'index.js'), 'export {}')
+  relatifAdmin = path.relative(process.cwd(), dossierAdmin)
 })
 
-afterAll(() => rm(dossier, { recursive: true, force: true }))
+afterAll(async () => {
+  await rm(dossier, { recursive: true, force: true })
+  await rm(dossierAdmin, { recursive: true, force: true })
+})
+
+describe("Rebecca's space", () => {
+  const espace = () => creerApplication('temps-reel', relatif, undefined, relatifAdmin)
+
+  it('answers /admin and every route under it with the page', async () => {
+    for (const chemin of ['/admin', '/admin/theses', '/admin/defis/nouveau']) {
+      const reponse = await espace().request(chemin)
+      expect(reponse.status).toBe(200)
+      await expect(reponse.text()).resolves.toContain('<title>Espace</title>')
+    }
+  })
+
+  it('serves its bundle from under the same prefix, which is what the build writes', async () => {
+    expect((await espace().request('/admin/assets/index.js')).status).toBe(200)
+    expect((await espace().request('/admin/favicon.svg')).status).toBe(200)
+  })
+
+  it('does not shadow the public pages', async () => {
+    expect((await espace().request('/duel/abc')).status).toBe(200)
+    expect((await espace().request('/sante')).status).toBe(200)
+  })
+
+  it('serves nothing when no space was built into the image', async () => {
+    const app = creerApplication('temps-reel', relatif)
+    expect((await app.request('/admin')).status).toBe(404)
+  })
+
+  it('never serves it from the worker', async () => {
+    const app = creerApplication('worker', relatif, undefined, relatifAdmin)
+    expect((await app.request('/admin')).status).toBe(404)
+  })
+})
 
 describe('the health route', () => {
   it('answers on both processes, saying which one it is', async () => {

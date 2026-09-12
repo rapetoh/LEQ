@@ -32,6 +32,7 @@ export function creerApplication(
   processus: Processus,
   dossierWeb?: string,
   debat?: DependancesDebat,
+  dossierAdmin?: string,
 ): Hono {
   const app = new Hono()
 
@@ -45,6 +46,18 @@ export function creerApplication(
     for (const chemin of CHEMINS_WEB) {
       app.get(chemin, serveStatic({ path: `${dossierWeb}/index.html` }))
     }
+  }
+
+  // Rebecca's space, under /admin on the same host. Everything it shows is behind a sign-in and
+  // the admin role in row-level security, so serving the bundle publicly gives nothing away.
+  if (processus === 'temps-reel' && dossierAdmin) {
+    app.use(
+      '/admin/assets/*',
+      serveStatic({ root: dossierAdmin, rewriteRequestPath: (c) => c.replace(/^\/admin/, '') }),
+    )
+    app.get('/admin/favicon.svg', serveStatic({ path: `${dossierAdmin}/favicon.svg` }))
+    app.get('/admin', serveStatic({ path: `${dossierAdmin}/index.html` }))
+    app.get('/admin/*', serveStatic({ path: `${dossierAdmin}/index.html` }))
   }
 
   if (processus === 'temps-reel') {
@@ -99,11 +112,11 @@ export interface ServeurHttp {
 }
 
 export function demarrerHttp(
-  config: Pick<Config, 'port' | 'processus' | 'dossierWeb'>,
+  config: Pick<Config, 'port' | 'processus' | 'dossierWeb' | 'dossierAdmin'>,
   log: Logger,
   debat?: DependancesDebat,
 ): ServeurHttp {
-  const app = creerApplication(config.processus, config.dossierWeb, debat)
+  const app = creerApplication(config.processus, config.dossierWeb, debat, config.dossierAdmin)
   const wss = new WebSocketServer({ noServer: true })
   // ws types `options.noServer` as `boolean | undefined`; Hono wants `noServer?: boolean`. Same
   // runtime shape, so the cast only bridges exactOptionalPropertyTypes.

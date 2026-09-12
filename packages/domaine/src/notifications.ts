@@ -60,5 +60,5 @@ export const MESSAGE_RETOUR_PRET = {
  */
 export const MESSAGE_RESULTAT_ARENE = {
   titre: "La semaine de l'Arène est finie",
-  corps: 'Les votes sont comptés. Va voir où tu arrives.',
+  corps: 'Les votes sont comptés. Tu peux voir ton classement.',
 } as const

@@ -41,6 +41,7 @@ Three things bring people back: the daily challenge (the next step of the path),
 - `docs/DATA-MODEL.md` is the contract. A name changes there first, then in every workspace, in the same commit.
 - Tracking documents are updated in the same commit as the code they describe. The test: a human or an AI picking this up cold understands where things stand without asking.
 - Domain vocabulary in French (as in the cahier and the diagrams), technical plumbing in English, engineering docs in English, every user-facing string in French.
+- Every user-facing string is written to [docs/STRINGS.md](docs/STRINGS.md), including its section "How the text must not sound": no sentence that states a fact and then negates its opposite, no aphorism, no loading state written as the application narrating itself. `npm run strings` enforces the mechanical part and runs inside `npm run check`.
 - No em dashes anywhere, in any file. Commas, periods, colons.
 - Secrets never enter git. `.env` files are ignored; only `.env.example` files are committed.
 - Four inputs do not exist yet and are never invented: Rebecca's grid, the path generator rules, the speech-to-text provider, the measured cost of a debate. Where code needs them, a clearly named stub stands in and the README of the workspace says so.

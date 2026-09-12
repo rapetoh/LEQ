@@ -140,6 +140,6 @@ export const MESSAGES_ERREUR_DEBAT: Readonly<Record<CodeErreurDebat, string>> = 
   jeton_invalide: 'Ta session a expiré. Ouvre LEQ à nouveau.',
   debat_introuvable: 'Ce débat est introuvable.',
   debat_clos: 'Ce débat est terminé.',
-  protocole: "Ça n'a pas marché. C'est nous, pas toi.",
-  interne: "Ça n'a pas marché. C'est nous, pas toi.",
+  protocole: "Ça n'a pas marché. L'erreur vient de chez nous.",
+  interne: "Ça n'a pas marché. L'erreur vient de chez nous.",
 }

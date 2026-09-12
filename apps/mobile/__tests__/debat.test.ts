@@ -19,7 +19,10 @@ describe('messageRefus', () => {
 
   it('never blames the person for something we could not name', () => {
     const texte = messageRefus(new Error('boom'))
-    expect(texte).toContain("C'est nous, pas toi")
+    // The rule, not one wording of it: an unnamed failure never says the person did
+    // anything, and never asks them to fix something on their side.
+    expect(texte).not.toMatch(/\btu as\b|\bton erreur\b|\bvérifie\b/i)
+    expect(texte).toBe("Ça n'a pas marché. Réessaie dans un instant.")
   })
 
   it('has a sentence for every reason the database can raise', () => {

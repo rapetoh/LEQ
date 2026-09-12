@@ -58,7 +58,7 @@ insert into public.defis (cle, ordre_acte, ordre, format, titre, consigne, focus
    'Dis bonjour, ton prénom, et ce qui t''amène ici. Trente secondes, pas plus, comme si on venait d''entrer dans la pièce.',
    'ton temps avant de démarrer', '[]'::jsonb, null, null, null, 60, 25, 'demarrage', 18),
   ('se_presenter', 1, 2, 'standard', 'Se présenter sans se presser',
-   'Présente-toi en une minute. Le but n''est pas de tout dire : c''est de ne pas courir.',
+   'Présente-toi en une minute. Prends ton temps, tu n''as pas besoin de tout dire.',
    'ton débit', '[]'::jsonb, null, null, null, 90, 25, 'debit', 18),
   ('voix_posee', 1, 3, 'standard', 'La voix posée',
    'Raconte ta journée d''hier, du réveil au coucher, d''une voix qui ne monte pas quand tu hésites.',
@@ -76,7 +76,7 @@ insert into public.defis (cle, ordre_acte, ordre, format, titre, consigne, focus
    'Choisis un objet devant toi et parle-en trente secondes sans t''arrêter. Si tu n''as plus rien à dire, décris-le.',
    'ta tenue sans pause', '[]'::jsonb, null, null, null, 60, 25, 'tenue', 21),
   ('trois_phrases', 2, 1, 'standard', 'Convaincs-moi en trois phrases',
-   'Défends une idée à laquelle tu crois. Trois phrases, pas une de plus. C''est la contrainte qui rend la parole nette.',
+   'Défends une idée à laquelle tu crois, en trois phrases exactement. La contrainte oblige à aller à l''essentiel.',
    'tes silences',
    '[{"titre":"L''affirmation, sans précaution","detail":""},{"titre":"La preuve, vécue","detail":""},{"titre":"Ce qui change si on te suit","detail":""}]'::jsonb,
    null, null, null, 120, 25, 'structure', 21),
@@ -88,22 +88,22 @@ insert into public.defis (cle, ordre_acte, ordre, format, titre, consigne, focus
    'tes silences tenus', '[]'::jsonb, null, null, null, 120, 25, 'silences', 22),
   ('sans_notes', 2, 4, 'standard', 'Sans notes',
    'Présente un projet qui te tient à cœur, deux minutes, sans rien lire et sans rien regarder.',
-   'ta structure, tenue de tête', '[]'::jsonb, null, null, null, 120, 25, 'structure', 23),
+   'ta structure, sans notes', '[]'::jsonb, null, null, null, 120, 25, 'structure', 23),
   ('reponds_au_texte', 2, 5, 'texte', 'Réponds à ce texte',
    'Lis-le une fois à voix haute. Puis dis-nous s''il a raison.',
-   'ta position, tenue ou pas', '[]'::jsonb,
+   'ta position, tenue jusqu''au bout', '[]'::jsonb,
    'On ne convainc personne avec des arguments. On convainc avec la certitude tranquille de celui qui les porte.',
    40, null, 180, 30, 'position', 23),
   ('defends_ton_idee', 2, 6, 'long', 'Défends ton idée pendant cinq minutes',
    'Choisis une idée que tu défends depuis longtemps. Deux minutes pour poser trois appuis, puis cinq minutes de parole.',
    'ta structure, puis ta voix',
-   '[{"titre":"Prépare · 2 min","detail":"Trois appuis notés à l''écran, pas une rédaction"},{"titre":"Parle · 5 min","detail":"L''anneau marque tes trois appuis en chemin"},{"titre":"Le retour, en deux temps","detail":"La structure d''abord, la voix ensuite"}]'::jsonb,
+   '[{"titre":"Prépare · 2 min","detail":"Trois appuis à noter à l''écran"},{"titre":"Parle · 5 min","detail":"L''anneau marque tes trois appuis"},{"titre":"Le retour, en deux temps","detail":"La structure d''abord, la voix ensuite"}]'::jsonb,
    null, null, 120, 300, 50, 'structure', 24)
 on conflict (cle) do nothing;
 
 insert into public.exercices (cle, titre, consigne, duree_s, competence) values
-  ('silence_un_deux', 'Compter le silence', 'Compte « un, deux » dans ta tête à chaque virgule. Juste ça.', 30, 'silences'),
-  ('une_idee_une_preuve', 'Une idée, une preuve', 'Dis ton idée en une phrase, puis une preuve. Deux phrases, pas plus.', 30, 'structure'),
+  ('silence_un_deux', 'Compter le silence', 'Compte « un, deux » dans ta tête à chaque virgule.', 30, 'silences'),
+  ('une_idee_une_preuve', 'Une idée, une preuve', 'Dis ton idée en une phrase, puis une preuve. Deux phrases en tout.', 30, 'structure'),
   ('trois_phrases_lentes', 'Trois phrases lentes', 'Lis trois phrases de ton choix en marquant chaque virgule d''un souffle.', 30, 'debit'),
   ('fin_de_phrase_basse', 'La fin qui descend', 'Dis cinq phrases courtes sur ta journée. Chaque dernière syllabe descend, comme un point.', 30, 'presence'),
   ('un_souffle_une_idee', 'Un souffle, une idée', 'Respire par le ventre, puis dis une idée. Recommence cinq fois, sans presser.', 30, 'souffle')
@@ -118,7 +118,7 @@ insert into public.recompenses (cle, ordre, type, titre, sous_titre, description
   ('masterclass', 1, 'contenu', 'La masterclass exclusive', 'Vidéo de Rebecca, 40 min', null, 300, null, true),
   ('reduction_pack', 2, 'reduction', '10 % sur un pack', 'Les cours de Rebecca', null, 600, null, true),
   ('place_atelier', 3, 'atelier', 'Une place d''atelier de groupe', null, 'Une journée en petit groupe, avec Rebecca.', 1200, 10, true),
-  ('heure_rebecca', 4, 'distinction', 'Une heure avec Rebecca', 'Le prix du n°1 du mois. Ça ne s''achète pas.', null, null, null, false)
+  ('heure_rebecca', 4, 'distinction', 'Une heure avec Rebecca', 'Attribuée au n°1 du mois. Elle ne s''échange pas contre des points.', null, null, null, false)
 on conflict (cle) do nothing;
 
 -- sujets_arene (Phase 7) --------------------------------------------------------
@@ -129,7 +129,7 @@ on conflict (cle) do nothing;
 
 insert into public.sujets_arene (cle, texte, consigne, ordre, duree_max_s, provisoire) values
   ('faut_il_tout_dire', 'Faut-il dire la vérité à tout prix ?', 'Prends une position et tiens-la jusqu''au bout.', 1, 90, true),
-  ('talent_ou_travail', 'Le talent existe-t-il, ou n''est-ce que du travail ?', 'Un exemple concret vaut mieux qu''une théorie.', 2, 90, true),
+  ('talent_ou_travail', 'Le talent existe-t-il, ou n''est-ce que du travail ?', 'Appuie ta position sur un exemple concret.', 2, 90, true),
   ('ecole_notes', 'Les notes à l''école servent-elles encore à quelque chose ?', null, 3, 90, true),
   ('ville_sans_voiture', 'Faut-il interdire la voiture en centre-ville ?', null, 4, 90, true)
 on conflict (cle) do nothing;

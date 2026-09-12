@@ -58,6 +58,16 @@ export interface ContexteAdversaire {
  * Rétor. The cahier is firm on one point: the answer must really answer what was just said. A
  * scripted opponent produces objections that do not match the argument, the person notices at
  * the first turn, and they stop trusting the rest of the application at the same time.
+ *
+ * Rétor and the debrief are the only French a person reads that this codebase does not write
+ * itself, so the system prompt of a real implementation carries the writing rules as a hard
+ * constraint, in the model's own instructions: plain French, tutoiement, and none of the
+ * constructions banned in docs/STRINGS.md, "How the text must not sound". A model left to its
+ * own devices writes exactly the contrastive pairs and aphorisms that section exists to remove
+ * ("ce n'est pas un argument, c'est une intuition"), which would undo the pass on every other
+ * string in the application. `npm run strings` cannot see runtime text: the prompt is the only
+ * place this is enforced, and a sample of real turns is read against the checklist before the
+ * provider ships.
  */
 export interface Adversaire {
   readonly nom: string

@@ -55,6 +55,8 @@ const SchemaEnv = z.object({
   // Built bundle of apps/web, served by the public process. Unset means no public pages,
   // which is what a local worker or a developer's machine wants.
   DOSSIER_WEB: z.string().min(1).optional(),
+  /** Built bundle of apps/admin, served under /admin by the public process. */
+  DOSSIER_ADMIN: z.string().min(1).optional(),
   PYTHON_PATH: z.string().min(1).default('python3'),
   PROSODIE_SCRIPT: z.string().min(1).default(cheminScriptParDefaut),
   INTERVALLE_INACTIF_MS: z.coerce.number().int().min(100).default(2000),
@@ -75,6 +77,7 @@ export interface Config {
   voix: NomVoix
   ffmpegPath: string
   dossierWeb: string | undefined
+  dossierAdmin: string | undefined
   pythonPath: string
   prosodieScript: string
   intervalleInactifMs: number
@@ -117,6 +120,7 @@ export function chargerConfig(env: NodeJS.ProcessEnv = process.env): Config {
     voix: e.VOIX,
     ffmpegPath: e.FFMPEG_PATH,
     dossierWeb: e.DOSSIER_WEB,
+    dossierAdmin: e.DOSSIER_ADMIN,
     pythonPath: e.PYTHON_PATH,
     prosodieScript: e.PROSODIE_SCRIPT,
     intervalleInactifMs: e.INTERVALLE_INACTIF_MS,

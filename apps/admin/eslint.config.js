@@ -33,6 +33,17 @@ export default defineConfig([
     },
   },
 
+  // French typography needs a no-break space before ":" and a narrow no-break space before "?",
+  // ";" and inside « » (docs/STRINGS.md, rule 12). no-irregular-whitespace already skips plain
+  // strings but not template literals, and the strings module has both. It is the one file where
+  // those characters are deliberate, and `npm run strings` checks they are the right ones.
+  {
+    files: ['src/fr.ts'],
+    rules: {
+      'no-irregular-whitespace': ['error', { skipTemplates: true, skipStrings: true }],
+    },
+  },
+
   // The Supabase client is used without a generated Database type: rows are validated with Zod
   // at this boundary, so the "unsafe any" rules do not apply inside the services folder.
   {
