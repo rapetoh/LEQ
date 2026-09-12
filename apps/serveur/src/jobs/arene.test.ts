@@ -23,6 +23,7 @@ describe('roter_sujet_arene', () => {
     const ex: Executeur = {
       async query(text: string) {
         appels.push(text)
+        if (text.includes('resultat_notifie_le is null')) return reponse([])
         return reponse([{ rotation: { ferme: null, actif: null } }])
       },
     }
@@ -38,6 +39,7 @@ describe('roter_sujet_arene', () => {
         if (text.includes('roter_sujet_arene')) {
           return reponse([{ rotation: { ferme: 's-close', actif: 's-neuf' } }])
         }
+        if (text.includes('resultat_notifie_le is null')) return reponse([{ id: 's-close' }])
         jobs.push({ type: values?.[0], cle: values?.[2] })
         return reponse([])
       },
@@ -53,6 +55,7 @@ describe('roter_sujet_arene', () => {
         if (text.includes('roter_sujet_arene')) {
           return reponse([{ rotation: { ferme: null, actif: 's-en-cours' } }])
         }
+        if (text.includes('resultat_notifie_le is null')) return reponse([])
         jobs.push(text)
         return reponse([])
       },
@@ -193,5 +196,41 @@ describe('supprimer_audio_public', () => {
     await creerHandlerSupprimerAudioPublic({ ex, stockage })(job, contexte)
     expect(supprimes).toEqual(['u1/p1.m4a'])
     expect(marques).toEqual(['p1', 'p2'])
+  })
+})
+
+// The rotation reports a week as closed exactly once. A failure between closing it and queueing
+// the notification would otherwise lose that week's podium for good.
+describe('le rattrapage des résultats de semaine', () => {
+  it('reprend une semaine fermée dont le podium n a jamais été annoncé', async () => {
+    const jobs: Array<{ type: unknown; cle: unknown }> = []
+    const ex: Executeur = {
+      async query(text: string, values?: unknown[]) {
+        if (text.includes('roter_sujet_arene')) {
+          return reponse([{ rotation: { ferme: null, actif: 's-en-cours' } }])
+        }
+        if (text.includes('resultat_notifie_le is null')) return reponse([{ id: 's-oubliee' }])
+        jobs.push({ type: values?.[0], cle: values?.[2] })
+        return reponse([])
+      },
+    }
+    await creerHandlerRoterSujetArene({ ex, stockage: {} as never })(job, contexte)
+    expect(jobs).toEqual([{ type: 'envoyer_resultat_arene', cle: 'resultat:s-oubliee' }])
+  })
+
+  it('ne double pas la semaine qu il vient lui-même de fermer', async () => {
+    const jobs: unknown[] = []
+    const ex: Executeur = {
+      async query(text: string, values?: unknown[]) {
+        if (text.includes('roter_sujet_arene')) {
+          return reponse([{ rotation: { ferme: 's-close', actif: 's-neuf' } }])
+        }
+        if (text.includes('resultat_notifie_le is null')) return reponse([{ id: 's-close' }])
+        jobs.push(values?.[2])
+        return reponse([])
+      },
+    }
+    await creerHandlerRoterSujetArene({ ex, stockage: {} as never })(job, contexte)
+    expect(jobs).toEqual(['resultat:s-close'])
   })
 })

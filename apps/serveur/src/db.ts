@@ -321,6 +321,21 @@ export async function roterSujetArene(ex: Executeur): Promise<RotationArene> {
  * Claims the right to notify the result of a week. True exactly once per subject, so a job
  * retried after a crash mid-send never notifies the same week twice.
  */
+/**
+ * Weeks that closed and whose podium was never announced. The rotation only ever reports a week
+ * as closed once, so without this a single failure between closing and queueing would lose that
+ * week's notification for good.
+ */
+export async function listerSujetsSansResultat(ex: Executeur): Promise<string[]> {
+  const { rows } = await ex.query(
+    `select id from public.sujets_arene
+      where ferme_le is not null and resultat_notifie_le is null
+      order by ferme_le desc
+      limit 20`,
+  )
+  return rows.map((r) => String(r['id']))
+}
+
 export async function reserverResultatArene(ex: Executeur, sujetId: string): Promise<boolean> {
   const { rows } = await ex.query('select public.reserver_resultat_arene($1) as pris', [sujetId])
   return rows[0]?.['pris'] === true

@@ -12,6 +12,7 @@ import { z } from 'zod'
 import {
   creerJob,
   fermerDuel,
+  listerSujetsSansResultat,
   listerDuelsAFermer,
   listerJetonsPourResultatArene,
   listerPrisesPubliquesASupprimer,
@@ -38,8 +39,18 @@ export function creerHandlerRoterSujetArene(deps: DependancesArene): HandlerJob 
       // that succeeded, and the claim inside that job makes a retry safe.
       await creerJob(deps.ex, 'envoyer_resultat_arene', { sujet_id: ferme }, `resultat:${ferme}`)
     }
+    // The rotation reports a week as closed exactly once, so if queueing the notification had
+    // failed here the retry would see the new week running, report nothing closed, and that
+    // week's podium would never be announced. Any week that closed without its notification is
+    // picked up on the next pass instead, which is every hour.
+    const oublies = await listerSujetsSansResultat(deps.ex)
+    for (const sujet of oublies) {
+      if (sujet === ferme) continue
+      await creerJob(deps.ex, 'envoyer_resultat_arene', { sujet_id: sujet }, `resultat:${sujet}`)
+      contexte.log.warn({ sujet_id: sujet }, 'resultat de semaine rattrape')
+    }
     contexte.log.info(
-      { sujet_ferme: ferme, sujet_actif: actif },
+      { sujet_ferme: ferme, sujet_actif: actif, rattrapes: oublies.length },
       actif ? 'sujet actif' : 'banque de sujets vide',
     )
   }
