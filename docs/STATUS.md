@@ -405,7 +405,23 @@ was closed in this last batch, and why each one mattered:
 - **Le tableau de bord n'a plus à lire toute la table.** `tentatives (cree_le)`, a partial index
   for the validated steps, and `profils (cree_le)`.
 
-Verified: 91 server tests, 480 database assertions across the eight suites, `npm run check` green.
+Then the phone:
+
+- **La session audio passe par une seule porte.** Recording a take and holding a face-à-face both
+  claim the phone's audio session, and leaving one screen for another put the teardown of the
+  first after the startup of the second: the new recording began on a session that was no longer
+  active and gave back a file of silence, which looks exactly like someone who did not speak.
+  `services/sessionAudio.ts` serialises every transition and ignores a release once someone else
+  has claimed it.
+- **C6 ne propose plus d'enregistrer une prise qui existe déjà.** The duel screen read its takes
+  with a query whose error was dropped, so a network failure looked like "you have not spoken
+  yet". It is a real query now, with its own error state and a retry. Its two buttons said
+  « Continuer » and « Voir » for listening to a recording; they say what they do.
+- **Une image remplacée s'affiche.** `ImageMedia` kept a boolean failure flag that never reset
+  when the path changed, so a recycled row or an image Rebecca replaced stayed blank for ever.
+
+Verified: 91 server tests, 88 mobile tests, 480 database assertions across the eight suites,
+`npm run check` and `npm run strings` green. Server deployed, migrations applied.
 
 ## Next
 

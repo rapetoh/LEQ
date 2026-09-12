@@ -1,7 +1,6 @@
 import type { Duel } from '@leq/domaine'
-import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -11,16 +10,14 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
-import { useDuels } from '@/services/arene'
+import { useDuels, usePassagesDuel, type PassageDuel } from '@/services/arene'
 import { lecteur, urlSignee } from '@/services/lecture'
-import { supabase, useSession } from '@/services/supabase'
+import { useSession } from '@/services/supabase'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
 // C6 · Le duel, verdict. No votes here: the duel is private, the analysis decides on Rebecca's
 // grid, and the screen says so. While it is open, the screen says whose turn it is.
-
-type Passage = { id: string; utilisateur_id: string; chemin_audio: string | null }
 
 export default function EcranDuel() {
   const params = useLocalSearchParams<{ id?: string }>()
@@ -30,31 +27,26 @@ export default function EcranDuel() {
   const insets = useSafeAreaInsets()
   const { session } = useSession()
   const duels = useDuels()
-  const clientRequetes = useQueryClient()
-  const [passages, setPassages] = useState<Passage[]>([])
-  void clientRequetes
+  const passagesRequete = usePassagesDuel(id)
+  const passages = passagesRequete.data ?? []
 
   const duel: Duel | undefined = duels.data?.find((d) => d.id === id)
 
-  useEffect(() => {
-    if (!id) return
-    let actif = true
-    void supabase
-      .from('prises_publiques')
-      .select('id, utilisateur_id, chemin_audio')
-      .eq('duel_id', id)
-      .then(({ data }) => {
-        if (actif && data) setPassages(data as Passage[])
-      })
-    return () => {
-      actif = false
-      lecteur.arreter()
-    }
-  }, [id])
+  useEffect(() => () => lecteur.arreter(), [])
 
-  if (duels.isPending) return <EcranChargement />
+  if (duels.isPending || passagesRequete.isPending) return <EcranChargement />
   if (!duel) {
     return <EcranErreur message={t('arene.refusInconnu')} reessayer={() => void duels.refetch()} />
+  }
+  // The takes decide what this screen offers. Without them it would offer to record one that
+  // already exists, and the two listen buttons would do nothing.
+  if (passagesRequete.isError) {
+    return (
+      <EcranErreur
+        message={t('arene.refusInconnu')}
+        reessayer={() => void passagesRequete.refetch()}
+      />
+    )
   }
 
   const moi = session?.user.id ?? ''
@@ -68,7 +60,7 @@ export default function EcranDuel() {
   const maPrise = passages.find((p) => p.utilisateur_id === moi)
   const sienne = passages.find((p) => p.utilisateur_id !== moi)
 
-  const ecouter = async (passage: Passage | undefined) => {
+  const ecouter = async (passage: PassageDuel | undefined) => {
     if (!passage?.chemin_audio) return
     try {
       await lecteur.jouer(await urlSignee(passage.chemin_audio))
@@ -103,16 +95,20 @@ export default function EcranDuel() {
             </Titre>
           </View>
           <Carte style={styles.bloc}>
-            <Bouton
-              libelle={t('commun.continuer')}
-              variante="secondaire"
-              onPress={() => void ecouter(maPrise)}
-            />
-            <Bouton
-              libelle={t('arene.voir')}
-              variante="secondaire"
-              onPress={() => void ecouter(sienne)}
-            />
+            {maPrise?.chemin_audio ? (
+              <Bouton
+                libelle={t('arene.ecouterMonPassage')}
+                variante="secondaire"
+                onPress={() => void ecouter(maPrise)}
+              />
+            ) : null}
+            {sienne?.chemin_audio ? (
+              <Bouton
+                libelle={t('arene.ecouterSonPassage')}
+                variante="secondaire"
+                onPress={() => void ecouter(sienne)}
+              />
+            ) : null}
           </Carte>
         </>
       ) : duel.statut === 'expire' ? (

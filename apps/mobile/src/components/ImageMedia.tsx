@@ -18,9 +18,12 @@ type Props = {
 }
 
 export function ImageMedia({ chemin, ratio = 16 / 9, style }: Props) {
-  const [echec, setEchec] = useState(false)
+  // The failure is remembered against the address that failed, not as a flag. A flag stayed on
+  // when the path changed (a recycled row, or an image Rebecca replaced), and the new picture
+  // never appeared.
+  const [echoue, setEchoue] = useState<string | null>(null)
   const url = urlMedia(BASE, chemin ?? null)
-  if (!url || echec) return null
+  if (!url || echoue === url) return null
   return (
     <View style={[styles.cadre, { aspectRatio: ratio }, style]}>
       <Image
@@ -28,7 +31,7 @@ export function ImageMedia({ chemin, ratio = 16 / 9, style }: Props) {
         style={styles.image}
         resizeMode="cover"
         accessibilityRole="image"
-        onError={() => setEchec(true)}
+        onError={() => setEchoue(url)}
       />
     </View>
   )

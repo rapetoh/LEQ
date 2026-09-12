@@ -33,6 +33,7 @@ export const CLE_PAIRE = ['paire_a_voter'] as const
 export const CLE_DUELS = ['duels'] as const
 export const CLE_DERNIER_CLOS = ['dernier_sujet_arene_clos'] as const
 export const CLE_PODIUM = ['podium_arene'] as const
+export const CLE_PASSAGES_DUEL = ['passages_duel'] as const
 
 export class ErreurArene extends Error {
   constructor(
@@ -208,6 +209,34 @@ export function useMaPrise(sujetId: string | null) {
   )
 }
 
+/** The two takes of a duel: mine and theirs, with the path to listen to each. */
+const PassageDuelSchema = z.object({
+  id: z.string(),
+  utilisateur_id: z.string(),
+  chemin_audio: z.string().nullable(),
+})
+export type PassageDuel = z.infer<typeof PassageDuelSchema>
+
+/**
+ * C6 reads this before it decides what to offer. Its failure used to be dropped, so a network
+ * error looked exactly like "you have not spoken yet": the screen offered to record a take that
+ * already existed.
+ */
+export function usePassagesDuel(duelId: string | null) {
+  return useRequete(
+    [...CLE_PASSAGES_DUEL, duelId ?? ''],
+    async () => {
+      const { data, error } = await supabase
+        .from('prises_publiques')
+        .select('id, utilisateur_id, chemin_audio')
+        .eq('duel_id', duelId ?? '')
+      if (error) throw new ErreurArene(null, error.message)
+      return PassageDuelSchema.array().parse(data ?? [])
+    },
+    duelId !== null,
+  )
+}
+
 export function invaliderArene(client: QueryClient): void {
   for (const cle of [
     CLE_SUJET,
@@ -217,6 +246,7 @@ export function invaliderArene(client: QueryClient): void {
     CLE_DUELS,
     CLE_DERNIER_CLOS,
     CLE_PODIUM,
+    CLE_PASSAGES_DUEL,
   ]) {
     void client.invalidateQueries({ queryKey: cle })
   }

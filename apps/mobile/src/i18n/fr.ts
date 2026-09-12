@@ -422,6 +422,8 @@ export const fr = {
     verdictPret: 'Fini · le verdict est prêt',
     duelExpire: "Expiré · personne n'a répondu à temps",
     voir: 'Voir',
+    ecouterMonPassage: 'Écouter mon passage',
+    ecouterSonPassage: 'Écouter le sien',
     vainqueur: 'Vainqueur',
     egalite: 'Égalité',
     verdictAutomatique:

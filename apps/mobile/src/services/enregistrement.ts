@@ -14,6 +14,12 @@ import {
   type AudioEventSubscription,
 } from 'react-native-audio-api'
 
+import {
+  prendreSessionAudio,
+  rendreSessionAudio,
+  type ReclamationAudio,
+} from './sessionAudio'
+
 // 22.05 kHz, not 16 kHz: the iOS AAC encoder refuses to open a 16 kHz file (AudioConverter
 // rejects the bit rate). The server resamples to 16 kHz with ffmpeg before measuring, so the
 // pipeline is unchanged. Checked on the simulator with src/app/diagnostic.tsx on 2026-09-11.
@@ -55,6 +61,7 @@ export class ServiceEnregistrement {
   private abonnementInterruption: AudioEventSubscription | undefined
   private surInterruption: EcouteurInterruption | null = null
   private enCours = false
+  private reclamation: ReclamationAudio | null = null
 
   private obtenirRecorder(): AudioRecorder {
     if (!this.recorder) {
@@ -138,12 +145,11 @@ export class ServiceEnregistrement {
 
   private async ouvrirSession(mode: 'measurement' | 'default'): Promise<void> {
     try {
-      AudioManager.setAudioSessionOptions(
+      this.reclamation = await prendreSessionAudio(
         mode === 'measurement'
           ? { iosCategory: 'record', iosMode: 'measurement', iosOptions: [] }
           : { iosCategory: 'playAndRecord', iosMode: 'default', iosOptions: [] },
       )
-      await AudioManager.setAudioSessionActivity(true)
     } catch (erreur) {
       throw new ErreurEnregistrement(`session audio (${mode}) : ${messageDe(erreur)}`)
     }
@@ -180,10 +186,11 @@ export class ServiceEnregistrement {
     this.abonnementInterruption = undefined
     this.surInterruption = null
     try {
-      await AudioManager.setAudioSessionActivity(false)
+      await rendreSessionAudio(this.reclamation)
     } catch (erreur) {
       console.warn('enregistrement: session non libérée', erreur)
     }
+    this.reclamation = null
   }
 }
 

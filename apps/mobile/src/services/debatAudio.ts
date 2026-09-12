@@ -28,6 +28,20 @@ import {
   TRAME_DEBAT,
   versInt16,
 } from './pcm'
+import {
+  prendreSessionAudio,
+  rendreSessionAudio,
+  type OptionsSessionAudio,
+  type ReclamationAudio,
+} from './sessionAudio'
+
+// playAndRecord in voiceChat: Apple's voice processing is welcome here, because a debate is
+// scored on its transcript and never on the sound of the voice.
+const OPTIONS_SESSION_DEBAT: OptionsSessionAudio = {
+  iosCategory: 'playAndRecord',
+  iosMode: 'voiceChat',
+  iosOptions: ['defaultToSpeaker', 'allowBluetoothHFP'],
+}
 
 export * from './pcm'
 
@@ -58,20 +72,14 @@ export class AudioDebat {
    */
   private abandonne = false
   private surInterruption: EcouteurInterruption | null = null
+  private reclamation: ReclamationAudio | null = null
 
   async demarrer(surTrame: EcouteurTrame, surInterruption: EcouteurInterruption): Promise<void> {
     if (this.ouvert) return
     this.abandonne = false
     this.surInterruption = surInterruption
     try {
-      // playAndRecord in voiceChat: Apple's voice processing is welcome here, because a debate
-      // is scored on its transcript and never on the sound of the voice.
-      AudioManager.setAudioSessionOptions({
-        iosCategory: 'playAndRecord',
-        iosMode: 'voiceChat',
-        iosOptions: ['defaultToSpeaker', 'allowBluetoothHFP'],
-      })
-      await AudioManager.setAudioSessionActivity(true)
+      this.reclamation = await prendreSessionAudio(OPTIONS_SESSION_DEBAT)
     } catch (erreur) {
       throw new ErreurDebatAudio(`session audio : ${messageDe(erreur)}`)
     }
@@ -129,7 +137,7 @@ export class AudioDebat {
   private async reprendreApresInterruption(): Promise<void> {
     if (!this.ouvert || this.abandonne || !this.recorder) return
     try {
-      await AudioManager.setAudioSessionActivity(true)
+      this.reclamation = await prendreSessionAudio(OPTIONS_SESSION_DEBAT)
       const reprise = await this.recorder.start()
       if (reprise.status === 'error') throw new ErreurDebatAudio(reprise.message)
       this.surInterruption?.('revenu')
@@ -186,10 +194,11 @@ export class AudioDebat {
     this.contexte = null
     try {
       AudioManager.observeAudioInterruptions(false)
-      await AudioManager.setAudioSessionActivity(false)
+      await rendreSessionAudio(this.reclamation)
     } catch {
       // Giving the session back is best effort: nothing useful is left to do if it refuses.
     }
+    this.reclamation = null
   }
 }
 
