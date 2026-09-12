@@ -457,6 +457,25 @@ The transcription provider still reads `stub` and the evaluation still says « g
 those are the two inputs that are not ours to invent, and the check reports them rather than
 hiding them.
 
+## La boucle quotidienne ne tournait pas (2026-09-12)
+
+`verif-parcours.mjs` walks the product itself: the challenge of the day, the take, the verdict on
+it, the step validated, the next one opened, the points credited, the day counted. It had never
+been run against the hosted project, and the first run showed why that mattered. Four step takes
+had been recorded on this project, four analyses delivered, and **not one step validated or
+failed**: 4 available, 48 locked, zero done.
+
+`appliquer_resultat` returned `null` when the evaluation carried no total, and wrote nothing. No
+grid is published, so that is every take. The feedback screen was honest about it (« La grille de
+Rebecca dira si le défi est validé »), but the path itself simply stopped at the first challenge,
+for ever.
+
+A take nothing could score is written `non_evaluee` now, and counts as no failure. What it does to
+the step is Rebecca's call, so it is the setting `validation_sans_grille`, off by default and
+turned on by `activer-essai.mjs` with the other walkthrough values. With it on, against production:
+challenge served, take analysed, step validated, next step opened, 25 points credited, day
+counted. Twelve checks.
+
 ## Le duel par le navigateur, et le trou qu'il a révélé (2026-09-12)
 
 `verif-duel-web.mjs` walks the only path where someone with no account writes audio into the

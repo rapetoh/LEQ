@@ -190,5 +190,34 @@ select is((select bool_and(e.ordre = e.rang) from (select ordre, row_number() ov
 select is((select max(e.ordre) from public.etapes e join public.actes a on a.id = e.acte_id where a.ordre = 1), 6, 'the last step of acte I is number six');
 reset role; select tests_leq.deconnecter();
 
+-- une prise que la grille ne peut pas noter ---------------------------------------------------------
+-- No grid is published yet, so every step take comes back without a total. `appliquer_resultat`
+-- returned null and wrote nothing: the step stayed available for ever and the person who had just
+-- recorded their challenge got no answer about it at all.
+update public.configuration set valeur = 'false'::jsonb where cle = 'validation_sans_grille';
+create temp table sans_note as select tests_leq.tentative_evaluee(
+  '11111111-1111-4111-8111-111111111111',
+  (select id from public.etapes where parcours_id = (select parcours_id from ctx)
+     and statut = 'disponible' order by ordre_global limit 1), null) as t;
+grant select on sans_note to authenticated;
+select is(public.appliquer_resultat((select t from sans_note)), 'non_evaluee',
+  'a take nothing could score is written down as such');
+select is((select resultat from public.tentatives where id = (select t from sans_note)), 'non_evaluee',
+  'and the take carries it, so the pipeline stops asking');
+select is((select nombre_echecs from public.etapes where id = (select etape_id from public.tentatives where id = (select t from sans_note))), 0,
+  'it costs no failure: nothing was measured against anything');
+
+-- The stand-in that lets the path be walked before the grid exists. It is a setting, off by
+-- default, because what such a take does to a step is Rebecca's call.
+update public.configuration set valeur = 'true'::jsonb where cle = 'validation_sans_grille';
+create temp table sans_note2 as select tests_leq.tentative_evaluee(
+  '11111111-1111-4111-8111-111111111111',
+  (select id from public.etapes where parcours_id = (select parcours_id from ctx)
+     and statut = 'disponible' order by ordre_global limit 1), null) as t;
+grant select on sans_note2 to authenticated;
+select is(public.appliquer_resultat((select t from sans_note2)), 'etape_validee',
+  'with the stand-in on, recording the challenge validates the step');
+update public.configuration set valeur = 'false'::jsonb where cle = 'validation_sans_grille';
+
 select * from finish();
 rollback;

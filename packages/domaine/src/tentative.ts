@@ -41,7 +41,11 @@ export const TYPES_TENTATIVE = ['diagnostic', 'etape', 'arene', 'duel'] as const
 export const TypeTentativeSchema = z.enum(TYPES_TENTATIVE)
 export type TypeTentative = z.infer<typeof TypeTentativeSchema>
 
-export const RESULTATS_TENTATIVE = ['etape_validee', 'etape_echouee'] as const
+/**
+ * `non_evaluee`: the take was analysed, and no grid could put a number on it. It is not a
+ * failure, it counts as nothing against the step, and the screen says the grid will decide.
+ */
+export const RESULTATS_TENTATIVE = ['etape_validee', 'etape_echouee', 'non_evaluee'] as const
 export const ResultatTentativeSchema = z.enum(RESULTATS_TENTATIVE)
 export type ResultatTentative = z.infer<typeof ResultatTentativeSchema>
 

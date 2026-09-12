@@ -164,6 +164,23 @@ four turns in order, the outcome, the connection released, the month moved by on
 queued and written. It costs one session of the account's month and gives it back by deleting the
 row at the end.
 
+## Walking the daily loop and the browser duel against production
+
+```
+URL=... CLE=... EMAIL=... MDP=... SUPABASE_PROJECT_REF=... SUPABASE_DB_PASSWORD=... \
+  node supabase/tests/verif-parcours.mjs
+URL=... CLE=... EMAIL=... MDP=... SUPABASE_PROJECT_REF=... SUPABASE_DB_PASSWORD=... \
+  node supabase/tests/verif-duel-web.mjs
+```
+
+`verif-parcours.mjs` is the product: the challenge of the day, the take, the verdict, the step
+validated, the next one opened, the points, the day counted. It puts the step back where it found
+it. `verif-duel-web.mjs` is the only path where someone with no account writes audio: the
+invitation link, an anonymous session, the slot claimed before recording, both takes, the verdict.
+
+Both need `validation_sans_grille` and the flags as `activer-essai.mjs` leaves them, which is the
+state a testing build wants anyway.
+
 ## Checking that a published take can be heard, and that deletion leaves nothing
 
 ```
