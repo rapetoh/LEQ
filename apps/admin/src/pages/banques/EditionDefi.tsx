@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { DialogueConfirmation } from '../../composants/Dialogue'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
@@ -30,6 +30,7 @@ export function EditionDefi() {
   const naviguer = useNavigate()
   const notifier = useNotifier()
   const clientRequetes = useQueryClient()
+  const [parametres] = useSearchParams()
   const actes = useQuery({ queryKey: cleRequeteActes, queryFn: chargerModelesActes })
   const defis = useQuery({ queryKey: cleRequeteDefis, queryFn: chargerDefis })
   const [confirmation, setConfirmation] = useState<Confirmation>(null)
@@ -98,10 +99,15 @@ export function EditionDefi() {
     )
   }
 
-  const premierActe = listeActes[0]?.ordre ?? 1
+  // An acte named in the address wins over the first one: the form opens on the acte whose
+  // « Ajouter un défi » was pressed, which is the only place a challenge is ever added from.
+  const acteDemande = Number(parametres.get('acte'))
+  const acteVise = listeActes.some((a) => a.ordre === acteDemande)
+    ? acteDemande
+    : (listeActes[0]?.ordre ?? 1)
   const initiale = defi
     ? saisieDepuisDefi(defi)
-    : saisieVierge(premierActe, prochainOrdre(listeDefis, premierActe))
+    : saisieVierge(acteVise, prochainOrdre(listeDefis, acteVise))
   const enregistrement = creationMutation.isPending || modification.isPending
 
   function enregistrer(valeur: DefiEditable) {

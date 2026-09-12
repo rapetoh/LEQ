@@ -223,7 +223,7 @@ export const fr = {
     },
     champs: {
       cle: 'Clé technique',
-      cleAide: 'En minuscules, sans espace. Elle ne change plus après la création.',
+      cleAide: 'Écrite à partir du titre. Tu peux la changer ici. Elle ne bouge plus ensuite.',
       titre: 'Titre',
       consigne: 'Consigne',
       consigneAide: 'Ce que la personne lit avant de parler, dans tes mots.',
@@ -250,6 +250,7 @@ export const fr = {
     aucunDefi: 'Aucun défi dans cet acte.',
     renommer: 'Renommer',
     ajouterActe: 'Ajouter un acte',
+    ajouterDefiIci: 'Ajouter un défi',
     acteTitre: "Titre de l'acte",
     acteSousTitre: 'Sous-titre',
     acteEnregistre: 'Acte enregistré.',

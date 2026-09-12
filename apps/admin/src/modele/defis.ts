@@ -58,6 +58,21 @@ export type SaisieDefi = {
 
 const DUREE_PAR_FORMAT: Record<FormatDefi, number> = { standard: 120, texte: 180, long: 300 }
 
+/**
+ * The technical key, derived from the title. It used to be typed by hand, which is asking someone
+ * writing a challenge to also think like a database. It stays editable, because it names the row
+ * for ever and the person writing may want to choose it.
+ */
+export function cleDepuisTitre(titre: string): string {
+  return titre
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 60)
+}
+
 export function saisieVierge(ordreActe: number, ordre: number, points = 25): SaisieDefi {
   return {
     cle: '',

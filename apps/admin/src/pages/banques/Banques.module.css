@@ -223,3 +223,11 @@
     grid-template-columns: 24px 1fr;
   }
 }
+
+/* An acte carries its own « Ajouter un défi » beside « Renommer »: a challenge is added where it
+   belongs, not from a single button at the top of the page that opens on the first acte. */
+.acteActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

@@ -172,9 +172,16 @@ function Acte({
               ) : null}
               <span className={styles.compte}>{fr.defis.nombreDefis(defis.length)}</span>
             </div>
-            <button type="button" className="bouton bouton-discret" onClick={onOuvrirRenommage}>
-              {fr.defis.renommer}
-            </button>
+            <div className={styles.acteActions}>
+              {/* An acte with no way to fill it is an empty shelf. This is where a challenge is
+                  added: the page's own button at the top opens on whichever acte comes first. */}
+              <Link to={`/defis/nouveau?acte=${acte.ordre}`} className="bouton bouton-secondaire">
+                {fr.defis.ajouterDefiIci}
+              </Link>
+              <button type="button" className="bouton bouton-discret" onClick={onOuvrirRenommage}>
+                {fr.defis.renommer}
+              </button>
+            </div>
           </>
         )}
       </div>

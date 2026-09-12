@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Interrupteur } from '../../composants/Interrupteur'
 import { fr } from '../../fr'
 import {
+  cleDepuisTitre,
   dureeParDefaut,
   FORMATS_DEFI,
   validerDefi,
@@ -39,6 +40,7 @@ export function FormulaireDefi({
   const [erreurs, setErreurs] = useState<Erreurs>({})
   const [dureeTouchee, setDureeTouchee] = useState(!creation)
   const [ordreTouche, setOrdreTouche] = useState(!creation)
+  const [cleTouchee, setCleTouchee] = useState(!creation)
 
   function changerActe(ordreActe: string) {
     setSaisie((courante) => ({
@@ -52,7 +54,12 @@ export function FormulaireDefi({
   }
 
   function changer<K extends keyof SaisieDefi>(champ: K, valeur: SaisieDefi[K]) {
-    setSaisie((courante) => ({ ...courante, [champ]: valeur }))
+    setSaisie((courante) => ({
+      ...courante,
+      [champ]: valeur,
+      // The key follows the title until someone writes one themselves.
+      ...(champ === 'titre' && !cleTouchee ? { cle: cleDepuisTitre(String(valeur)) } : {}),
+    }))
     setErreurs((courantes) => {
       if (!(champ in courantes)) return courantes
       const reste = { ...courantes }
@@ -98,7 +105,10 @@ export function FormulaireDefi({
             className="champ champ-mono"
             value={saisie.cle}
             disabled={!creation}
-            onChange={(e) => changer('cle', e.target.value)}
+            onChange={(e) => {
+              setCleTouchee(true)
+              changer('cle', e.target.value)
+            }}
             aria-invalid={erreurs.cle ? 'true' : undefined}
           />
         </Champ>

@@ -54,41 +54,46 @@ export function Layout() {
 
   return (
     <div className={styles.coquille}>
+      {/* The column carries the colour and the inner block does the sticking. When the sticky
+          element was itself the grid item, its 100vh stopped where the page kept going and the
+          rest of the column showed the page's own background: the menu turned white on scroll. */}
       <aside className={styles.barre}>
-        <div className={styles.marque}>
-          {/* The mark itself, not letters standing in for it: the sidebar is bleu nuit, so the
+        <div className={styles.barreFixe}>
+          <div className={styles.marque}>
+            {/* The mark itself, not letters standing in for it: the sidebar is bleu nuit, so the
               white version. `fr.app.nom` stays as the alternative text. */}
-          <img
-            className={styles.sigle}
-            src={`${import.meta.env.BASE_URL}marque/sigle-blanc.png`}
-            alt={fr.app.nom}
-            width={72}
-            height={32}
-          />
-          <span className={styles.sousTitre}>{fr.app.sousTitre}</span>
-        </div>
-        <nav aria-label={fr.navigation.libelle} className={styles.navigation}>
-          {LIENS.map((lien) => (
-            <NavLink
-              key={lien.vers}
-              to={lien.vers}
-              end={lien.fin}
-              className={({ isActive }) => (isActive ? styles.lienActif : styles.lien)}
+            <img
+              className={styles.sigle}
+              src={`${import.meta.env.BASE_URL}marque/sigle-blanc.png`}
+              alt={fr.app.nom}
+              width={72}
+              height={32}
+            />
+            <span className={styles.sousTitre}>{fr.app.sousTitre}</span>
+          </div>
+          <nav aria-label={fr.navigation.libelle} className={styles.navigation}>
+            {LIENS.map((lien) => (
+              <NavLink
+                key={lien.vers}
+                to={lien.vers}
+                end={lien.fin}
+                className={({ isActive }) => (isActive ? styles.lienActif : styles.lien)}
+              >
+                <Icone nom={lien.icone} />
+                {lien.libelle}
+              </NavLink>
+            ))}
+          </nav>
+          <div className={styles.pied}>
+            {email ? <p className={styles.email}>{email}</p> : null}
+            <button
+              type="button"
+              className="bouton bouton-discret"
+              onClick={() => void deconnecter()}
             >
-              <Icone nom={lien.icone} />
-              {lien.libelle}
-            </NavLink>
-          ))}
-        </nav>
-        <div className={styles.pied}>
-          {email ? <p className={styles.email}>{email}</p> : null}
-          <button
-            type="button"
-            className="bouton bouton-discret"
-            onClick={() => void deconnecter()}
-          >
-            {fr.navigation.seDeconnecter}
-          </button>
+              {fr.navigation.seDeconnecter}
+            </button>
+          </div>
         </div>
       </aside>
       <main className={styles.contenu}>

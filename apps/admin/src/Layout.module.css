@@ -5,14 +5,17 @@
 }
 
 .barre {
+  background: var(--bleu-nuit);
+  color: #ffffff;
+}
+
+.barreFixe {
   position: sticky;
   top: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;
   padding: 22px 16px;
-  background: var(--bleu-nuit);
-  color: #ffffff;
 }
 
 .marque {
@@ -116,7 +119,7 @@
     grid-template-columns: 1fr;
   }
 
-  .barre {
+  .barreFixe {
     position: static;
     height: auto;
   }
