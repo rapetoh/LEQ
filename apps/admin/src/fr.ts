@@ -6,7 +6,7 @@
 export const fr = {
   app: {
     nom: 'LEQ',
-    sousTitre: 'Espace de Rebecca',
+    sousTitre: 'Administration',
   },
 
   commun: {
@@ -53,7 +53,7 @@ export const fr = {
   },
 
   acces: {
-    reserve: 'Cet espace est réservé à Rebecca.',
+    reserve: "Tu n'as pas accès à l'administration.",
     connecteAvec: (email: string) => `Tu es connecté·e avec ${email}.`,
     verification: 'Vérification de ta session.',
   },

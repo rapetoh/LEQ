@@ -97,6 +97,17 @@ Making the first admin: as `postgres` in the SQL editor, `update public.profils 
 
 The admin's pages today: Configuration, Drapeaux, Défis (the bank act by act; a défi's title and consigne change for everyone at once, its order and threshold only for paths created afterwards; "Marquer comme validé" turns `provisoire` off so the phone stops saying the consigne awaits Rebecca), Exercices (the remediation bank, matched to défis by `competence`).
 
+## Removing an account
+
+`node supabase/tests/supprimer-compte.mjs <email>` prints what is attached to it and deletes
+nothing. Add `--confirmer` to actually delete. Deleting an auth user cascades to their takes,
+their evaluations and their whole history, so the two steps are deliberate.
+
+Used once, on 2026-09-12, to remove a duplicate created from a mistyped address. The address that
+was actually right already had an account with three recordings on it, so that one was promoted
+and the empty duplicate removed. Always read the counts before confirming: the newer account is
+not always the one to keep.
+
 ## Checking the things a type-checker cannot
 
 Two scripts run against the project with a real signed-in administrator, because a feature that
@@ -126,7 +137,7 @@ and everything attached to it, which is what makes this better than deleting and
 The role reaches the token at the next sign-in, so sign out and back in if the space says the
 access is reserved.
 
-Administrators so far: Roch (`rapetohsenyo@gmail.com`) and Rebecca (`beccalieben@gmmail.com`,
+Administrators so far: Roch (`rapetohsenyo@gmail.com`) and Rebecca (`beccalieben@gmail.com`).
 created 2026-09-12 with the address exactly as given; `gmmail.com` looks like a typo for
 `gmail.com` and is waiting on Roch to confirm).
 

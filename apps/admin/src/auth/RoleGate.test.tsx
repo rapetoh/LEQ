@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { fr } from '../fr'
 import type { Session } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
 import { RoleGate } from './RoleGate'
@@ -52,7 +53,7 @@ describe('RoleGate', () => {
   it('refuses a plain user and offers to sign out', () => {
     rendre({ session: session('utilisateur') })
     expect(screen.queryByText('Contenu réservé')).not.toBeInTheDocument()
-    expect(screen.getByText('Cet espace est réservé à Rebecca.')).toBeInTheDocument()
+    expect(screen.getByText(fr.acces.reserve)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
   })
 
