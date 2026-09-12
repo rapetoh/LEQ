@@ -131,6 +131,24 @@ insert only; Storage refuses that and every upload failed.
 `verif-anon.mjs` asks, holding nothing but the publishable key, what still answers. That key ships
 inside every copy of the application, so anything it can reach is public.
 
+## Walking the whole pipeline against the hosted project
+
+```
+URL=<supabase url> CLE=<publishable key> EMAIL=<compte> MDP=<mot de passe> \
+  SUPABASE_PROJECT_REF=<ref> SUPABASE_DB_PASSWORD=<mdp base> \
+  node supabase/tests/verif-bout-en-bout.mjs [chemin audio]
+```
+
+Everything else checks a piece: pgTAP the rules, the server tests the handlers, `verif-medias`
+Storage. This one records, sends and waits exactly as the phone does, then asks the two questions
+that matter: is the feedback there, and is the audio gone? Upload into the private bucket, the
+row, the job queued by the trigger, the worker on Fly, the measures, the evaluation, the private
+object deleted and the column nulled. About twenty seconds end to end.
+
+Without an audio file it speaks one, in French, with the Mac's own voice (`say` then `ffmpeg`).
+The take it creates is deleted at the end, whatever happened. Run it after anything that touches
+the pipeline, and after any deploy of the worker.
+
 ## Answering a request for a copy of someone's data
 
 G3 says out loud « Tu recevras une copie de tes données par e-mail », and the request lands in

@@ -441,6 +441,19 @@ Verified: 91 server tests, 88 mobile tests, 482 database assertions across the e
 `npm run check` and `npm run strings` green. Server deployed, migrations applied,
 `verif-securite`, `verif-medias` and `verif-anon` green against the hosted project.
 
+## Le chemin complet d'une prise, vérifié contre la production (2026-09-12)
+
+`supabase/tests/verif-bout-en-bout.mjs` speaks a French sentence with the Mac's own voice, sends
+it the way the phone does, and waits. Against the hosted project and the worker on Fly: the
+private upload accepted, the job queued by the trigger, transcription, measurement in Praat,
+evaluation, the audio object deleted and its column nulled. Eleven checks, about twenty seconds,
+green on the deploy of 2026-09-12. The measured rate on that sentence is 113 words per minute,
+which is what it sounds like.
+
+The transcription provider still reads `stub` and the evaluation still says « grille aucune »:
+those are the two inputs that are not ours to invent, and the check reports them rather than
+hiding them.
+
 ## The copy of someone's data actually exists now (2026-09-12)
 
 G3 has said « Tu recevras une copie de tes données par e-mail » since Phase 1, the request has
