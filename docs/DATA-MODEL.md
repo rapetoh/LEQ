@@ -476,7 +476,8 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 
 - `id`, `inviteur_id`, `invite_id`, `sujet`, `jeton unique` (32 hexadecimal characters, the invitation link of `apps/web`), `duree_max_s` (the cap of the caller's formula), `statut` (ouvert, clos, expire), `verdict` (inviteur, invite, egalite), `echeance`, `clos_le`, timestamps. `tentatives.duel_id` links an attempt to its duel.
 - `creer_duel(sujet)`, `lire_duel_par_jeton(jeton)` (readable by an anonymous principal: the invitee may not have the app, and never hears the inviter before recording), `rejoindre_duel(jeton)`.
-- `cloturer_duel()` (service role): with two evaluated takes the higher grid total wins; with one take only, and past the deadline, the duel expires without verdict and both takes are marked for deletion. The verdict is rendered by the analysis and the app says so.
+- `cloturer_duel()` (service role): **who answered is a question about their take, never about its score.** With two published takes the higher grid total wins; when both are there and the analysis cannot separate them (no grid published, or an evaluation that never landed) the verdict is `sans_verdict`; with one take only, and past the deadline, the duel expires. Either way both takes are marked for deletion. The verdict is rendered by the analysis and the app says so.
+- Reading the grid total to decide presence meant that two people who had each spoken and each spent a take were told at the deadline that nobody had answered, which is what happens on a project where no grid is published yet. `sans_verdict` exists so that the app can say what really happened instead of inventing a winner or blaming a silence that was not there.
 
 ### moderations
 

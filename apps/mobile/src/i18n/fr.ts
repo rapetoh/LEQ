@@ -426,6 +426,8 @@ export const fr = {
     ecouterSonPassage: 'Écouter le sien',
     vainqueur: 'Vainqueur',
     egalite: 'Égalité',
+    sansVerdict: 'Sans verdict',
+    sansVerdictDetail: "Vous avez parlé tou·te·s les deux. L'analyse n'a pas pu vous départager.",
     verdictAutomatique:
       "Le duel est privé : le verdict est rendu par l'analyse, sur la grille de Rebecca.",
     duelSujet: 'Le sujet',

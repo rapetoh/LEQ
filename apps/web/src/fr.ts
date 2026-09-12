@@ -58,6 +58,7 @@ export const fr = {
     gagne: 'Tu gagnes.',
     perdu: "L'autre personne gagne.",
     egalite: 'Égalité.',
+    sansVerdict: "L'analyse n'a pas pu vous départager.",
     verdictDetail: "Rendu par l'analyse, sur les critères de Rebecca.",
 
     // Refusals and failures, in the person's words.

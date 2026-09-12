@@ -63,7 +63,12 @@ export const STATUTS_DUEL = ['ouvert', 'clos', 'expire'] as const
 export const StatutDuelSchema = z.enum(STATUTS_DUEL)
 export type StatutDuel = z.infer<typeof StatutDuelSchema>
 
-export const VERDICTS_DUEL = ['inviteur', 'invite', 'egalite'] as const
+/**
+ * `sans_verdict`: both spoke and the analysis could not separate them, because no grid is
+ * published or an evaluation never landed. It is not a draw, and it is above all not an expiry:
+ * nobody stayed silent.
+ */
+export const VERDICTS_DUEL = ['inviteur', 'invite', 'egalite', 'sans_verdict'] as const
 export const VerdictDuelSchema = z.enum(VERDICTS_DUEL)
 export type VerdictDuel = z.infer<typeof VerdictDuelSchema>
 

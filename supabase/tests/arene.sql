@@ -217,6 +217,32 @@ select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utili
 select lives_ok($$ select public.publier_prise((select tb from duelprises)) $$, 'B answers the duel');
 reset role; select tests_leq.deconnecter();
 select is(public.cloturer_duel((select id from duel)), 'invite', 'the higher grid total wins, and the app says the verdict is automatic');
+-- Two people who both spoke are never told that nobody answered. Deciding presence on the grid
+-- total did exactly that on a project where no grid is published: both notes null, both read as
+-- silence, and at the deadline the duel expired over two takes that were sitting right there.
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+create temp table duel_sans_note as select * from public.creer_duel('Sans note');
+grant select on duel_sans_note to authenticated;
+reset role; select tests_leq.deconnecter();
+update public.duels set invite_id = '22222222-2222-4222-8222-222222222222',
+                        echeance = now() - interval '1 hour'
+ where id = (select id from duel_sans_note);
+create temp table prises_sans_note as select
+  tests_leq.prise_analysee((select a from ctx), 'duel', (select id from duel_sans_note), 20) as ta,
+  tests_leq.prise_analysee((select b from ctx), 'duel', (select id from duel_sans_note), 18) as tb;
+grant select on prises_sans_note to authenticated;
+update public.evaluations set note_totale = null
+ where tentative_id in ((select ta from prises_sans_note), (select tb from prises_sans_note));
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select ta from prises_sans_note)) $$, 'A answers a duel nothing can score');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tb from prises_sans_note)) $$, 'and B answers it too');
+reset role; select tests_leq.deconnecter();
+select is(public.cloturer_duel((select id from duel_sans_note)), 'sans_verdict',
+  'the duel closes saying the analysis could not separate them');
+select is((select statut from public.duels where id = (select id from duel_sans_note)), 'clos',
+  'closed, and not expired: nobody stayed silent');
 select is((select count(*) from public.prises_publiques where duel_id = (select id from duel) and date_suppression is null), 0::bigint, 'the duel audio is marked for deletion at closing');
 -- an invitee without the app answers by the link, as an anonymous principal (chapter 11) ------------
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');

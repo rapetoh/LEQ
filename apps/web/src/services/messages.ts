@@ -19,5 +19,8 @@ export function texteVerdict(duel: IssueDuel): string {
   if (duel.statut === 'expire' || duel.verdict === null) return fr.duel.expireTitre
   if (duel.verdict === 'invite') return fr.duel.gagne
   if (duel.verdict === 'inviteur') return fr.duel.perdu
+  // Both spoke and nothing could separate them. Saying « le délai est passé » here would blame a
+  // silence that never happened.
+  if (duel.verdict === 'sans_verdict') return fr.duel.sansVerdict
   return fr.duel.egalite
 }

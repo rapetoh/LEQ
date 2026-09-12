@@ -51,12 +51,11 @@ export default function EcranDuel() {
 
   const moi = session?.user.id ?? ''
   const jeSuisInviteur = duel.inviteur_id === moi
-  const gagne =
-    duel.verdict === 'egalite'
-      ? null
-      : (duel.verdict === 'inviteur') === jeSuisInviteur
-        ? true
-        : false
+  // Only a verdict that names a side can be won or lost. A draw and a duel the analysis could
+  // not settle are neither, and reading them as a loss is how the invitee used to be told the
+  // other person had won.
+  const departage = duel.verdict === 'inviteur' || duel.verdict === 'invite'
+  const gagne = departage ? (duel.verdict === 'inviteur') === jeSuisInviteur : null
   const maPrise = passages.find((p) => p.utilisateur_id === moi)
   const sienne = passages.find((p) => p.utilisateur_id !== moi)
 
@@ -87,12 +86,19 @@ export default function EcranDuel() {
           <View style={styles.centre}>
             <Bulle taille="moyenne" visage={gagne === true ? 'parle' : 'sourit'} />
             <Titre niveau="section" centre>
-              {duel.verdict === 'egalite'
-                ? t('arene.egalite')
-                : gagne
-                  ? t('arene.vainqueur')
-                  : t('arene.verdictPret')}
+              {duel.verdict === 'sans_verdict'
+                ? t('arene.sansVerdict')
+                : duel.verdict === 'egalite'
+                  ? t('arene.egalite')
+                  : gagne
+                    ? t('arene.vainqueur')
+                    : t('arene.verdictPret')}
             </Titre>
+            {duel.verdict === 'sans_verdict' ? (
+              <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
+                {t('arene.sansVerdictDetail')}
+              </Text>
+            ) : null}
           </View>
           <Carte style={styles.bloc}>
             {maPrise?.chemin_audio ? (
