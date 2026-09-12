@@ -455,9 +455,29 @@ Arena. The file says so at the top, in French.
 
 ## Next
 
-1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.
-2. Roch, any time: Apple and Google credentials (docs/OPEN-INPUTS.md), the API keys for the bench, the RevenueCat account. The server now runs on Fly: the worker no longer needs to run on this Mac for the walkthrough.
-3. Me, without waiting: Phase 6 (admin space complete: grid editor, offers content, workshops and announcements, moderation, suspension, export inbox) or Phase 7 (Arena and duels, shipped off). RevenueCat (`abonnements` writer) waits for the account; the offers screen E1 waits for RevenueCat and Rebecca's offer content. The bench corpus layout is ready and the harness runs on the stub; Phase 3 wording and the calibration tool need the Anthropic key and real transcripts.
+Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
+inputs that were never ours to invent, and the accounts that gate the release.
+
+1. **Roch, and only Roch.** Each of these unblocks work that is already written and waiting:
+   - the Anthropic key: Rétor answers for real, the debriefing is written, the wording of a
+     feedback stops being placeholder text. Until then the face-à-face runs on stubs and says so
+     on screen;
+   - the STT keys (Deepgram, Gladia, OpenAI, AssemblyAI, trial credits are enough): the bench in
+     `packages/moteur/bench` runs, ADR-011 names a provider, and the debate cost spike can finally
+     be measured instead of guessed;
+   - a Sentry account and its DSN: crash reporting, the last unticked item of Phase 9 plumbing;
+   - the RevenueCat account: `abonnements` gets its writer and E1 gets its offers;
+   - a lawyer reads the chapter 2 statement now published in `apps/web`;
+   - the Supabase plan's backup retention, which the dashboard shows and the API would not tell
+     me: on the free plan there is no automated backup at all, and that is a decision, not an
+     oversight. The schema itself is safe either way, being the migrations in git.
+2. **Rebecca, through Roch (chapter 14).** The grid and its criteria, the path generator rules,
+   the challenge and exercise banks, the Arena subjects, the offers and prices, the points rates.
+   Every one of these has a screen in the admin space waiting for it, and every provisional row
+   is badged `provisoire` in the app so nobody mistakes a placeholder for her work.
+3. **Me, meanwhile.** Hardening and the walkthroughs I can run myself. The four review passes are
+   closed; what I keep finding now comes from running the real pipeline against the hosted
+   project rather than from reading code.
 
 ## Acceptance lists of later phases (from the plan, expanded before each phase starts)
 
