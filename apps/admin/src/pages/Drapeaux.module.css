@@ -32,20 +32,20 @@
   flex-shrink: 0;
 }
 
-.badgeAllume,
-.badgeEteint {
+.badgeEnLigne,
+.badgeHorsLigne {
   padding: 2px 10px;
   border-radius: 100px;
   font-size: 12px;
   font-weight: 700;
 }
 
-.badgeAllume {
+.badgeEnLigne {
   background: var(--succes-fond);
   color: var(--succes);
 }
 
-.badgeEteint {
+.badgeHorsLigne {
   background: var(--surface-2);
   color: var(--texte-3);
   border: 1px solid var(--ligne);

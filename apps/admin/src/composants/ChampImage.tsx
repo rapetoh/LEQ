@@ -40,10 +40,13 @@ export function ChampImage({
     }
     setEnvoi(true)
     try {
+      // A fresh name every time, so the upload never overwrites and never has to ask for the
+      // right to: Storage refuses an upsert under a policy that only grants insert, which is
+      // exactly what an image picker needs and all it needs.
       const chemin = cheminMedia(usage, crypto.randomUUID(), fichier.type)
       const { error } = await supabase.storage
         .from(BUCKET_MEDIAS)
-        .upload(chemin, fichier, { contentType: fichier.type, upsert: true })
+        .upload(chemin, fichier, { contentType: fichier.type })
       if (error) throw new Error(error.message)
       onChange(chemin)
     } catch (cause) {

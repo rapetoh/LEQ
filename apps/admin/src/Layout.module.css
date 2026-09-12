@@ -47,13 +47,30 @@
 
 .lien,
 .lienActif {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 9px 10px;
   border-radius: var(--rayon);
   color: #c7d3e8;
   font-weight: 700;
   font-size: 13.5px;
   text-decoration: none;
+  transition:
+    background-color 130ms ease,
+    color 130ms ease;
+}
+
+/* The icon carries the row's colour, and dims a little when the row is not the current one. */
+.lien svg,
+.lienActif svg {
+  flex: none;
+  opacity: 0.75;
+}
+
+.lienActif svg {
+  opacity: 1;
+  color: var(--or);
 }
 
 .lien:hover {

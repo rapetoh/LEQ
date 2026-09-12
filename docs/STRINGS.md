@@ -97,6 +97,18 @@ the act names ("Les crêtes du rythme", "Sous la brume", which are names, not co
 sentence that is already plain and already says something true does not get rewritten to sound more
 corporate.
 
+## Vocabulary of the admin space, where English words are the French ones
+
+A word-for-word translation of an English interface word is not French. Two that were got wrong
+and are now fixed: a feature that is available is **en ligne**, not "allumé", and one that is not
+is **hors ligne**, not "éteint". A switch is not "un interrupteur allumé"; notifications a person
+kept are "des notifications actives".
+
+The test is what a French developer or a French product person would say out loud in the room.
+Some of those words are borrowed from English ("en ligne" comes from "live", "un bug", "un
+build") and that is normal French usage. The mistake is translating the metaphor rather than
+using the word.
+
 ## The brand mark is a file, never letters
 
 LEQ has a mark: `apps/mobile/assets/marque/`, in three versions (`icone.png` for the app icon and

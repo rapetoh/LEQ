@@ -4,6 +4,7 @@ import { TONS_ADVERSAIRE, type These, type TheseEditable } from '@leq/domaine'
 
 import { Interrupteur } from '../../composants/Interrupteur'
 import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { DialogueEdition } from '../../composants/DialogueEdition'
 import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
@@ -58,6 +59,7 @@ export function Theses() {
   })
   const enregistrement = creation.isPending || modification.isPending
   const proposees = new Set(proposeesMaintenant(theses.data ?? []).map((these) => these.id))
+  const enEdition = (theses.data ?? []).find((these) => these.id === edition) ?? null
 
   return (
     <div className="page">
@@ -76,18 +78,6 @@ export function Theses() {
         </button>
       </header>
 
-      {edition === 'nouveau' ? (
-        <div style={{ marginBottom: 20 }}>
-          <FormulaireThese
-            initiale={saisieTheseVierge(prochainOrdreThese(theses.data ?? []))}
-            creation
-            enregistrement={enregistrement}
-            onEnregistrer={(valeur) => creation.mutate(valeur)}
-            onAnnuler={() => setEdition(null)}
-          />
-        </div>
-      ) : null}
-
       <BarreOutils
         recherche={filtre.recherche}
         onRecherche={filtre.setRecherche}
@@ -105,28 +95,43 @@ export function Theses() {
         <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {filtre.resultats.map((these) =>
-            edition === these.id ? (
-              <div key={these.id} style={{ padding: 4 }}>
-                <FormulaireThese
-                  initiale={saisieDepuisThese(these)}
-                  creation={false}
-                  enregistrement={enregistrement}
-                  onEnregistrer={(valeur) => modification.mutate({ id: these.id, valeur })}
-                  onAnnuler={() => setEdition(null)}
-                />
-              </div>
-            ) : (
-              <Ligne
-                key={these.id}
-                these={these}
-                proposee={proposees.has(these.id)}
-                onModifier={() => setEdition(these.id)}
-              />
-            ),
-          )}
+          {filtre.resultats.map((these) => (
+            <Ligne
+              key={these.id}
+              these={these}
+              proposee={proposees.has(these.id)}
+              onModifier={() => setEdition(these.id)}
+            />
+          ))}
         </div>
       )}
+
+      {/* One thing on screen at a time: editing inside the list, with the next row visible
+          underneath, made it easy to lose track of what was being changed. */}
+      <DialogueEdition
+        ouvert={edition !== null}
+        titre={edition === 'nouveau' ? fr.theses.creer : fr.theses.modifierTitre}
+        description={edition === 'nouveau' ? fr.theses.creerAide : undefined}
+        onFermer={() => setEdition(null)}
+      >
+        {edition === 'nouveau' ? (
+          <FormulaireThese
+            initiale={saisieTheseVierge(prochainOrdreThese(theses.data ?? []))}
+            creation
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => creation.mutate(valeur)}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : enEdition ? (
+          <FormulaireThese
+            initiale={saisieDepuisThese(enEdition)}
+            creation={false}
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => modification.mutate({ id: enEdition.id, valeur })}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : null}
+      </DialogueEdition>
     </div>
   )
 }

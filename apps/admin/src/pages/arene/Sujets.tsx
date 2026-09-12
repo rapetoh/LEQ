@@ -3,6 +3,7 @@ import { useId, useState } from 'react'
 import type { SujetArene, SujetAreneEditable } from '@leq/domaine'
 import { Interrupteur } from '../../composants/Interrupteur'
 import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { DialogueEdition } from '../../composants/DialogueEdition'
 import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
@@ -29,6 +30,7 @@ export function Sujets() {
   const clientRequetes = useQueryClient()
   const sujets = useQuery({ queryKey: cleRequeteSujets, queryFn: chargerSujets })
   const [edition, setEdition] = useState<string | null>(null)
+  const enEdition = (sujets.data ?? []).find((sujet) => sujet.id === edition) ?? null
   const filtre = useRecherche(sujets.data, (s) => [s.texte, s.cle, s.consigne])
 
   const invalider = () => clientRequetes.invalidateQueries({ queryKey: cleRequeteSujets })
@@ -74,18 +76,6 @@ export function Sujets() {
         </button>
       </header>
 
-      {edition === 'nouveau' ? (
-        <div style={{ marginBottom: 20 }}>
-          <FormulaireSujet
-            initiale={saisieSujetVierge(prochainOrdreSujet(sujets.data ?? []))}
-            creation
-            enregistrement={enregistrement}
-            onEnregistrer={(valeur) => creation.mutate(valeur)}
-            onAnnuler={() => setEdition(null)}
-          />
-        </div>
-      ) : null}
-
       <BarreOutils
         recherche={filtre.recherche}
         onRecherche={filtre.setRecherche}
@@ -103,23 +93,35 @@ export function Sujets() {
         <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {filtre.resultats.map((sujet) =>
-            edition === sujet.id ? (
-              <div key={sujet.id} style={{ padding: 4 }}>
-                <FormulaireSujet
-                  initiale={saisieDepuisSujet(sujet)}
-                  creation={false}
-                  enregistrement={enregistrement}
-                  onEnregistrer={(valeur) => modification.mutate({ id: sujet.id, valeur })}
-                  onAnnuler={() => setEdition(null)}
-                />
-              </div>
-            ) : (
-              <Ligne key={sujet.id} sujet={sujet} onModifier={() => setEdition(sujet.id)} />
-            ),
-          )}
+          {filtre.resultats.map((sujet) => (
+            <Ligne key={sujet.id} sujet={sujet} onModifier={() => setEdition(sujet.id)} />
+          ))}
         </div>
       )}
+
+      <DialogueEdition
+        ouvert={edition !== null}
+        titre={edition === 'nouveau' ? fr.sujets.creer : fr.sujets.modifierTitre}
+        onFermer={() => setEdition(null)}
+      >
+        {edition === 'nouveau' ? (
+          <FormulaireSujet
+            initiale={saisieSujetVierge(prochainOrdreSujet(sujets.data ?? []))}
+            creation
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => creation.mutate(valeur)}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : enEdition ? (
+          <FormulaireSujet
+            initiale={saisieDepuisSujet(enEdition)}
+            creation={false}
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => modification.mutate({ id: enEdition.id, valeur })}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : null}
+      </DialogueEdition>
     </div>
   )
 }

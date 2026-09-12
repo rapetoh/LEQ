@@ -60,89 +60,55 @@ export const fr = {
 
   accueil: {
     titre: 'Accueil',
-    intro:
-      "Ici, tu règles l'application : ses valeurs, et ce qui est visible pour les utilisateurs.",
-    disponible: 'Disponible maintenant',
-    bientot: 'Bientôt',
-    aVenirIntro: "D'autres espaces arriveront plus tard.",
-    cartes: {
-      configuration: {
-        titre: 'Configuration',
-        texte: "Les valeurs de l'application : points, durées, quotas, délais.",
-        action: 'Ouvrir la configuration',
-      },
-      drapeaux: {
-        titre: 'Drapeaux',
-        texte: "Allumer ou éteindre l'Arène, les duels et le face-à-face.",
-        action: 'Ouvrir les drapeaux',
-      },
-      defis: {
-        titre: 'Les défis',
-        texte: 'Les étapes du parcours, acte par acte : formats, consignes, seuils de réussite.',
-        action: 'Ouvrir les défis',
-      },
-      exercices: {
-        titre: 'Les exercices',
-        texte: 'Les exercices de rattrapage, proposés après deux échecs sur un défi.',
-        action: 'Ouvrir les exercices',
-      },
-      recompenses: {
-        titre: 'Les récompenses',
-        texte: 'La boutique : ce que les points achètent, à quel prix, et combien par mois.',
-        action: 'Ouvrir les récompenses',
-      },
-      echanges: {
-        titre: 'Les échanges',
-        texte: 'Les points échangés par les utilisateurs, à honorer ou à annuler.',
-        action: 'Ouvrir les échanges',
-      },
-      grille: {
-        titre: 'La grille',
-        texte:
-          'Tes critères, versionnés : chaque nouvelle prise est notée avec la version publiée.',
-        action: 'Ouvrir la grille',
-      },
-      annonces: {
-        titre: 'Les annonces',
-        texte: 'Un message à toute la base ou à des régions, deux par mois au plus.',
-        action: 'Ouvrir les annonces',
-      },
-      ateliers: {
-        titre: 'Les ateliers',
-        texte: "Tes ateliers, en salle ou en ligne, tels que l'application les montre.",
-        action: 'Ouvrir les ateliers',
-      },
-      theses: {
-        titre: 'Les thèses du face-à-face',
-        texte: 'La banque des sujets de débat, proposés en premier à qui veut débattre.',
-        action: 'Ouvrir la banque de thèses',
-      },
-      sujets: {
-        titre: "Les sujets de l'Arène",
-        texte: 'La banque des sujets, dans leur ordre de passage. Un par semaine.',
-        action: 'Ouvrir les sujets',
-      },
-      moderation: {
-        titre: 'La modération',
-        texte: 'Les prises publiques à relire avant publication, et celles à retirer.',
-        action: 'Ouvrir la modération',
-      },
-      utilisateurs: {
-        titre: 'Les utilisateurs',
-        texte: 'Les profils, la suspension et la réactivation.',
-        action: 'Ouvrir les utilisateurs',
-      },
-      exports: {
-        titre: 'Les demandes de données',
-        texte: 'Les personnes qui veulent une copie de leurs données, à traiter par e-mail.',
-        action: 'Ouvrir les demandes',
-      },
+    intro: "Ce qui t'attend, ce que fait l'application, et ce qu'il reste à écrire.",
+    erreurChargement: 'Impossible de charger le tableau de bord.',
+
+    attente: {
+      titre: 'Ce qui attend une décision',
+      intro: 'Chaque file mène à la page où tu la traites.',
+      rien: "Rien ne t'attend pour le moment.",
+      moderation: 'Prises à relire',
+      echanges: 'Échanges à honorer',
+      demandes: 'Demandes de données',
     },
-    aVenir: {
-      banques: {
-        titre: 'Les banques de sujets',
-        texte: "Sujets de l'Arène, thèses du face-à-face.",
+
+    semaine: {
+      titre: 'Cette semaine',
+      intro: 'Depuis lundi.',
+      prises: 'Prises enregistrées',
+      personnes: 'Personnes qui ont parlé',
+      defisValides: 'Défis validés',
+      comptes: 'Nouveaux comptes',
+    },
+
+    etat: {
+      titre: "L'état de l'application",
+      fonctions: 'Fonctions ouvertes',
+      noms: {
+        arene: "L'Arène",
+        duels: 'Les duels',
+        face_a_face: 'Le face-à-face',
       },
+      sujet: "Sujet de l'Arène",
+      sujetJour: (texte: string, jour: number) => `${texte} · jour ${jour} sur 7`,
+      sujetAucun: 'Aucun sujet actif',
+      annonces: 'Annonces ce mois-ci',
+      annoncesValeur: (envoyees: number, plafond: number) => `${envoyees} sur ${plafond}`,
+      grille: 'Grille de Rebecca',
+      grillePubliee: 'Publiée',
+      grilleAbsente: 'Pas encore publiée',
+    },
+
+    ecrire: {
+      titre: 'Ce qui attend ton texte',
+      intro:
+        "Ces contenus viennent de la maquette et tiennent la place en attendant les tiens. Tant qu'il en reste, l'application montre des mots qui ne sont pas de toi.",
+      rien: 'Tout le contenu est de toi.',
+      defis: 'Défis provisoires',
+      exercices: 'Exercices provisoires',
+      recompenses: 'Récompenses provisoires',
+      sujets: "Sujets de l'Arène",
+      theses: 'Thèses du face-à-face',
     },
   },
 
@@ -195,16 +161,16 @@ export const fr = {
   drapeaux: {
     titre: 'Drapeaux',
     intro:
-      'Un drapeau allumé rend la fonction visible à tous les utilisateurs dès leur prochain lancement.',
+      'Une fonction en ligne devient visible pour tout le monde au prochain lancement de leur application.',
     vide: 'Aucun drapeau dans la base. Lance la migration et le seed.',
     erreurChargement: 'Impossible de charger les drapeaux.',
     etats: {
-      allume: 'Allumé',
-      eteint: 'Éteint',
+      enLigne: 'En ligne',
+      horsLigne: 'Hors ligne',
       absent: 'Absent de la base',
     },
-    basculer: (objet: string) => `Allumer ou éteindre ${objet}`,
-    confirmationTitre: (objet: string) => `Allumer ${objet}`,
+    basculer: (objet: string) => `Mettre ${objet} en ligne ou hors ligne`,
+    confirmationTitre: (objet: string) => `Mettre ${objet} en ligne`,
     items: {
       arene: {
         nom: "L'Arène",
@@ -479,7 +445,7 @@ export const fr = {
   annonces: {
     titre: 'Les annonces',
     intro:
-      "Un message poussé sur les téléphones des personnes qui gardent l'interrupteur allumé. Deux par mois au plus, comptées sur l'ensemble de la base ; choisis des régions pour un atelier en salle, aucune pour un atelier en ligne.",
+      "Un message poussé sur les téléphones des personnes qui ont laissé ces notifications actives. Deux par mois au plus, comptées sur l'ensemble de la base ; choisis des régions pour un atelier en salle, aucune pour un atelier en ligne.",
     compteur: (n: number, plafond: number) => `${n} sur ${plafond} ce mois-ci`,
     envoyer: 'Envoyer maintenant',
     apercu: 'Aperçu',
@@ -595,6 +561,7 @@ export const fr = {
     intro:
       "La banque des sujets, dans leur ordre de passage. Le serveur active le suivant quand la semaine du précédent est finie ; rien ne s'active tant que la banque est vide.",
     creer: 'Créer un sujet',
+    modifierTitre: 'Modifier le sujet',
     vide: 'Aucun sujet dans la banque. Crée le premier.',
     erreurChargement: 'Impossible de charger les sujets.',
     erreur: 'Enregistrement impossible.',
@@ -646,6 +613,8 @@ export const fr = {
     intro:
       "La banque des sujets de débat. C'est ce que l'application propose en premier, parce que la plupart des gens à qui on demande d'inventer un sujet se figent ou en choisissent un qu'ils ne savent pas défendre. Rétor défend la thèse ; la personne la contredit.",
     creer: 'Créer une thèse',
+    creerAide: 'Rétor défendra cette thèse ; la personne la contredira.',
+    modifierTitre: 'Modifier la thèse',
     vide: 'Aucune thèse dans la banque. Crée la première.',
     erreurChargement: 'Impossible de charger les thèses.',
     erreur: 'Enregistrement impossible.',

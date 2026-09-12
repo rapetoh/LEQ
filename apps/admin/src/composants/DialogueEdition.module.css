@@ -1,0 +1,84 @@
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 22, 54, 0.42);
+  backdrop-filter: blur(3px);
+  animation: fondu 140ms ease;
+}
+
+.dialogue {
+  width: min(100%, 640px);
+  max-height: min(88vh, 920px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--surface);
+  color: var(--texte);
+  border-radius: var(--rayon-grand);
+  box-shadow: 0 24px 60px rgba(0, 22, 54, 0.3);
+  overflow: hidden;
+  animation: apparait 140ms ease;
+}
+
+.large {
+  width: min(100%, 880px);
+}
+
+.entete {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--ligne);
+}
+
+.entete h2 {
+  font-size: 16px;
+}
+
+.entete p {
+  margin-top: 4px;
+  color: var(--texte-2);
+  font-size: 13px;
+  max-width: 56ch;
+}
+
+.entete button {
+  margin-left: auto;
+}
+
+.corps {
+  padding: 18px 20px 20px;
+  overflow-y: auto;
+}
+
+/* Inside the dialog the form is already framed, so it drops its own card. */
+.corps :global(.carte) {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+@keyframes fondu {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes apparait {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voile,
+  .dialogue {
+    animation: none;
+  }
+}

@@ -97,6 +97,22 @@ Making the first admin: as `postgres` in the SQL editor, `update public.profils 
 
 The admin's pages today: Configuration, Drapeaux, Défis (the bank act by act; a défi's title and consigne change for everyone at once, its order and threshold only for paths created afterwards; "Marquer comme validé" turns `provisoire` off so the phone stops saying the consigne awaits Rebecca), Exercices (the remediation bank, matched to défis by `competence`).
 
+## Checking the things a type-checker cannot
+
+Two scripts run against the project with a real signed-in administrator, because a feature that
+writes to storage or reads a dashboard is not finished until something has actually done it.
+
+```bash
+URL=<supabase url> CLE=<publishable key> EMAIL=<admin> MDP=<mot de passe> \
+  node supabase/tests/verif-medias.mjs    # upload, public read, delete, refused format
+  node supabase/tests/verif-tableau.mjs   # what the home page shows
+```
+
+`verif-medias.mjs` exists because the image picker shipped once with `upsert: true` on a bucket
+whose policy grants insert only. Storage refuses that, every upload failed with "new row violates
+row-level security policy", and nothing in the type-checker, the linter or the unit tests could
+have caught it. The paths are random, so the upload never needed to overwrite anything.
+
 ## Making an administrator
 
 `node supabase/tests/creer-admin.mjs <email> <mot-de-passe> [prenom]` creates the auth user

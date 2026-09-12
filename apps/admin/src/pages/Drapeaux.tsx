@@ -96,11 +96,11 @@ export function Drapeaux() {
                   <p className={styles.description}>{textes.description}</p>
                 </div>
                 <div className={styles.etat}>
-                  <span className={actif ? styles.badgeAllume : styles.badgeEteint}>
+                  <span className={actif ? styles.badgeEnLigne : styles.badgeHorsLigne}>
                     {ligne
                       ? actif
-                        ? fr.drapeaux.etats.allume
-                        : fr.drapeaux.etats.eteint
+                        ? fr.drapeaux.etats.enLigne
+                        : fr.drapeaux.etats.horsLigne
                       : fr.drapeaux.etats.absent}
                   </span>
                   <Interrupteur
