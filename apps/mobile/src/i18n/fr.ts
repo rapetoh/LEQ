@@ -522,6 +522,8 @@ export const fr = {
     debriefEnCoursDetail: "Ça prend moins d'une minute.",
     debriefMoments: 'Les moments qui comptent',
     debriefAxe: 'À travailler',
+    debriefTarde:
+      "Le débrief n'est toujours pas là. Reviens plus tard, il t'attendra sur cette page.",
     debriefVide: 'Le débat était trop court pour être analysé.',
     debriefSource: "Écrit à partir du texte du débat. Ta voix n'a pas été conservée.",
     voirDebrief: 'Voir le débrief',

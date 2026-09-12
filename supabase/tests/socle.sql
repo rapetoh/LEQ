@@ -395,6 +395,9 @@ select tests_leq.deconnecter();
 -- grilles and criteres_grille
 -- ---------------------------------------------------------------------------
 
+-- The suite owns the grid: Rebecca creates versions in the admin, and a fixed version number
+-- collides with hers the day she does. Rolled back with everything else.
+delete from public.grilles;
 insert into public.grilles (id, version, publiee_le, notes)
 values
   ('99999999-0000-4000-8000-000000000001', 1, now(), 'publiée'),

@@ -61,10 +61,13 @@ describe('debriefer_debat', () => {
     expect(ecrits).toEqual([])
   })
 
-  it('writes nothing for a debate where nobody said anything', async () => {
+  it('writes an empty note for a debate where nobody said anything', async () => {
+    // The screen reads "no note" as "still being written" and polls for it. An empty note is
+    // what tells it there is nothing coming.
     const { ex, ecrits } = depot({ tours: [] })
     await creerHandlerDebrieferDebat({ ex, adversaire: new AdversaireStub() })(job, contexte)
-    expect(ecrits).toEqual([])
+    expect(ecrits).toHaveLength(1)
+    expect(JSON.parse(String(ecrits[0]?.moments))).toEqual([])
   })
 
   it('writes nothing for a debate that is gone', async () => {

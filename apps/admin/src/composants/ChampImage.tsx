@@ -31,6 +31,17 @@ export function ChampImage({
   const [erreur, setErreur] = useState<string | null>(null)
   const url = urlMedia(import.meta.env.VITE_SUPABASE_URL ?? '', valeur)
 
+  /**
+   * Removes an image nothing points at any more. Best effort on purpose: an image that stays is
+   * a file to clean up later, while a row left pointing at a deleted object is a broken card in
+   * the application.
+   */
+  const supprimerFichier = async (chemin: string | null) => {
+    if (!chemin) return
+    const { error } = await supabase.storage.from(BUCKET_MEDIAS).remove([chemin])
+    if (error) console.warn('media: suppression impossible', error.message)
+  }
+
   const televerser = async (fichier: File) => {
     setErreur(null)
     const refus = verifierMedia(fichier)
@@ -48,7 +59,10 @@ export function ChampImage({
         .from(BUCKET_MEDIAS)
         .upload(chemin, fichier, { contentType: fichier.type })
       if (error) throw new Error(error.message)
+      const remplace = valeur
       onChange(chemin)
+      // The one it replaces is nobody's now.
+      await supprimerFichier(remplace)
     } catch (cause) {
       setErreur(cause instanceof Error ? cause.message : fr.media.erreur)
     } finally {
@@ -116,7 +130,11 @@ export function ChampImage({
             type="button"
             className="bouton bouton-discret bouton-petit"
             disabled={envoi}
-            onClick={() => onChange(null)}
+            onClick={() => {
+              const retire = valeur
+              onChange(null)
+              void supprimerFichier(retire)
+            }}
           >
             {fr.media.retirer}
           </button>

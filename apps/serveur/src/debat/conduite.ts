@@ -49,6 +49,8 @@ export interface DepotDebat {
     dureeS: number | null,
   ): Promise<void>
   cloturer(debatId: string, issue: IssueDebat): Promise<void>
+  /** Reopens a session our own cut closed, when the person comes back inside the window. */
+  reprendre(debatId: string): Promise<DebatOuvert | null>
   /** Queues the debrief, which reads the written transcript (chapter 10). */
   demanderDebrief(debatId: string): Promise<void>
 }
@@ -66,7 +68,15 @@ export class Conduite {
   private flux: FluxTranscription | null = null
   private debat: DebatOuvert | null = null
   private tours: TourPublie[] = []
-  private dernierDebut = Date.now()
+  /**
+   * When audio actually started arriving for the current turn, not when the turn became
+   * possible. The cap is the person's speaking time: charging them for reading the thesis, for
+   * thinking, or for listening to Rétor would end a three-minute session after forty seconds of
+   * speech.
+   */
+  private debutParole: number | null = null
+  /** Set while a turn is being flushed, so two `fin_tour` frames cannot flush it twice. */
+  private finDeTourEnCours = false
   private traitement: Promise<void> = Promise.resolve()
 
   constructor(
@@ -112,8 +122,16 @@ export class Conduite {
         return
       }
       case 'fin_tour': {
-        if (this.etat.phase !== 'ecoute' || !this.flux) return
-        await this.flux.terminer()
+        // The screen sends this on the button and again on an audio interruption, so the two
+        // can arrive together. Without the flag the second flush writes a duplicate turn, or an
+        // empty one that Rétor then answers and the debrief reads.
+        if (this.etat.phase !== 'ecoute' || !this.flux || this.finDeTourEnCours) return
+        this.finDeTourEnCours = true
+        try {
+          await this.flux.terminer()
+        } finally {
+          this.finDeTourEnCours = false
+        }
         return
       }
       case 'terminer':
@@ -126,8 +144,13 @@ export class Conduite {
     const utilisateurId = await this.deps.depot.utilisateurDuJeton(jeton)
     if (!utilisateurId) return this.refuser('jeton_invalide')
 
-    const debat = await this.deps.depot.lireDebat(debatId, utilisateurId)
+    let debat = await this.deps.depot.lireDebat(debatId, utilisateurId)
     if (!debat) return this.refuser('debat_introuvable')
+    // Coming back after our own cut is the case the per-turn writes exist for. Only a session
+    // that really ended stays closed.
+    if (debat.statut === 'interrompue') {
+      debat = (await this.deps.depot.reprendre(debatId)) ?? debat
+    }
     if (debat.statut !== 'ouverte') return this.refuser('debat_clos')
 
     this.debat = debat
@@ -156,10 +179,12 @@ export class Conduite {
   }
 
   private ouvrirFlux(): void {
-    this.dernierDebut = Date.now()
+    this.debutParole = null
     this.flux = this.deps.transcripteur.ouvrir({
       langue: 'fr',
       surSegment: (segment) => {
+        // The first segment of a turn is the first moment we know the person is speaking.
+        this.debutParole ??= Date.now()
         this.canal.envoyer({
           type: 'transcription',
           texte: segment.texte,
@@ -167,8 +192,10 @@ export class Conduite {
         })
       },
       surFinDeTour: (texte) => {
-        const dureeS = Math.max(0, (Date.now() - this.dernierDebut) / 1000)
-        this.enfiler(() => this.tourDeLUtilisateur(texte, dureeS))
+        // A turn where nothing was ever heard costs nothing.
+        const dureeS = this.debutParole === null ? 0 : (Date.now() - this.debutParole) / 1000
+        this.debutParole = null
+        this.enfiler(() => this.tourDeLUtilisateur(texte, Math.max(0, dureeS)))
       },
     })
   }
@@ -184,7 +211,7 @@ export class Conduite {
     })
     await this.appliquer(avancer(this.etat, { type: 'tour_retor', texte: reponse }))
     await this.direAVoixHaute(this.etat.dernierTour, reponse)
-    this.dernierDebut = Date.now()
+    this.debutParole = null
   }
 
   private async direAVoixHaute(numero: number, texte: string): Promise<void> {

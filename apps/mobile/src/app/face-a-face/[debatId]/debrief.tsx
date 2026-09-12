@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -18,6 +18,8 @@ import { espaces, typographie } from '@/theme/tokens'
 
 /** The worker writes the note a moment after the debate ends; the screen waits for it. */
 const INTERVALLE_MS = 4000
+/** After this many tries the note is not coming, and saying so beats a spinner that never ends. */
+const ESSAIS_MAX = 30
 
 export default function Debrief() {
   const theme = useTheme()
@@ -27,11 +29,17 @@ export default function Debrief() {
   const debat = useDebat(debatId)
   const debrief = debat.data?.debrief ?? null
 
+  const [essais, setEssais] = useState(0)
+  const rafraichir = debat.refetch
+
   useEffect(() => {
-    if (debrief !== null || debat.isError) return
-    const battement = setInterval(() => void debat.refetch(), INTERVALLE_MS)
+    if (debrief !== null || debat.isError || essais >= ESSAIS_MAX) return
+    const battement = setInterval(() => {
+      setEssais((precedents) => precedents + 1)
+      void rafraichir()
+    }, INTERVALLE_MS)
     return () => clearInterval(battement)
-  }, [debrief, debat])
+  }, [debrief, debat.isError, essais, rafraichir])
 
   if (debat.isPending) return <EcranChargement />
   if (debat.isError || !debat.data) {
@@ -63,7 +71,7 @@ export default function Debrief() {
 
       {!debrief ? (
         <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {t('debat.debriefEnCoursDetail')}
+          {essais >= ESSAIS_MAX ? t('debat.debriefTarde') : t('debat.debriefEnCoursDetail')}
         </Text>
       ) : debrief.moments.length === 0 ? (
         <Carte teinte="sombre" style={styles.bloc}>

@@ -42,6 +42,7 @@ function monter(debat: Partial<DebatOuvert> = {}, uid: string | null = 'u1') {
     cloturer: async (_id, issue) => {
       clotures.push(issue)
     },
+    reprendre: async () => ({ ...DEBAT, ...debat, statut: 'ouverte' }),
     demanderDebrief: async (id) => {
       debriefs.push(id)
     },
@@ -197,6 +198,7 @@ describe('when something breaks on our side', () => {
           cloturer: async (_id, issue) => {
             monte.clotures.push(issue)
           },
+          reprendre: async () => DEBAT,
           demanderDebrief: async () => undefined,
         },
         transcripteur: new TranscripteurFluxStub(),
@@ -211,5 +213,66 @@ describe('when something breaks on our side', () => {
     await conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
     await conduite.surFermeture()
     expect(monte.clotures).toContain('interrompue_par_nous')
+  })
+})
+
+// E3b offered a "Reprendre" button for months that always answered "ce débat est terminé": our
+// own cut closed the row, and every resume path required it to be open.
+describe('reprendre après notre propre coupure', () => {
+  it('rouvre la session et rend ses tours', async () => {
+    const envoyes: MessageSortant[] = []
+    let reprises = 0
+    const conduite = new Conduite(
+      {
+        depot: {
+          utilisateurDuJeton: async () => 'u1',
+          lireDebat: async () => ({ ...DEBAT, statut: 'interrompue' }),
+          lireTours: async () => [{ numero: 1, locuteur: 'utilisateur', texte: 'déjà dit' }],
+          ecrireTour: async () => undefined,
+          cloturer: async () => undefined,
+          reprendre: async () => {
+            reprises += 1
+            return { ...DEBAT, statut: 'ouverte', secondes_parlees: 20 }
+          },
+          demanderDebrief: async () => undefined,
+        },
+        transcripteur: new TranscripteurFluxStub(),
+        adversaire: new AdversaireStub(),
+        voix: new VoixStub(),
+        log,
+      },
+      { envoyer: (m) => envoyes.push(m), fermer: () => undefined },
+    )
+    await conduite.recevoir(BONJOUR)
+    expect(reprises).toBe(1)
+    expect(envoyes[0]).toMatchObject({
+      type: 'pret',
+      secondes_parlees: 20,
+      tours: [{ numero: 1, texte: 'déjà dit' }],
+    })
+  })
+
+  it("refuse une session qui s'est vraiment terminée", async () => {
+    const envoyes: MessageSortant[] = []
+    const conduite = new Conduite(
+      {
+        depot: {
+          utilisateurDuJeton: async () => 'u1',
+          lireDebat: async () => ({ ...DEBAT, statut: 'terminee' }),
+          lireTours: async () => [],
+          ecrireTour: async () => undefined,
+          cloturer: async () => undefined,
+          reprendre: async () => null,
+          demanderDebrief: async () => undefined,
+        },
+        transcripteur: new TranscripteurFluxStub(),
+        adversaire: new AdversaireStub(),
+        voix: new VoixStub(),
+        log,
+      },
+      { envoyer: (m) => envoyes.push(m), fermer: () => undefined },
+    )
+    await conduite.recevoir(BONJOUR)
+    expect(envoyes[0]).toMatchObject({ type: 'erreur', code: 'debat_clos' })
   })
 })

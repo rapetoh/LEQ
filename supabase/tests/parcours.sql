@@ -37,7 +37,11 @@ select tests_leq.creer_utilisateur('33333333-3333-4333-8333-333333333333', 'c@te
 update public.profils set fuseau_horaire = 'Europe/Paris' where id = '11111111-1111-4111-8111-111111111111';
 
 -- banks are seeded ----------------------------------------------------------
-select is((select count(*) from public.modeles_actes), 3::bigint, 'three acts');
+-- The bank belongs to Rebecca and grows: what matters is that a path is built from whatever is
+-- in it, not that it holds a particular number today.
+create temp table actes_attendus as select count(*) as n from public.modeles_actes;
+grant select on actes_attendus to authenticated;
+select cmp_ok((select n from actes_attendus), '>=', 3::bigint, 'at least three acts in the bank');
 select cmp_ok((select count(*) from public.defis where actif), '>=', 13::bigint, 'at least 13 défis');
 select cmp_ok((select count(*) from public.exercices where actif), '>=', 5::bigint, 'at least 5 exercices');
 select is((select count(*) from public.defis where ordre_acte = 3), 0::bigint, 'acte III has no défi yet (sous la brume)');
@@ -45,7 +49,8 @@ select is((select count(*) from public.defis where ordre_acte = 3), 0::bigint, '
 -- A builds the path ------------------------------------------------------------
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select lives_ok($$ select public.obtenir_parcours() $$, 'A gets a path');
-select is((select count(*) from public.actes), 3::bigint, 'A sees three acts');
+select is((select count(*) from public.actes), (select n from actes_attendus),
+  'A sees one act per act of the bank');
 select is((select count(*) from public.etapes), 13::bigint, 'A sees thirteen steps');
 select is((select count(*) from public.etapes where statut = 'disponible'), 1::bigint, 'exactly one step is available');
 select is((select ordre_global from public.etapes where statut = 'disponible'), 1, 'the first one');

@@ -9,7 +9,7 @@ import {
   choisirVoix,
   type Canal,
 } from './debat/index.js'
-import { demarrerHttp } from './http.js'
+import { attendreFermeturesDebats, demarrerHttp } from './http.js'
 import { creerHandlers } from './jobs/index.js'
 import { creerLogger } from './log.js'
 import { creerClientSupabase, creerComptes, creerStockage } from './stockage.js'
@@ -49,6 +49,7 @@ async function principal(): Promise<void> {
               ecrireTour: (id, numero, locuteur, texte, dureeS) =>
                 db.enregistrerTourDebat(pool, id, numero, locuteur, texte, dureeS),
               cloturer: (id, issue) => db.cloturerDebat(pool, id, issue),
+              reprendre: (id) => db.reprendreDebat(pool, id),
               demanderDebrief: (id) =>
                 db.creerJob(pool, 'debriefer_debat', { debat_id: id }, `debrief:${id}`),
             },
@@ -72,7 +73,10 @@ async function principal(): Promise<void> {
   }
 
   const http = demarrerHttp(config, log, debat)
-  fermetures.unshift(http.fermer)
+  // Order matters on the way out: close the sockets, let every debate finish writing its
+  // outcome, and only then end the pool. The other way round charged a session to everyone who
+  // was mid-debate during a deploy.
+  fermetures.unshift(http.fermer, attendreFermeturesDebats)
 
   if (config.processus === 'worker') {
     const pool = creerPool(config.databaseUrl)

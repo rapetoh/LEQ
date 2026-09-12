@@ -855,6 +855,28 @@ export async function enregistrerTourDebat(
   ])
 }
 
+/** Reopens a session our own cut closed, inside the resume window. Null when it cannot. */
+export async function reprendreDebat(
+  ex: Executeur,
+  debatId: string,
+): Promise<DebatOuvertLigne | null> {
+  const { rows } = await ex.query(
+    `select id, these_texte, ton_adversaire, duree_max_s, secondes_parlees, statut
+       from public.reprendre_debat($1)`,
+    [debatId],
+  )
+  const ligne = rows[0]
+  if (!ligne) return null
+  return {
+    id: String(ligne['id']),
+    these_texte: String(ligne['these_texte']),
+    ton_adversaire: String(ligne['ton_adversaire']),
+    duree_max_s: Number(ligne['duree_max_s']),
+    secondes_parlees: Number(ligne['secondes_parlees']),
+    statut: String(ligne['statut']),
+  }
+}
+
 export async function cloturerDebat(ex: Executeur, debatId: string, issue: string): Promise<void> {
   await ex.query('select public.cloturer_debat($1, $2)', [debatId, issue])
 }

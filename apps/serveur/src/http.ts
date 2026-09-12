@@ -92,8 +92,12 @@ export function creerApplication(
           },
           onClose() {
             // The session decides whether this was our cut; it always is, unless it had
-            // already ended on its own.
-            void conduite?.surFermeture()
+            // already ended on its own. The promise is registered so a shutdown can wait for it.
+            const fermeture = conduite?.surFermeture()
+            if (fermeture) {
+              fermeturesEnCours.add(fermeture)
+              void fermeture.finally(() => fermeturesEnCours.delete(fermeture))
+            }
             conduite = null
           },
         }
@@ -112,6 +116,19 @@ export function creerApplication(
 
 export interface ServeurHttp {
   fermer(): Promise<void>
+}
+
+/** Closing writes still in flight when the process was asked to stop. */
+const fermeturesEnCours = new Set<Promise<void>>()
+
+/**
+ * Waits for every debate that was being closed to finish writing. A deploy used to terminate the
+ * sockets and tear the pool down in the same breath, so those writes threw into a swallowed
+ * catch and the sessions stayed open: the people mid-debate were then blocked for half an hour
+ * and finally charged a slot for our own deploy.
+ */
+export async function attendreFermeturesDebats(): Promise<void> {
+  await Promise.allSettled([...fermeturesEnCours])
 }
 
 export function demarrerHttp(
