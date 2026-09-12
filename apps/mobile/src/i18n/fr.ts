@@ -451,6 +451,8 @@ export const fr = {
     refusParleDAbord: "Parle d'abord, puis tu pourras voter.",
     refusDuelExpire: 'Ce duel a expiré.',
     refusDuelClos: 'Ce duel est terminé.',
+    refusPrenomRequis: 'Écris ton prénom pour répondre.',
+    refusEmailRequis: 'Écris une adresse e-mail valable pour répondre.',
     refusDuelSurSoi: 'On ne se défie pas soi-même.',
     refusDuelComplet: "Quelqu'un a déjà rejoint ce duel.",
     refusInconnu: "Ça n'a pas marché. Réessaie dans un instant.",

@@ -105,9 +105,17 @@ try {
   })
   verifier(!erreurLecture && vu?.sujet === SUJET, 'le lien montre le sujet', vu?.sujet ?? '')
 
+  // Answering without saying who you are is refused: the person who invited has to know who came.
+  const { error: sansNom } = await web.rpc('rejoindre_duel', { p_jeton: duel.jeton })
+  verifier(Boolean(sansNom), 'répondre sans se nommer est refusé', sansNom?.message ?? 'accepté')
+
   // The order matters: the slot is claimed before anything is recorded, so two people opening
   // the same link do not both spend a take on it.
-  const { error: erreurRejoint } = await web.rpc('rejoindre_duel', { p_jeton: duel.jeton })
+  const { error: erreurRejoint } = await web.rpc('rejoindre_duel', {
+    p_jeton: duel.jeton,
+    p_prenom: 'Camille',
+    p_email: 'camille@essai.leq',
+  })
   verifier(!erreurRejoint, 'la place est prise', erreurRejoint?.message ?? '')
 
   const { rows: apresRejoint } = await base.query(

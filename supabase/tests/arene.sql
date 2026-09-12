@@ -251,7 +251,20 @@ grant select on duel_anon to authenticated;
 reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
 select is((select (public.lire_duel_par_jeton((select jeton from duel_anon))) ->> 'sujet'), 'Sans application', 'the anonymous invitee reads the subject');
-select lives_ok($$ select public.rejoindre_duel((select jeton from duel_anon)) $$, 'the anonymous invitee joins');
+-- Someone answering by the link has no account. Without a name the inviter was told they had been
+-- answered by nobody, and there was no way to reach whoever had spoken.
+select throws_ok($$ select public.rejoindre_duel((select jeton from duel_anon)) $$, '23514', 'prenom_requis',
+  'answering without a name is refused');
+select throws_ok($$ select public.rejoindre_duel((select jeton from duel_anon), 'Camille', 'pas-une-adresse') $$,
+  '23514', 'email_requis', 'and so is an address that is not one');
+select lives_ok($$ select public.rejoindre_duel((select jeton from duel_anon), 'Camille', 'Camille@Test.LEQ ') $$,
+  'the anonymous invitee joins, and says who they are');
+select is((select invite_prenom from public.duels where jeton = (select jeton from duel_anon)), 'Camille',
+  'the duel carries the name');
+select is((select invite_email from public.duels where jeton = (select jeton from duel_anon)), 'camille@test.leq',
+  'and the address, trimmed and in lower case');
+select is((select prenom from public.profils where id = '55555555-5555-4555-8555-555555555555'), 'Camille',
+  'the name becomes their profile''s, so the duel names them');
 select lives_ok(
   $$ insert into public.tentatives (id, utilisateur_id, type, duel_id, enregistre_le, fuseau_horaire, decalage_minutes, statut)
      values ('dddddddd-0000-4000-8000-000000000001', '55555555-5555-4555-8555-555555555555', 'duel',

@@ -70,6 +70,11 @@ function dureeMinimale(dureeMaxS: number): number {
 export function Duel() {
   const { jeton = '' } = useParams()
   const [etat, setEtat] = useState<Etat>({ phase: 'chargement' })
+  // Who is answering. Asked before the seat is claimed, because the seat is what tells the
+  // inviter someone came.
+  const [prenom, setPrenom] = useState('')
+  const [email, setEmail] = useState('')
+  const [erreurIdentite, setErreurIdentite] = useState<string | null>(null)
   const [secondes, setSecondes] = useState(0)
   const [avertissement, setAvertissement] = useState<string | null>(null)
   // Kept across retries: the upload and the row are both keyed by it, so sending again after a
@@ -150,9 +155,20 @@ export function Duel() {
       })
       return
     }
+    const nom = prenom.trim()
+    const adresse = email.trim()
+    if (nom === '') {
+      setErreurIdentite(fr.duel.prenomManquant)
+      return
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adresse)) {
+      setErreurIdentite(fr.duel.emailManquant)
+      return
+    }
+    setErreurIdentite(null)
     setEtat({ phase: 'travail', libelle: fr.duel.preparation, detail: null, reprise: null })
     try {
-      const duelId = await rejoindre(jeton)
+      const duelId = await rejoindre(jeton, nom, adresse)
       await enregistreur.current.demarrer()
       setSecondes(0)
       setAvertissement(null)
@@ -307,6 +323,38 @@ export function Duel() {
           </section>
 
           <p className="etiquette-delai">{texteDelai(etat.invitation.echeance)}</p>
+
+          <section className="carte identite">
+            <label className="champ">
+              <span className="champ-libelle">{fr.duel.prenomChamp}</span>
+              <input
+                className="champ-saisie"
+                type="text"
+                autoComplete="given-name"
+                value={prenom}
+                onChange={(e) => setPrenom(e.target.value)}
+              />
+              <span className="petit">{fr.duel.prenomAide}</span>
+            </label>
+            <label className="champ">
+              <span className="champ-libelle">{fr.duel.emailChamp}</span>
+              <input
+                className="champ-saisie"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <span className="petit">{fr.duel.emailAide}</span>
+            </label>
+            {erreurIdentite ? (
+              <p className="petit erreur" role="alert">
+                {erreurIdentite}
+              </p>
+            ) : null}
+          </section>
+
           <p className="petit">{fr.duel.automatique}</p>
 
           <div className="pousse actions">

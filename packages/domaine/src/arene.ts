@@ -159,6 +159,8 @@ export const REFUS_ARENE = [
   'duel_sur_soi',
   'duel_complet',
   'sujet_requis',
+  'prenom_requis',
+  'email_requis',
 ] as const
 export type RefusArene = (typeof REFUS_ARENE)[number]
 

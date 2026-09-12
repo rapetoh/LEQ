@@ -2,7 +2,8 @@ import { MesuresSchema } from '@leq/domaine'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -19,7 +20,7 @@ import { invaliderProgres, useSerie } from '@/services/progres'
 import { file } from '@/services/prises'
 import { ecrireProfilLocal } from '@/services/profilLocal'
 import { supabase } from '@/services/supabase'
-import { useTheme } from '@/theme/ThemeProvider'
+import { useContexteTheme, useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
 // A5 · L'analyse, X2 · L'envoi, X3 · L'analyse a échoué: one screen, several states.
@@ -36,6 +37,8 @@ function etapeCourante(statut: string): number {
 
 export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil' | 'retour' }) {
   const theme = useTheme()
+  const { animationsReduites } = useContexteTheme()
+  const mouvementReduit = useReducedMotion() || animationsReduites
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
@@ -162,12 +165,20 @@ export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil'
           ).map((ligne) => (
             <Carte key={ligne.libelle} teinte="sombre" style={styles.etape}>
               <View style={styles.ligne}>
-                <View
-                  style={[
-                    styles.point,
-                    { backgroundColor: ligne.etat === 'a_venir' ? theme.heroBordure : theme.voix },
-                  ]}
-                />
+                {/* The step being worked on turns. Three still dots and a colour change did not
+                    read as anything happening: people expect the thing that spins. */}
+                {ligne.etat === 'courant' && !mouvementReduit ? (
+                  <ActivityIndicator size="small" color={theme.voix} style={styles.point} />
+                ) : (
+                  <View
+                    style={[
+                      styles.point,
+                      {
+                        backgroundColor: ligne.etat === 'a_venir' ? theme.heroBordure : theme.voix,
+                      },
+                    ]}
+                  />
+                )}
                 <Text
                   style={[
                     typographie.corpsFort,

@@ -54,6 +54,14 @@ export const fr = {
       'Le verdict arrive quand vous aurez parlé tou·te·s les deux, ou à la fin des 48 h.',
 
     // Verdict, for the invitee.
+    // Qui répond.
+    prenomChamp: 'Ton prénom',
+    prenomAide: "Il s'affiche à la personne qui t'a défié·e.",
+    emailChamp: 'Ton adresse e-mail',
+    emailAide: 'Elle sert à te dire qui a gagné.',
+    prenomManquant: 'Écris ton prénom.',
+    emailManquant: 'Écris une adresse e-mail valable.',
+
     verdictTitre: 'Le verdict',
     gagne: 'Tu gagnes.',
     perdu: "L'autre personne gagne.",

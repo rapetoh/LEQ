@@ -67,10 +67,20 @@ export async function lireInvitation(jeton: string): Promise<DuelParJeton> {
   return DuelParJetonSchema.parse(data)
 }
 
-/** Signs in anonymously and claims the invitee's seat. Answers the duel id. */
-export async function rejoindre(jeton: string): Promise<string> {
+/**
+ * Signs in anonymously and claims the invitee's seat. Answers the duel id.
+ *
+ * The name and the address are asked before this, and they travel with it: without them the
+ * person who sent the invitation is told they were answered by an account with no name, and
+ * nobody can reach whoever spoke.
+ */
+export async function rejoindre(jeton: string, prenom: string, email: string): Promise<string> {
   await connecterAnonymement()
-  const { data, error } = await supabase.rpc('rejoindre_duel', { p_jeton: jeton })
+  const { data, error } = await supabase.rpc('rejoindre_duel', {
+    p_jeton: jeton,
+    p_prenom: prenom,
+    p_email: email,
+  })
   if (error) echouer(error.message)
   return z.uuid().parse(data)
 }

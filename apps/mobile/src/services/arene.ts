@@ -58,6 +58,8 @@ const MESSAGES_REFUS: Readonly<Record<RefusArene, CleTexte>> = {
   paire_invalide: 'arene.refusInconnu',
   prise_introuvable: 'arene.refusInconnu',
   duel_clos: 'arene.refusDuelClos',
+  prenom_requis: 'arene.refusPrenomRequis',
+  email_requis: 'arene.refusEmailRequis',
   duel_expire: 'arene.refusDuelExpire',
   duel_sur_soi: 'arene.refusDuelSurSoi',
   duel_complet: 'arene.refusDuelComplet',
