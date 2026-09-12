@@ -40,8 +40,21 @@ type Etat =
   | { phase: 'chargement' }
   | { phase: 'invitation'; invitation: Invitation }
   | { phase: 'enregistrement'; invitation: Invitation; duelId: string }
-  | { phase: 'prete'; invitation: Invitation; duelId: string; prise: PriseEnregistree }
-  | { phase: 'travail'; libelle: string; detail: string | null }
+  | {
+      phase: 'prete'
+      invitation: Invitation
+      duelId: string
+      prise: PriseEnregistree
+      /** Set when a send just failed, so the screen says why and offers to send again. */
+      echec?: string
+    }
+  | {
+      phase: 'travail'
+      libelle: string
+      detail: string | null
+      /** Kept so a failure can hand the take back instead of losing it. */
+      reprise: { invitation: Invitation; duelId: string; prise: PriseEnregistree } | null
+    }
   | { phase: 'attente'; duelId: string }
   | { phase: 'verdict'; issue: IssueDuel }
   | { phase: 'message'; titre: string; detail: string }
@@ -59,6 +72,9 @@ export function Duel() {
   const [etat, setEtat] = useState<Etat>({ phase: 'chargement' })
   const [secondes, setSecondes] = useState(0)
   const [avertissement, setAvertissement] = useState<string | null>(null)
+  // Kept across retries: the upload and the row are both keyed by it, so sending again after a
+  // failure never duplicates anything.
+  const [tentative, setTentative] = useState<string | null>(null)
   const enregistreur = useRef(new Enregistreur())
 
   // The microphone is given back whatever happens to the page.
@@ -95,7 +111,14 @@ export function Duel() {
           setEtat({ phase: 'message', titre: fr.duel.expireTitre, detail: fr.duel.expireDetail })
           return
         }
-        if (reponse.deja_repondu) {
+        if (reponse.c_est_mon_duel) {
+          setEtat({ phase: 'message', titre: fr.duel.surSoiTitre, detail: fr.duel.surSoiDetail })
+          return
+        }
+        // The seat is taken by this very person whenever they came back: a denied microphone, a
+        // reload, a backgrounded tab. Coming back is resuming, and telling them someone else
+        // answered would lock them out of their own duel until it expired.
+        if (reponse.deja_repondu && !reponse.c_est_moi) {
           setEtat({ phase: 'message', titre: fr.duel.completTitre, detail: fr.duel.completDetail })
           return
         }
@@ -127,7 +150,7 @@ export function Duel() {
       })
       return
     }
-    setEtat({ phase: 'travail', libelle: fr.duel.preparation, detail: null })
+    setEtat({ phase: 'travail', libelle: fr.duel.preparation, detail: null, reprise: null })
     try {
       const duelId = await rejoindre(jeton)
       await enregistreur.current.demarrer()
@@ -193,21 +216,37 @@ export function Duel() {
   }
 
   // 3. Send: upload, wait for the analysis, publish. Then the duel closes on its own.
-  const envoyer = async (duelId: string, prise: PriseEnregistree) => {
-    setEtat({ phase: 'travail', libelle: fr.duel.envoi, detail: null })
-    const tentativeId = crypto.randomUUID()
+  const envoyer = async (
+    invitation: Invitation,
+    duelId: string,
+    prise: PriseEnregistree,
+    tentativeExistante?: string,
+  ) => {
+    const reprise = { invitation, duelId, prise }
+    setEtat({ phase: 'travail', libelle: fr.duel.envoi, detail: null, reprise })
+    // The same identifier across retries: the upload and the row are both keyed by it, so
+    // sending again after a cut never duplicates anything.
+    const tentativeId = tentativeExistante ?? crypto.randomUUID()
+    setTentative(tentativeId)
     try {
       await envoyerPrise({ duelId, prise, tentativeId })
-      setEtat({ phase: 'travail', libelle: fr.duel.analyse, detail: fr.duel.analyseDetail })
+      setEtat({
+        phase: 'travail',
+        libelle: fr.duel.analyse,
+        detail: fr.duel.analyseDetail,
+        reprise,
+      })
       const statut = await attendreAnalyse(tentativeId)
       if (statut !== 'retour_disponible') {
-        setEtat({ phase: 'message', titre: fr.duel.erreur, detail: fr.commun.reessayer })
+        setEtat({ phase: 'prete', invitation, duelId, prise, echec: fr.duel.echecAnalyse })
         return
       }
       await publier(tentativeId)
       setEtat({ phase: 'attente', duelId })
     } catch (erreur) {
-      montrerRefus(erreur)
+      // The take is still in hand: hand it back with the reason, rather than a dead end.
+      const { titre } = messageRefus(erreur)
+      setEtat({ phase: 'prete', invitation, duelId, prise, echec: titre })
     }
   }
 
@@ -311,12 +350,15 @@ export function Duel() {
             />
             <h3>{fr.duel.prete}</h3>
             <p className="corps centre">{fr.duel.preteDetail}</p>
+            {etat.echec ? <p className="message message-erreur">{etat.echec}</p> : null}
           </div>
           <div className="pousse actions">
             <p className="message message-calme">{fr.duel.conservation}</p>
             <Bouton
-              libelle={fr.duel.envoyer}
-              onClick={() => void envoyer(etat.duelId, etat.prise)}
+              libelle={etat.echec ? fr.duel.envoyerEncore : fr.duel.envoyer}
+              onClick={() =>
+                void envoyer(etat.invitation, etat.duelId, etat.prise, tentative ?? undefined)
+              }
             />
             <Bouton
               libelle={fr.duel.refaire}

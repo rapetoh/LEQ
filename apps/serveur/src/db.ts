@@ -17,13 +17,20 @@ export interface Executeur {
 }
 
 export function creerPool(databaseUrl: string): pg.Pool {
-  return new Pool({
+  const pool = new Pool({
     connectionString: databaseUrl,
     max: 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
     application_name: 'leq-serveur',
   })
+  // An idle connection dropped by the database makes node-postgres emit 'error' on the pool, and
+  // an EventEmitter with no 'error' listener throws. Without this line a failover on the database
+  // side kills the process, which on the real-time side drops every live debate at once.
+  pool.on('error', (erreur) => {
+    console.error('pool: connexion inactive en erreur', erreur.message)
+  })
+  return pool
 }
 
 // ---------------------------------------------------------------------------
@@ -570,6 +577,18 @@ export async function marquerAbandonTechnique(
       where id = $1`,
     [id, audioSupprime, erreur ?? null],
   )
+}
+
+/** Where the public copy of an Arena or duel take lives, recorded before the private one goes. */
+export async function enregistrerCheminPublic(
+  ex: Executeur,
+  id: string,
+  chemin: string,
+): Promise<void> {
+  await ex.query('update public.tentatives set chemin_audio_public = $2 where id = $1', [
+    id,
+    chemin,
+  ])
 }
 
 export async function marquerAudioSupprime(ex: Executeur, id: string): Promise<void> {

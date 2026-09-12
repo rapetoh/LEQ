@@ -15,6 +15,8 @@ export interface Stockage {
   telecharger(bucket: string, chemin: string): Promise<Buffer>
   /** Deletes objects. Missing objects are not an error (idempotent). */
   supprimer(bucket: string, chemins: readonly string[]): Promise<void>
+  /** Writes bytes to a bucket. Overwrites, so a retry after a cut is safe. */
+  televerser(bucket: string, chemin: string, octets: Buffer, typeMime: string): Promise<void>
 }
 
 export interface Comptes {
@@ -40,6 +42,14 @@ export function creerStockage(client: SupabaseClient): Stockage {
         )
       }
       return Buffer.from(await data.arrayBuffer())
+    },
+    async televerser(bucket, chemin, octets, typeMime) {
+      const { error } = await client.storage
+        .from(bucket)
+        .upload(chemin, octets, { contentType: typeMime, upsert: true })
+      if (error) {
+        throw new ErreurStockage(`Upload failed for ${bucket}/${chemin}: ${error.message}`)
+      }
     },
     async supprimer(bucket, chemins) {
       for (let i = 0; i < chemins.length; i += TAILLE_LOT_SUPPRESSION) {

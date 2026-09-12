@@ -34,6 +34,8 @@ export const fr = {
     arreter: 'Terminer',
     refaire: 'Refaire',
     envoyer: 'Envoyer ma réponse',
+    envoyerEncore: 'Envoyer encore',
+    echecAnalyse: "L'analyse n'est pas revenue. Ta prise est gardée, tu peux renvoyer.",
     tropCourte: (secondes: number) => `Parle au moins ${secondes} secondes avant de terminer.`,
     minimum: (secondes: number) => `${secondes} secondes minimum`,
 

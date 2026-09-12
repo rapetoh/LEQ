@@ -43,6 +43,8 @@ export interface DepotAnalyse {
     evaluation: NouvelleEvaluation,
   ): Promise<ResultatTentative | null>
   marquerAudioSupprime(id: string): Promise<void>
+  /** Records where the public copy lives, before the private object is deleted. */
+  enregistrerCheminPublic(id: string, chemin: string): Promise<void>
   marquerEchecTechnique(id: string, erreur: string): Promise<void>
   marquerAbandonTechnique(id: string, audioSupprime: boolean, erreur?: string): Promise<void>
 }
@@ -51,6 +53,12 @@ export interface DepotAnalyse {
 export interface StockageAudioTentatives {
   telecharger(chemin: string): Promise<Buffer>
   supprimer(chemin: string): Promise<void>
+  /**
+   * Copies a take into `audio-public` and answers its path there. Only for an Arena or duel
+   * take: chapter 2's single exception, the recording that stays online for the time of the
+   * contest and is deleted at its close.
+   */
+  copierVersPublic(chemin: string, octets: Buffer): Promise<string>
 }
 
 export interface DependancesAnalyse {
@@ -192,6 +200,16 @@ export async function analyserTentative(
       { grille_version: evaluation.version_grille, resultat },
       'analyse et evaluation enregistrees',
     )
+
+    // An Arena or duel take keeps a copy in `audio-public` for the time of the contest: without
+    // it `publier_prise` had nothing to copy, and the Arena asked people to compare two voices
+    // they could not hear. Written before the private object goes, so a failure here leaves the
+    // take intact rather than silent.
+    if (tentative.type === 'arene' || tentative.type === 'duel') {
+      const cheminPublic = await stockage.copierVersPublic(cheminAudio, octets)
+      await depot.enregistrerCheminPublic(tentativeId, cheminPublic)
+      log.info({ chemin_public: cheminPublic }, 'copie publique conservee')
+    }
 
     // AudioSupprime, then RetourDisponible
     await stockage.supprimer(cheminAudio)

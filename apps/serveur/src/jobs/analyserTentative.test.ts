@@ -82,6 +82,9 @@ function construireFaux(
       journal.push('ecriture')
       return null
     },
+    enregistrerCheminPublic: async (_id, chemin) => {
+      journal.push(`copie_publique:${chemin}`)
+    },
     marquerAudioSupprime: async () => {
       journal.push('statut:audio_supprime')
     },
@@ -102,6 +105,10 @@ function construireFaux(
         echec('telecharger')
         journal.push('telechargement')
         return Buffer.from([1, 2, 3, 4])
+      },
+      copierVersPublic: async (chemin) => {
+        journal.push('televersement_public')
+        return chemin
       },
       supprimer: async () => {
         echec('supprimer')
@@ -234,5 +241,33 @@ describe('analyserTentative', () => {
       silence: { score: 2.5, max: 5 },
     })
     expect(evaluation.note_totale).toBe(7.5)
+  })
+})
+
+// The exception of chapter 2: an Arena or duel take stays online for the time of the contest.
+// Without the copy, `publier_prise` had nothing to publish and every public take was silent.
+describe('la copie publique', () => {
+  it("garde une copie d'une prise d'Arène avant de supprimer la privée", async () => {
+    const faux = construireFaux({ tentative: { ...tentative(), type: 'arene' } })
+    await analyserTentative(faux.deps, ID, { log, dernierEssai: false })
+    const i = faux.journal.indexOf('televersement_public')
+    const j = faux.journal.indexOf('suppression_audio')
+    expect(i).toBeGreaterThan(-1)
+    expect(faux.journal).toContain(`copie_publique:${CHEMIN}`)
+    expect(i).toBeLessThan(j)
+  })
+
+  it('garde une copie pour un duel aussi', async () => {
+    const faux = construireFaux({ tentative: { ...tentative(), type: 'duel' } })
+    await analyserTentative(faux.deps, ID, { log, dernierEssai: false })
+    expect(faux.journal).toContain('televersement_public')
+  })
+
+  it("n'en garde aucune pour un diagnostic ni pour une étape", async () => {
+    for (const type of ['diagnostic', 'etape'] as const) {
+      const faux = construireFaux({ tentative: { ...tentative(), type } })
+      await analyserTentative(faux.deps, ID, { log, dernierEssai: false })
+      expect(faux.journal).not.toContain('televersement_public')
+    }
   })
 })

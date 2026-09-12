@@ -7,7 +7,12 @@ import { creerLogger } from '../log.js'
 import { evaluerRegle, LISTE_BEQUILLES_PAR_DEFAUT, mesurer } from '../contrat.js'
 import * as db from '../db.js'
 import type { TypeJob } from '../db.js'
-import { BUCKET_AUDIO_TENTATIVES, type Comptes, type Stockage } from '../stockage.js'
+import {
+  BUCKET_AUDIO_PUBLIC,
+  BUCKET_AUDIO_TENTATIVES,
+  type Comptes,
+  type Stockage,
+} from '../stockage.js'
 import { choisirTranscripteur } from '../transcription/index.js'
 import { choisirAdversaire } from '../debat/index.js'
 import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
@@ -44,6 +49,7 @@ export function creerDepotAnalyse(pool: Pool): DepotAnalyse {
     enregistrerAnalyseEtEvaluation: (analyse, evaluation) =>
       db.enregistrerAnalyseEtEvaluation(pool, analyse, evaluation),
     marquerAudioSupprime: (id) => db.marquerAudioSupprime(pool, id),
+    enregistrerCheminPublic: (id, chemin) => db.enregistrerCheminPublic(pool, id, chemin),
     marquerEchecTechnique: (id, erreur) => db.marquerEchecTechnique(pool, id, erreur),
     marquerAbandonTechnique: (id, audioSupprime, erreur) =>
       db.marquerAbandonTechnique(pool, id, audioSupprime, erreur),
@@ -59,6 +65,11 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
       stockage: {
         telecharger: (chemin) => stockage.telecharger(BUCKET_AUDIO_TENTATIVES, chemin),
         supprimer: (chemin) => stockage.supprimer(BUCKET_AUDIO_TENTATIVES, [chemin]),
+        // Same path in the public bucket: the take is identified by its attempt everywhere.
+        copierVersPublic: async (chemin, octets) => {
+          await stockage.televerser(BUCKET_AUDIO_PUBLIC, chemin, octets, 'audio/mp4')
+          return chemin
+        },
       },
       notifier: (utilisateurId, tentativeId) =>
         notifierRetourPret(

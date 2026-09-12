@@ -94,6 +94,10 @@ export const DuelParJetonSchema = z.discriminatedUnion('raison', [
     duree_max_s: z.int().positive(),
     echeance: IsoTimestampSchema,
     deja_repondu: z.boolean(),
+    /** The seat is this caller's own: coming back resumes, it does not get refused. */
+    c_est_moi: z.boolean().default(false),
+    /** The caller sent this invitation. */
+    c_est_mon_duel: z.boolean().default(false),
   }),
 ])
 export type DuelParJeton = z.output<typeof DuelParJetonSchema>

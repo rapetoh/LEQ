@@ -144,7 +144,23 @@ select is((select statut from public.debats where id = (select id from debat)), 
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select is(((public.quota_debats()) ->> 'utilises')::integer, 0, 'and the month still counts none used');
 select is(((public.quota_debats()) ->> 'restants')::integer, 8, 'the eight sessions are intact');
-select is((select count(*) from public.debat_a_reprendre()), 0::bigint, 'a closed session is not resumed');
+-- Our own cut is exactly the session that must come back: the turns are written, and E3b's
+-- "Reprendre" button existed for months answering "ce débat est terminé".
+select is((select id from public.debat_a_reprendre()), (select id from debat),
+  'a session we cut ourselves is offered back');
+reset role; select tests_leq.deconnecter();
+select is((select statut from public.reprendre_debat((select id from debat))), 'ouverte',
+  'and reopening it puts it back in play');
+select is((select issue from public.debats where id = (select id from debat)), null,
+  'its outcome is cleared, so it charges nothing until it really ends');
+select is((select count(*) from public.reprendre_debat((select id from debat))), 0::bigint,
+  'a session already open is not reopened twice');
+-- Put it back where the suite found it: closed by our own cut, charging nothing, so the counts
+-- that follow still measure what they were written to measure.
+reset role; select tests_leq.deconnecter();
+select lives_ok($$ select public.cloturer_debat((select id from debat), 'interrompue_par_nous') $$,
+  'the resumed session is closed again as our own cut');
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 
 -- a session that went to the end does cost one --------------------------------------------------------
 select throws_ok($$ select public.ouvrir_debat(null, '   ') $$, '23514', 'these_requise',
