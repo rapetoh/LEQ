@@ -457,6 +457,18 @@ The transcription provider still reads `stub` and the evaluation still says « g
 those are the two inputs that are not ours to invent, and the check reports them rather than
 hiding them.
 
+## Ce qui est dans TestFlight, et la limite des builds (2026-09-12)
+
+**Build 15 est le dernier build iOS de ce mois-ci.** The Expo account is on the free plan, whose
+iOS builds are used up; it resets on 1 October 2026, and `eas billing:subscribe starter` lifts it
+sooner. Build 15 carries everything of 12 September except the last commit, and that is safe:
+nothing on the phone parses `tentatives.resultat` through a schema, so a take written
+`non_evaluee` falls into the branch that already says « La grille de Rebecca dira si le défi est
+validé ». The duel verdict `sans_verdict` **is** parsed, and build 15 is built from the commit
+that added it.
+
+Server v16 and both web surfaces are deployed and current.
+
 ## La boucle quotidienne ne tournait pas (2026-09-12)
 
 `verif-parcours.mjs` walks the product itself: the challenge of the day, the take, the verdict on
