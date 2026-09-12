@@ -89,13 +89,26 @@ Database tests against the hosted project: `node supabase/tests/executer-distant
 
 Later migrations: `npx supabase migration new <nom>` creates the timestamped file; write SQL; `npx supabase db reset` locally (needs Docker) to replay everything; `npx supabase db push` to the linked project. `npx supabase migration list` compares local and remote history.
 
-Seeding the hosted project: `npx supabase db push --include-seed` (safe to repeat: the seed never overwrites a value Rebecca changed).
+Seeding the hosted project: **`npx supabase db push --include-seed` does not run the seed once the project has been seeded before**. It recomputes the file's hash, records it, prints "Updating seed hash" and runs nothing, so a line added to `seed.sql` never reaches the database and nothing says so. Found on 2026-09-12, after two pushes that appeared to succeed and changed nothing. Use `node supabase/tests/appliquer-seed.mjs` instead: it runs the file in one transaction and prints the row counts it ends with. The seed is idempotent (values are never overwritten, only descriptions and types refreshed), so applying it again is safe.
 
 Types: `npx supabase gen types --lang typescript --linked > packages/domaine/src/database.types.ts` (check the path in the domaine README). Commit the generated file with the migration that changed it.
 
 Making the first admin: as `postgres` in the SQL editor, `update public.profils set role = 'admin' where id = '<uid>'`. A trigger refuses that change from any signed-in client. The role reaches the token at the next sign-in.
 
 The admin's pages today: Configuration, Drapeaux, Défis (the bank act by act; a défi's title and consigne change for everyone at once, its order and threshold only for paths created afterwards; "Marquer comme validé" turns `provisoire` off so the phone stops saying the consigne awaits Rebecca), Exercices (the remediation bank, matched to défis by `competence`).
+
+## Turning the Arena, duels and face-à-face on for a testing build
+
+They ship off (cahier chapter 11): Rebecca switches them on from `/drapeaux` when there are
+enough people for a contest to be one. For a TestFlight build that Roch alone walks through,
+`node supabase/tests/activer-essai.mjs` does it in one transaction: the three flags on, the
+first Arena subject activated so the tab does not open on an empty room, and
+`quota_face_a_face_gratuit` set to 1 so the free plan can try one debate. `--eteindre` puts all
+three back. Every value it touches is one Rebecca owns and can change back in the admin.
+
+The banks of Arena subjects and debate theses are seeded provisional (`provisoire = true`, shown
+with a badge in the admin), the same way the path and the shop are. They exist so the flows can
+be walked through before Rebecca's own content arrives, and they are meant to be replaced.
 
 ## Deploy the server
 

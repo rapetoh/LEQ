@@ -120,3 +120,27 @@ insert into public.recompenses (cle, ordre, type, titre, sous_titre, description
   ('place_atelier', 3, 'atelier', 'Une place d''atelier de groupe', null, 'Une journée en petit groupe, avec Rebecca.', 1200, 10, true),
   ('heure_rebecca', 4, 'distinction', 'Une heure avec Rebecca', 'Le prix du n°1 du mois. Ça ne s''achète pas.', null, null, null, false)
 on conflict (cle) do nothing;
+
+-- sujets_arene (Phase 7) --------------------------------------------------------
+-- Provisional, exactly like the path and the shop above: these carry `provisoire = true`, the
+-- admin shows them with a badge saying so, and Rebecca replaces them with her own. They exist
+-- so the Arena can be walked through before her bank arrives; without one, the tab opens on an
+-- empty room, which is the one thing chapter 11 asks us never to do.
+
+insert into public.sujets_arene (cle, texte, consigne, ordre, duree_max_s, provisoire) values
+  ('faut_il_tout_dire', 'Faut-il dire la vérité à tout prix ?', 'Prends une position et tiens-la jusqu''au bout.', 1, 90, true),
+  ('talent_ou_travail', 'Le talent existe-t-il, ou n''est-ce que du travail ?', 'Un exemple concret vaut mieux qu''une théorie.', 2, 90, true),
+  ('ecole_notes', 'Les notes à l''école servent-elles encore à quelque chose ?', null, 3, 90, true),
+  ('ville_sans_voiture', 'Faut-il interdire la voiture en centre-ville ?', null, 4, 90, true)
+on conflict (cle) do nothing;
+
+-- theses (Phase 8) --------------------------------------------------------------
+-- The debate bank, provisional in the same way. Rétor defends the thesis; the person contradicts
+-- it. Written as affirmations, because that is what makes them arguable (cahier chapter 10).
+
+insert into public.theses (cle, texte, ton_suggere, ordre, provisoire) values
+  ('teletravail_bureau', 'Le télétravail a tué la vie de bureau, et c''est une perte.', 'ferme', 1, true),
+  ('tirage_au_sort', 'On devrait tirer les responsables politiques au sort.', 'provocateur', 2, true),
+  ('merite_mythe', 'Le mérite est un mythe confortable.', 'academique', 3, true),
+  ('reseaux_sociaux_mineurs', 'Les réseaux sociaux devraient être interdits aux mineurs.', 'bienveillant', 4, true)
+on conflict (cle) do nothing;
