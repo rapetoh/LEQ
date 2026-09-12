@@ -110,19 +110,26 @@ not always the one to keep.
 
 ## Checking the things a type-checker cannot
 
-Two scripts run against the project with a real signed-in administrator, because a feature that
-writes to storage or reads a dashboard is not finished until something has actually done it.
+Three scripts run against the project, because a feature that writes to storage, reads a
+dashboard or locks a function down is not finished until something has actually tried it.
 
 ```bash
+SUPABASE_PROJECT_REF=<ref> SUPABASE_DB_PASSWORD=<mdp> node supabase/tests/verif-securite.mjs
 URL=<supabase url> CLE=<publishable key> EMAIL=<admin> MDP=<mot de passe> \
-  node supabase/tests/verif-medias.mjs    # upload, public read, delete, refused format
-  node supabase/tests/verif-tableau.mjs   # what the home page shows
+  node supabase/tests/verif-medias.mjs
+URL=... CLE=... node supabase/tests/verif-anon.mjs
 ```
 
-`verif-medias.mjs` exists because the image picker shipped once with `upsert: true` on a bucket
-whose policy grants insert only. Storage refuses that, every upload failed with "new row violates
-row-level security policy", and nothing in the type-checker, the linter or the unit tests could
-have caught it. The paths are random, so the upload never needed to overwrite anything.
+`verif-securite.mjs` walks every table and every `security definer` function: RLS on everywhere,
+a policy on everything except the work queue, no function open to the whole world, and only
+`medias` public among the buckets.
+
+`verif-medias.mjs` uploads, reads back over the public URL, deletes, and checks a wrong format is
+refused. It exists because the image picker shipped once with `upsert: true` on a bucket granting
+insert only; Storage refuses that and every upload failed.
+
+`verif-anon.mjs` asks, holding nothing but the publishable key, what still answers. That key ships
+inside every copy of the application, so anything it can reach is public.
 
 ## Making an administrator
 
