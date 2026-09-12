@@ -3,6 +3,7 @@ import { useId, useState } from 'react'
 import { CODES_REGION, NOMS_REGION, type AtelierEditable, type CodeRegion } from '@leq/domaine'
 import { useSession } from '../../auth/sessionContext'
 import { Interrupteur } from '../../composants/Interrupteur'
+import { ChampImage } from '../../composants/ChampImage'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import {
@@ -219,6 +220,13 @@ function FormulaireAtelier({
           onChange={(e) => maj('description', e.target.value)}
         />
       </Champ>
+      <ChampImage
+        usage="ateliers"
+        valeur={s.image_chemin}
+        onChange={(chemin) => maj('image_chemin', chemin)}
+        libelle={c.image}
+        aide={c.imageAide}
+      />
       <div className={styles.interrupteurLigne}>
         <Interrupteur
           id={`${id}-en-ligne`}

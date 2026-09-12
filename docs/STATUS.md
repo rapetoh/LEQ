@@ -342,6 +342,39 @@ The public pages had been written, documented as hosted and never deployed: they
 the live server until this deploy. Rebecca's space had never been deployed at all, which made it
 invisible to the person it is built for.
 
+## The space, made to be worked in (2026-09-12)
+
+Roch's reading of it was right: a stack of form fields with no rhythm, and no way to put a
+picture on anything. What changed.
+
+**Images.** An atelier, an annonce and a récompense are invitations, and an invitation with no
+image reads as a system message. Migration `0017_medias` adds a public bucket (the only public
+one in LEQ: these images are what the application shows to everyone it invites, and they hold
+nothing personal), an admin-only write policy, and an `image_chemin` column on the three tables.
+The admin has a drop-or-pick field with a preview; the phone shows the picture on the workshop
+card and on the reward tile, and shows nothing at all when there is none.
+
+**The configuration page** had twenty-four save buttons, one per row. It now edits on the page
+and saves in one gesture, with a bar that appears only when something is unsaved. The human
+sentence is the label and the key is a small technical chip beside it, because the person reading
+that page thinks in "how long may a duel last", not in `duree_duel_heures`. A search filters it.
+
+**An announcement** is composed against a phone: a preview of the notification sits beside the
+form, with the image. It is the one thing in the space that leaves the building and cannot be
+taken back, and it was being written blind.
+
+**The shared pieces** live in `composants/Etats.tsx`: search with a result count, filter chips,
+an empty state that says what is missing and offers the way out, a skeleton that looks like the
+rows that are coming. Buttons gained a danger weight, a small size and an icon size with a real
+hit area, and lost the underline that made "Modifier" read as a link somebody forgot to style.
+
+**Two suites were quietly depending on the project being empty**: seeding the banks and switching
+the flags on made `socle`, `arene` and `face_a_face` fail. They set up their own state now, and
+the flag assertion checks that a value does not move rather than what it happens to be.
+
+Still to do: the same sweep on Défis, Grille, Échanges, Utilisateurs and Modération, which have
+the shared pieces available but still write their own states.
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.

@@ -50,6 +50,7 @@ export const RecompenseSchema = z.object({
   cout_points: z.int().positive().nullable(),
   plafond_par_mois: z.int().positive().nullable(),
   echangeable: z.boolean(),
+  image_chemin: z.string().nullable(),
   provisoire: z.boolean(),
   actif: z.boolean(),
   cree_le: IsoTimestampSchema,
@@ -128,6 +129,7 @@ export const RecompenseBoutiqueSchema = z.object({
   plafond_par_mois: z.int().nullable(),
   echangeable: z.boolean(),
   provisoire: z.boolean(),
+  image_chemin: z.string().nullable(),
   restantes_ce_mois: z.int().nullable(),
   mes_echanges: PgBigIntSchema,
 })

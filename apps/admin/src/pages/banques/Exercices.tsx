@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { Interrupteur } from '../../composants/Interrupteur'
+import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import {
@@ -27,6 +29,7 @@ export function Exercices() {
   const clientRequetes = useQueryClient()
   const exercices = useQuery({ queryKey: cleRequeteExercices, queryFn: chargerExercices })
   const [edition, setEdition] = useState<string | null>(null)
+  const filtre = useRecherche(exercices.data, (e) => [e.titre, e.cle, e.consigne, e.competence])
 
   const invalider = () => void clientRequetes.invalidateQueries({ queryKey: cleRequeteExercices })
   const messageErreur = (erreur: Error) =>
@@ -86,27 +89,24 @@ export function Exercices() {
         </div>
       ) : null}
 
+      <BarreOutils
+        recherche={filtre.recherche}
+        onRecherche={filtre.setRecherche}
+        placeholder={fr.etats.rechercher}
+        compte={filtre.actif ? fr.etats.resultats(filtre.resultats.length) : undefined}
+      />
+
       {exercices.isPending ? (
-        <p className="etat" role="status">
-          {fr.commun.chargement}
-        </p>
+        <Squelette lignes={4} />
       ) : exercices.isError ? (
-        <div className="etat etat-erreur" role="alert">
-          <p>{fr.exercices.erreurChargement}</p>
-          <p className="mono">{exercices.error.message}</p>
-          <button
-            type="button"
-            className="bouton bouton-secondaire"
-            onClick={() => void exercices.refetch()}
-          >
-            {fr.commun.reessayer}
-          </button>
-        </div>
+        <Echec titre={fr.exercices.erreurChargement} detail={exercices.error.message} />
       ) : exercices.data.length === 0 ? (
-        <p className="etat">{fr.exercices.vide}</p>
+        <Vide marque="✦" titre={fr.exercices.vide} />
+      ) : filtre.resultats.length === 0 ? (
+        <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {exercices.data.map((exercice) =>
+          {filtre.resultats.map((exercice) =>
             edition === exercice.id ? (
               <div key={exercice.id} style={{ padding: 4 }}>
                 <FormulaireExercice

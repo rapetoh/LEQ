@@ -1,6 +1,7 @@
 import type { Atelier } from '@leq/domaine'
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 
+import { ImageMedia } from '@/components/ImageMedia'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { t } from '@/i18n/fr'
@@ -23,6 +24,7 @@ export function CarteAtelier({ atelier, coutPlace = null, compact = false, onOuv
   const theme = useTheme()
   const contenu = (
     <Carte teinte="voix" style={styles.carte}>
+      {compact ? null : <ImageMedia chemin={atelier.image_chemin} />}
       <View style={styles.ligne}>
         <Text style={[typographie.etiquette, { color: theme.texteSecondaire, flex: 1 }]}>
           {atelier.en_ligne

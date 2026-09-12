@@ -96,25 +96,34 @@ code,
   font-size: 12.5px;
 }
 
-/* Buttons: verbs, three weights. */
+/* Buttons: verbs, four weights. Never underlined: an underline inside a box reads as a link
+   someone forgot to style. */
 .bouton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 0 14px;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 16px;
   border-radius: var(--rayon);
   border: 1px solid transparent;
   font: inherit;
   font-weight: 700;
   font-size: 13.5px;
+  line-height: 1;
+  text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
+    background-color 130ms ease,
+    border-color 130ms ease,
+    color 130ms ease,
+    box-shadow 130ms ease,
+    transform 90ms ease;
+}
+
+.bouton:not(:disabled):active {
+  transform: translateY(1px);
 }
 
 .bouton:disabled {
@@ -125,10 +134,47 @@ code,
 .bouton-principal {
   background: var(--bleu);
   color: #ffffff;
+  box-shadow: 0 1px 2px rgba(17, 77, 168, 0.24);
 }
 
 .bouton-principal:not(:disabled):hover {
   background: #0e4392;
+  box-shadow: 0 2px 8px rgba(17, 77, 168, 0.28);
+}
+
+/* For the one action that removes something for good. */
+.bouton-danger {
+  background: var(--erreur-fond);
+  color: var(--erreur);
+  border-color: rgba(179, 38, 30, 0.28);
+}
+
+.bouton-danger:not(:disabled):hover {
+  background: #f6ded9;
+}
+
+.bouton-petit {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+/* Icon-only actions still need a real hit area and a name for a screen reader. */
+.bouton-icone {
+  min-height: 34px;
+  width: 34px;
+  padding: 0;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: var(--texte-2);
+  border-color: transparent;
+  font-size: 15px;
+}
+
+.bouton-icone:not(:disabled):hover {
+  background: var(--surface-2);
+  color: var(--bleu-nuit);
+  border-color: var(--ligne);
 }
 
 .bouton-secondaire {
@@ -232,13 +278,26 @@ textarea.champ {
   box-shadow: var(--ombre);
 }
 
+/* Every page that still writes its own state inherits the same shape as the shared ones, so
+   nothing reads as a bare sentence dropped in an empty page. */
 .etat {
-  padding: 24px;
+  padding: 32px 24px;
   color: var(--texte-2);
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--ligne-forte);
+  border-radius: var(--rayon-grand);
 }
 
 .etat-erreur {
   color: var(--erreur);
+  background: var(--erreur-fond);
+  border-style: solid;
+  border-color: rgba(179, 38, 30, 0.24);
+  text-align: left;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
 }
 
 .visuellement-cache {
@@ -251,4 +310,362 @@ textarea.champ {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ------------------------------------------------------------------------------------------
+   The pieces every page shares. Written once here so a new page inherits the same rhythm
+   instead of inventing its own.
+   ------------------------------------------------------------------------------------------ */
+
+/* A page reads at a comfortable measure even on a wide screen. */
+.page {
+  max-width: 1120px;
+}
+
+.page-etroite {
+  max-width: 760px;
+}
+
+/* Toolbar: search on the left, filters and the primary action on the right. */
+.barre-outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.barre-outils .pousse {
+  margin-left: auto;
+}
+
+.recherche {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 340px;
+}
+
+.recherche .champ {
+  padding-left: 32px;
+}
+
+.recherche::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin-top: -7px;
+  border: 1.6px solid var(--texte-3);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.recherche::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  width: 6px;
+  height: 1.6px;
+  margin-top: 4px;
+  background: var(--texte-3);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* Filter chips: one row, one choice visibly on. */
+.filtres {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--ligne);
+  border-radius: var(--pilule, 100px);
+}
+
+.filtre {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--texte-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 130ms ease,
+    color 130ms ease;
+}
+
+.filtre:hover {
+  color: var(--bleu-nuit);
+}
+
+.filtre[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--bleu-nuit);
+  box-shadow: 0 1px 2px rgba(0, 22, 54, 0.08);
+}
+
+.compte {
+  color: var(--texte-3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* An empty list says what is missing and offers the way out of it. */
+.vide {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 44px 24px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--ligne-forte);
+  border-radius: var(--rayon-grand);
+}
+
+.vide-marque {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--bleu-clair);
+  color: var(--bleu);
+  font-size: 19px;
+}
+
+.vide h2 {
+  font-size: 15px;
+}
+
+.vide p {
+  color: var(--texte-2);
+  max-width: 46ch;
+}
+
+/* Waiting looks like the thing that is coming, not like a word. */
+.squelette {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, #f1ece4 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: glisse 1.4s ease infinite;
+}
+
+@keyframes glisse {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
+
+.squelette-liste {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.squelette-ligne {
+  height: 62px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squelette {
+    animation: none;
+  }
+
+  .bouton {
+    transition: none;
+  }
+}
+
+/* The bar that appears when something is unsaved, and follows the page down. */
+.barre-enregistrement {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: var(--bleu-nuit);
+  color: #ffffff;
+  border-radius: var(--rayon-grand);
+  box-shadow: 0 10px 30px rgba(0, 22, 54, 0.24);
+}
+
+.barre-enregistrement p {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.barre-enregistrement .bouton-secondaire {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.barre-enregistrement .bouton-secondaire:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* A field that carries a key as well as a name. */
+.cle-technique {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--texte-3);
+  background: var(--surface-2);
+  border: 1px solid var(--ligne);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+
+/* Image picker. */
+.media {
+  display: grid;
+  gap: 8px;
+}
+
+.media-zone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 132px;
+  padding: 16px;
+  border: 1px dashed var(--ligne-forte);
+  border-radius: var(--rayon-grand);
+  background: var(--surface-2);
+  color: var(--texte-2);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 130ms ease,
+    background-color 130ms ease;
+}
+
+.media-zone:hover,
+.media-zone[data-survol='true'] {
+  border-color: var(--bleu);
+  background: var(--bleu-clair);
+}
+
+.media-zone input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.media-apercu {
+  position: relative;
+  border-radius: var(--rayon-grand);
+  overflow: hidden;
+  border: 1px solid var(--ligne);
+  background: var(--surface-2);
+}
+
+.media-apercu img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.media-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.media-aide {
+  color: var(--texte-3);
+  font-size: 12.5px;
+}
+
+/* The phone preview beside a form that sends something to a phone. */
+.apercu-telephone {
+  width: 300px;
+  padding: 14px;
+  border-radius: 26px;
+  background: var(--bleu-nuit);
+  box-shadow: var(--ombre);
+}
+
+.apercu-ecran {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #123a72, #0b2247);
+  padding: 40px 10px 18px;
+}
+
+.apercu-notification {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.apercu-entete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--texte-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.apercu-entete img {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.apercu-titre {
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--bleu-nuit);
+}
+
+.apercu-corps {
+  font-size: 12.5px;
+  color: var(--texte);
+  line-height: 1.35;
+}
+
+.apercu-image {
+  margin-top: 6px;
+  border-radius: 10px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.deux-colonnes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .deux-colonnes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .apercu-telephone {
+    width: 100%;
+    max-width: 340px;
+  }
 }

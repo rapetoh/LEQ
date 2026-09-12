@@ -25,6 +25,7 @@ export type SaisieRecompense = {
   cout_points: string
   plafond_par_mois: string
   echangeable: boolean
+  image_chemin: string | null
   provisoire: boolean
   actif: boolean
 }
@@ -40,6 +41,7 @@ export function saisieRecompenseVierge(ordre: number): SaisieRecompense {
     cout_points: '',
     plafond_par_mois: '',
     echangeable: true,
+    image_chemin: null,
     provisoire: true,
     actif: true,
   }
@@ -56,6 +58,7 @@ export function saisieDepuisRecompense(r: Recompense): SaisieRecompense {
     cout_points: r.cout_points === null ? '' : String(r.cout_points),
     plafond_par_mois: r.plafond_par_mois === null ? '' : String(r.plafond_par_mois),
     echangeable: r.echangeable,
+    image_chemin: r.image_chemin,
     provisoire: r.provisoire,
     actif: r.actif,
   }
@@ -112,6 +115,7 @@ export function validerRecompense(
     cout_points: cout.valeur,
     plafond_par_mois: plafond.valeur,
     echangeable,
+    image_chemin: saisie.image_chemin,
     provisoire: saisie.provisoire,
     actif: saisie.actif,
   })

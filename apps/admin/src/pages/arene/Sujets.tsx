@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import type { SujetArene, SujetAreneEditable } from '@leq/domaine'
 import { Interrupteur } from '../../composants/Interrupteur'
+import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import type { Erreurs } from '../../modele/defis'
@@ -27,6 +29,7 @@ export function Sujets() {
   const clientRequetes = useQueryClient()
   const sujets = useQuery({ queryKey: cleRequeteSujets, queryFn: chargerSujets })
   const [edition, setEdition] = useState<string | null>(null)
+  const filtre = useRecherche(sujets.data, (s) => [s.texte, s.cle, s.consigne])
 
   const invalider = () => clientRequetes.invalidateQueries({ queryKey: cleRequeteSujets })
   const messageErreur = (erreur: Error) =>
@@ -83,20 +86,24 @@ export function Sujets() {
         </div>
       ) : null}
 
+      <BarreOutils
+        recherche={filtre.recherche}
+        onRecherche={filtre.setRecherche}
+        placeholder={fr.etats.rechercher}
+        compte={filtre.actif ? fr.etats.resultats(filtre.resultats.length) : undefined}
+      />
+
       {sujets.isPending ? (
-        <p className="etat" role="status">
-          {fr.commun.chargement}
-        </p>
+        <Squelette lignes={4} />
       ) : sujets.isError ? (
-        <div className="etat etat-erreur" role="alert">
-          <p>{fr.sujets.erreurChargement}</p>
-          <p className="mono">{sujets.error.message}</p>
-        </div>
+        <Echec titre={fr.sujets.erreurChargement} detail={sujets.error.message} />
       ) : sujets.data.length === 0 ? (
-        <p className="etat">{fr.sujets.vide}</p>
+        <Vide marque="◎" titre={fr.sujets.vide} />
+      ) : filtre.resultats.length === 0 ? (
+        <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {sujets.data.map((sujet) =>
+          {filtre.resultats.map((sujet) =>
             edition === sujet.id ? (
               <div key={sujet.id} style={{ padding: 4 }}>
                 <FormulaireSujet

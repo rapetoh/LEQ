@@ -78,6 +78,7 @@ export async function publierAnnonce(annonce: NouvelleAnnonce): Promise<string> 
     p_corps: annonce.corps,
     p_atelier: annonce.atelier_id,
     p_regions: annonce.regions,
+    p_image: annonce.image_chemin,
   })
   if (error) throw new ErreurAnnonce(lireRefusAnnonce(error.message), error.message)
   return z.uuid().parse(data)

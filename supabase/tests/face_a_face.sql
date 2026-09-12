@@ -40,6 +40,10 @@ insert into public.configuration (cle, type, valeur, description) values
   ('reprise_debat_minutes', 'nombre', '30', 'x')
 on conflict (cle) do update set valeur = excluded.valeur;
 
+-- The suite owns this bank: the project holds real rows whose `ordre` would collide with
+-- the fixtures, and whose presence would change what the rotation answers. Rolled back
+-- with everything else.
+delete from public.theses;
 insert into public.theses (cle, texte, ton_suggere, ordre) values
   ('these_un', 'Le télétravail a tué la vie de bureau.', 'ferme', 1),
   ('these_deux', 'On devrait tirer les responsables politiques au sort.', 'provocateur', 2)

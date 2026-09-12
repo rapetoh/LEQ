@@ -45,6 +45,10 @@ insert into public.configuration (cle, type, valeur, description)
 values ('duree_sujet_arene_jours', 'nombre', '7', 'x'), ('points_par_vote', 'nombre', '5', 'x'),
        ('duree_duel_heures', 'nombre', '48', 'x'), ('plafond_duree_duel_gratuit_s', 'nombre', '90', 'x')
 on conflict (cle) do nothing;
+-- The suite owns this bank: the project holds real rows whose `ordre` would collide with
+-- the fixtures, and whose presence would change what the rotation answers. Rolled back
+-- with everything else.
+delete from public.sujets_arene;
 insert into public.sujets_arene (cle, texte, ordre) values
   ('sujet_un', 'Faut-il dire la vérité à tout prix ?', 1),
   ('sujet_deux', 'Le talent existe-t-il ?', 2)

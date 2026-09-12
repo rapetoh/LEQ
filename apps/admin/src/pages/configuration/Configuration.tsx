@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+
 import { useSession } from '../../auth/sessionContext'
+import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
 import { useNotifier } from '../../composants/toastContext'
 import { ordreClesConfiguration } from '../../domaine'
 import { fr } from '../../fr'
@@ -8,10 +11,10 @@ import {
   chargerConfiguration,
   cleRequeteConfiguration,
   enregistrerConfiguration,
-  type ModificationConfiguration,
 } from '../../services/configuration'
 import { LigneConfiguration } from './LigneConfiguration'
 import { SECTIONS, sectionDeCle, trierCles, type Section } from './sections'
+import { validerSaisie, type Saisie } from './validation'
 import styles from './Configuration.module.css'
 
 function grouper(lignes: readonly EntreeConfiguration[]): Map<Section, EntreeConfiguration[]> {
@@ -32,42 +35,78 @@ function grouper(lignes: readonly EntreeConfiguration[]): Map<Section, EntreeCon
   return groupes
 }
 
-/** The configuration table: one editable row per key, saved row by row. */
+/** Matches a search against what the person reads, and against the key they may know. */
+function correspond(ligne: EntreeConfiguration, recherche: string): boolean {
+  if (recherche.trim() === '') return true
+  const terme = recherche.trim().toLowerCase()
+  return (
+    ligne.cle.toLowerCase().includes(terme) ||
+    (ligne.description ?? '').toLowerCase().includes(terme)
+  )
+}
+
+/**
+ * The values the application reads at startup. Everything is edited on the page and saved in
+ * one gesture: a save button on each of twenty-four rows made changing a rhythm feel like
+ * twenty-four decisions.
+ */
 export function Configuration() {
   const { session } = useSession()
   const notifier = useNotifier()
   const clientRequetes = useQueryClient()
-
   const requete = useQuery({ queryKey: cleRequeteConfiguration, queryFn: chargerConfiguration })
 
-  const mutation = useMutation({
-    mutationFn: enregistrerConfiguration,
-    onMutate: async (modification: ModificationConfiguration) => {
-      await clientRequetes.cancelQueries({ queryKey: cleRequeteConfiguration })
-      const precedent = clientRequetes.getQueryData<EntreeConfiguration[]>(cleRequeteConfiguration)
-      clientRequetes.setQueryData<EntreeConfiguration[]>(cleRequeteConfiguration, (lignes) =>
-        lignes?.map((ligne) =>
-          ligne.cle === modification.cle ? { ...ligne, valeur: modification.valeur } : ligne,
-        ),
-      )
-      return { precedent }
-    },
-    onError: (erreur: Error, _modification, contexte) => {
-      if (contexte?.precedent) {
-        clientRequetes.setQueryData(cleRequeteConfiguration, contexte.precedent)
-      }
-      notifier({ type: 'erreur', message: fr.configuration.toasts.erreur, details: erreur.message })
-    },
-    onSuccess: (_resultat, modification) => {
-      notifier({ type: 'succes', message: fr.configuration.toasts.succes(modification.cle) })
-    },
-    onSettled: () => void clientRequetes.invalidateQueries({ queryKey: cleRequeteConfiguration }),
+  const [modifications, setModifications] = useState<Record<string, Saisie>>({})
+  const [recherche, setRecherche] = useState('')
+
+  const lignes = useMemo(() => requete.data ?? [], [requete.data])
+  const parCle = useMemo(() => new Map(lignes.map((l) => [l.cle, l])), [lignes])
+  const clesModifiees = Object.keys(modifications)
+
+  const invalide = clesModifiees.some((cle) => {
+    const ligne = parCle.get(cle)
+    const saisie = modifications[cle]
+    return ligne && saisie !== undefined && !validerSaisie(ligne.cle, ligne.type, saisie).ok
   })
 
-  function enregistrer(cle: string, valeur: unknown) {
-    if (!session) return
-    mutation.mutate({ cle, valeur, modifiePar: session.user.id })
+  const enregistrement = useMutation({
+    mutationFn: async () => {
+      if (!session) throw new Error('Session absente')
+      for (const cle of clesModifiees) {
+        const ligne = parCle.get(cle)
+        const saisie = modifications[cle]
+        if (!ligne || saisie === undefined) continue
+        const validation = validerSaisie(ligne.cle, ligne.type, saisie)
+        if (!validation.ok) throw new Error(`${ligne.cle} : ${validation.erreur}`)
+        await enregistrerConfiguration({
+          cle,
+          valeur: validation.valeur,
+          modifiePar: session.user.id,
+        })
+      }
+      return clesModifiees.length
+    },
+    onSuccess: (nombre) => {
+      setModifications({})
+      notifier({ type: 'succes', message: fr.configuration.toasts.enregistrees(nombre) })
+      void clientRequetes.invalidateQueries({ queryKey: cleRequeteConfiguration })
+    },
+    onError: (erreur: Error) => {
+      notifier({ type: 'erreur', message: fr.configuration.toasts.erreur, details: erreur.message })
+      void clientRequetes.invalidateQueries({ queryKey: cleRequeteConfiguration })
+    },
+  })
+
+  const changer = (cle: string, saisie: Saisie | undefined) => {
+    setModifications((courantes) => {
+      const suivantes = { ...courantes }
+      if (saisie === undefined) delete suivantes[cle]
+      else suivantes[cle] = saisie
+      return suivantes
+    })
   }
+
+  const visibles = lignes.filter((ligne) => correspond(ligne, recherche))
 
   return (
     <div className="page">
@@ -76,28 +115,25 @@ export function Configuration() {
         <p>{fr.configuration.intro}</p>
       </header>
 
+      <BarreOutils
+        recherche={recherche}
+        onRecherche={setRecherche}
+        placeholder={fr.configuration.rechercher}
+        compte={recherche.trim() ? fr.etats.resultats(visibles.length) : undefined}
+      />
+
       {requete.isPending ? (
-        <p className="etat" role="status">
-          {fr.commun.chargement}
-        </p>
+        <Squelette lignes={6} />
       ) : requete.isError ? (
-        <div className="etat etat-erreur" role="alert">
-          <p>{fr.configuration.erreurChargement}</p>
-          <p className="mono">{requete.error.message}</p>
-          <button
-            type="button"
-            className="bouton bouton-secondaire"
-            onClick={() => void requete.refetch()}
-          >
-            {fr.commun.reessayer}
-          </button>
-        </div>
-      ) : requete.data.length === 0 ? (
-        <p className="etat">{fr.configuration.vide}</p>
+        <Echec titre={fr.configuration.erreurChargement} detail={requete.error.message} />
+      ) : lignes.length === 0 ? (
+        <Vide marque="⚙" titre={fr.configuration.vide} />
+      ) : visibles.length === 0 ? (
+        <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
-        [...grouper(requete.data).entries()]
+        [...grouper(visibles).entries()]
           .sort(([a], [b]) => SECTIONS.indexOf(a) - SECTIONS.indexOf(b))
-          .map(([section, lignes]) => (
+          .map(([section, lignesSection]) => (
             <section
               key={section}
               className={styles.section}
@@ -105,18 +141,45 @@ export function Configuration() {
             >
               <h2 id={`section-${section}`}>{fr.configuration.sections[section]}</h2>
               <div className={`carte ${styles.tableau}`}>
-                {lignes.map((ligne) => (
+                {lignesSection.map((ligne) => (
                   <LigneConfiguration
                     key={ligne.cle}
                     ligne={ligne}
-                    enregistrement={mutation.isPending && mutation.variables?.cle === ligne.cle}
-                    onEnregistrer={enregistrer}
+                    saisie={modifications[ligne.cle]}
+                    desactive={enregistrement.isPending}
+                    onSaisie={changer}
                   />
                 ))}
               </div>
             </section>
           ))
       )}
+
+      {clesModifiees.length > 0 ? (
+        <div className="barre-enregistrement" role="status">
+          <p>{fr.configuration.aEnregistrer(clesModifiees.length)}</p>
+          <div className="pousse" style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              className="bouton bouton-secondaire"
+              disabled={enregistrement.isPending}
+              onClick={() => setModifications({})}
+            >
+              {fr.commun.annuler}
+            </button>
+            <button
+              type="button"
+              className="bouton bouton-principal"
+              disabled={enregistrement.isPending || invalide}
+              onClick={() => enregistrement.mutate()}
+            >
+              {enregistrement.isPending
+                ? fr.configuration.etats.enregistrement
+                : fr.commun.enregistrer}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

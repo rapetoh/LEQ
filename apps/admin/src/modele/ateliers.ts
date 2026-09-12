@@ -18,6 +18,7 @@ export type SaisieAtelier = {
   places: string
   lien: string
   recompense_id: string
+  image_chemin: string | null
   publie: boolean
 }
 
@@ -33,6 +34,7 @@ export function vierge(): SaisieAtelier {
     places: '',
     lien: '',
     recompense_id: '',
+    image_chemin: null,
     publie: false,
   }
 }
@@ -56,6 +58,7 @@ export function depuis(a: Atelier): SaisieAtelier {
     places: a.places === null ? '' : String(a.places),
     lien: a.lien ?? '',
     recompense_id: a.recompense_id ?? '',
+    image_chemin: a.image_chemin,
     publie: a.publie,
   }
 }
@@ -84,6 +87,7 @@ export function validerAtelier(
     places,
     lien: s.lien.trim() || null,
     recompense_id: s.recompense_id || null,
+    image_chemin: s.image_chemin,
     publie: s.publie,
   })
   if (!lu.success) {

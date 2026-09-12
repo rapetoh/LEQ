@@ -11,6 +11,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Icone, type NomMaterial, type NomSF } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
+import { ImageMedia } from '@/components/ImageMedia'
 import { t } from '@/i18n/fr'
 import {
   ErreurEchange,
@@ -194,14 +195,19 @@ function Recompense({
       style={styles.recompense}
     >
       <View style={styles.ligne}>
-        <View style={[styles.tuile, { backgroundColor: theme.voixDoux }]}>
-          <Icone
-            sf={ICONES[recompense.type].sf}
-            material={ICONES[recompense.type].material}
-            taille={22}
-            couleur={theme.texte}
-          />
-        </View>
+        {/* The picture Rebecca chose, when there is one; her icon otherwise. */}
+        {recompense.image_chemin ? (
+          <ImageMedia chemin={recompense.image_chemin} ratio={1} style={styles.tuile} />
+        ) : (
+          <View style={[styles.tuile, { backgroundColor: theme.voixDoux }]}>
+            <Icone
+              sf={ICONES[recompense.type].sf}
+              material={ICONES[recompense.type].material}
+              taille={22}
+              couleur={theme.texte}
+            />
+          </View>
+        )}
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={[typographie.titreCarte, { color: theme.texte }]}>{recompense.titre}</Text>
           {recompense.sous_titre ? (

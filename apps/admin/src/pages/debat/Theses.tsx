@@ -3,6 +3,8 @@ import { useId, useState } from 'react'
 import { TONS_ADVERSAIRE, type These, type TheseEditable } from '@leq/domaine'
 
 import { Interrupteur } from '../../composants/Interrupteur'
+import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import type { Erreurs } from '../../modele/defis'
@@ -28,6 +30,7 @@ export function Theses() {
   const clientRequetes = useQueryClient()
   const theses = useQuery({ queryKey: cleRequeteTheses, queryFn: chargerTheses })
   const [edition, setEdition] = useState<string | null>(null)
+  const filtre = useRecherche(theses.data, (t) => [t.texte, t.cle, t.ton_suggere])
 
   const invalider = () => clientRequetes.invalidateQueries({ queryKey: cleRequeteTheses })
   const messageErreur = (erreur: Error) =>
@@ -85,20 +88,24 @@ export function Theses() {
         </div>
       ) : null}
 
+      <BarreOutils
+        recherche={filtre.recherche}
+        onRecherche={filtre.setRecherche}
+        placeholder={fr.etats.rechercher}
+        compte={filtre.actif ? fr.etats.resultats(filtre.resultats.length) : undefined}
+      />
+
       {theses.isPending ? (
-        <p className="etat" role="status">
-          {fr.commun.chargement}
-        </p>
+        <Squelette lignes={4} />
       ) : theses.isError ? (
-        <div className="etat etat-erreur" role="alert">
-          <p>{fr.theses.erreurChargement}</p>
-          <p className="mono">{theses.error.message}</p>
-        </div>
+        <Echec titre={fr.theses.erreurChargement} detail={theses.error.message} />
       ) : theses.data.length === 0 ? (
-        <p className="etat">{fr.theses.vide}</p>
+        <Vide marque="✎" titre={fr.theses.vide} />
+      ) : filtre.resultats.length === 0 ? (
+        <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {theses.data.map((these) =>
+          {filtre.resultats.map((these) =>
             edition === these.id ? (
               <div key={these.id} style={{ padding: 4 }}>
                 <FormulaireThese

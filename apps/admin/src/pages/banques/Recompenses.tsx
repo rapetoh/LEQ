@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { Interrupteur } from '../../composants/Interrupteur'
+import { ChampImage } from '../../composants/ChampImage'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import type { Erreurs } from '../../modele/defis'
@@ -265,6 +266,13 @@ function FormulaireRecompense({
           aria-invalid={erreurs.titre ? 'true' : undefined}
         />
       </Champ>
+      <ChampImage
+        usage="recompenses"
+        valeur={saisie.image_chemin}
+        onChange={(chemin) => changer('image_chemin', chemin)}
+        libelle={r.image}
+        aide={r.imageAide}
+      />
       <div className={styles.grilleChamps}>
         <Champ id={`${id}-sous-titre`} libelle={r.sousTitre}>
           <input

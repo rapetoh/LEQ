@@ -178,8 +178,11 @@ export const fr = {
       modifie: 'Modifié, pas encore enregistré.',
       enregistrement: 'Enregistrement',
     },
+    rechercher: 'Rechercher un réglage',
+    aEnregistrer: (n: number) => (n === 1 ? '1 valeur modifiée' : `${n} valeurs modifiées`),
     toasts: {
       succes: (cle: string) => `Valeur enregistrée : ${cle}.`,
+      enregistrees: (n: number) => (n === 1 ? 'Valeur enregistrée.' : `${n} valeurs enregistrées.`),
       erreur: 'Enregistrement impossible. La valeur précédente est rétablie.',
     },
     champ: {
@@ -373,6 +376,8 @@ export const fr = {
         "Contenu, réduction, atelier : s'échangent contre des points. Distinction : attribuée, sans coût en points.",
       ordre: 'Ordre dans la boutique',
       sousTitre: 'Sous-titre',
+      image: 'Image',
+      imageAide: 'Optionnel. Montrée dans la boutique, sur la carte de la récompense.',
       description: 'Description',
       cout: 'Coût en points',
       plafond: 'Plafond par mois',
@@ -477,6 +482,11 @@ export const fr = {
       "Un message poussé sur les téléphones des personnes qui gardent l'interrupteur allumé. Deux par mois au plus, comptées sur l'ensemble de la base ; choisis des régions pour un atelier en salle, aucune pour un atelier en ligne.",
     compteur: (n: number, plafond: number) => `${n} sur ${plafond} ce mois-ci`,
     envoyer: 'Envoyer maintenant',
+    apercu: 'Aperçu',
+    apercuTitre: 'Le titre de ton annonce',
+    apercuCorps: 'Le message tel que les gens le liront sur leur écran verrouillé.',
+    apercuAide:
+      "Une annonce part une seule fois et ne se rattrape pas. Relis-la ici avant d'envoyer.",
     envoyee: 'Annonce envoyée. Le serveur la pousse dans les prochaines minutes.',
     plafondAtteint:
       'Le plafond du mois est atteint. La prochaine annonce attendra le mois prochain.',
@@ -485,6 +495,8 @@ export const fr = {
     erreurChargement: 'Impossible de charger les annonces.',
     historique: 'Envoyées',
     vide: 'Aucune annonce envoyée pour le moment.',
+    videTexte:
+      'Les annonces que tu envoies apparaîtront ici, avec le nombre de personnes touchées.',
     toutLeMonde: 'Tout le monde',
     nbRegions: (n: number) => (n === 1 ? '1 région' : `${n} régions`),
     enCours: 'Envoi en cours',
@@ -503,6 +515,9 @@ export const fr = {
         "Optionnel : l'application ouvre sa fiche quand la personne touche la notification.",
       sansAtelier: 'Aucun',
       regions: 'Régions',
+      image: 'Image',
+      imageAide:
+        "Optionnel. Elle apparaît dans la notification et sur la fiche de l'atelier dans l'application.",
       regionsAide:
         'Aucune région cochée : tout le monde. Un atelier en salle : sa région et les voisines.',
     },
@@ -529,6 +544,8 @@ export const fr = {
       sousTitre: 'Sous-titre',
       date: 'Date et heure',
       description: 'Description',
+      image: 'Image',
+      imageAide: "Optionnel. Montrée dans l'application, sur la carte de l'atelier.",
       descriptionAide: 'Deux phrases : le format, ce que la personne en retire.',
       enLigne: 'En ligne',
       enLigneAide: 'Un atelier en ligne concerne tout le monde, sans filtre de région.',
@@ -604,6 +621,24 @@ export const fr = {
       provisoireAide: "Tant que c'est coché, le sujet vient de la maquette et attend ta version.",
       actifAide: 'Un sujet inactif ne sera jamais activé.',
     },
+  },
+
+  media: {
+    deposer: 'Dépose une image, ou choisis un fichier',
+    formats: 'JPEG, PNG, WebP ou AVIF, 5 Mo au maximum',
+    envoi: 'Envoi en cours',
+    remplacer: 'Remplacer',
+    retirer: 'Retirer',
+    refusType: "Ce format n'est pas accepté. Choisis un JPEG, un PNG, un WebP ou un AVIF.",
+    refusTaille: 'Cette image dépasse 5 Mo. Choisis-en une plus légère.',
+    erreur: "L'image n'a pas pu être envoyée.",
+  },
+
+  etats: {
+    rechercher: 'Rechercher',
+    resultats: (n: number) => (n === 1 ? '1 résultat' : `${n} résultats`),
+    aucunResultat: 'Aucun résultat',
+    aucunResultatTexte: 'Aucune ligne ne correspond à cette recherche.',
   },
 
   theses: {

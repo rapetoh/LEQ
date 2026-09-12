@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { CODES_REGION, NOMS_REGION, NouvelleAnnonceSchema, type CodeRegion } from '@leq/domaine'
+import { ChampImage } from '../../composants/ChampImage'
+import { Echec, Squelette, Vide } from '../../composants/Etats'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import {
@@ -15,6 +17,7 @@ import {
 } from '../../services/annonces'
 import { chargerConfiguration, cleRequeteConfiguration } from '../../services/configuration'
 import { Champ } from '../banques/FormulaireDefi'
+import { ApercuNotification } from './ApercuNotification'
 import styles from '../banques/Banques.module.css'
 
 function formaterDate(iso: string): string {
@@ -43,6 +46,7 @@ export function Annonces() {
   const [corps, setCorps] = useState('')
   const [atelierId, setAtelierId] = useState('')
   const [regions, setRegions] = useState<CodeRegion[]>([])
+  const [image, setImage] = useState<string | null>(null)
   const [erreurs, setErreurs] = useState<Record<string, string>>({})
 
   const envoi = useMutation({
@@ -53,6 +57,7 @@ export function Annonces() {
       setCorps('')
       setAtelierId('')
       setRegions([])
+      setImage(null)
       void clientRequetes.invalidateQueries({ queryKey: cleRequeteAnnonces })
       return clientRequetes.invalidateQueries({ queryKey: cleRequeteAnnoncesDuMois })
     },
@@ -76,6 +81,7 @@ export function Annonces() {
       corps,
       atelier_id: atelierId || null,
       regions,
+      image_chemin: image,
     })
     if (!lu.success) {
       const prochaines: Record<string, string> = {}
@@ -102,116 +108,123 @@ export function Annonces() {
         ) : null}
       </header>
 
-      <form className={`carte ${styles.formulaire}`} noValidate onSubmit={soumettre}>
-        <Champ
-          id={`${id}-titre`}
-          libelle={fr.annonces.champs.titre}
-          aide={fr.annonces.champs.titreAide}
-          erreur={erreurs.titre ?? null}
-        >
-          <input
-            id={`${id}-titre`}
-            className="champ"
-            value={titre}
-            maxLength={80}
-            onChange={(e) => setTitre(e.target.value)}
-            aria-invalid={erreurs.titre ? 'true' : undefined}
-          />
-        </Champ>
-        <Champ
-          id={`${id}-corps`}
-          libelle={fr.annonces.champs.corps}
-          aide={fr.annonces.champs.corpsAide}
-          erreur={erreurs.corps ?? null}
-        >
-          <textarea
-            id={`${id}-corps`}
-            className="champ"
-            rows={3}
-            value={corps}
-            maxLength={240}
-            onChange={(e) => setCorps(e.target.value)}
-            aria-invalid={erreurs.corps ? 'true' : undefined}
-          />
-        </Champ>
-        <div className={styles.grilleChamps}>
+      <div className="deux-colonnes">
+        <form className={`carte ${styles.formulaire}`} noValidate onSubmit={soumettre}>
           <Champ
-            id={`${id}-atelier`}
-            libelle={fr.annonces.champs.atelier}
-            aide={fr.annonces.champs.atelierAide}
+            id={`${id}-titre`}
+            libelle={fr.annonces.champs.titre}
+            aide={fr.annonces.champs.titreAide}
+            erreur={erreurs.titre ?? null}
           >
-            <select
-              id={`${id}-atelier`}
+            <input
+              id={`${id}-titre`}
               className="champ"
-              value={atelierId}
-              onChange={(e) => setAtelierId(e.target.value)}
-            >
-              <option value="">{fr.annonces.champs.sansAtelier}</option>
-              {(ateliers.data ?? []).map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.titre} · {formaterDate(a.date_debut)}
-                </option>
-              ))}
-            </select>
+              value={titre}
+              maxLength={80}
+              onChange={(e) => setTitre(e.target.value)}
+              aria-invalid={erreurs.titre ? 'true' : undefined}
+            />
           </Champ>
-        </div>
-        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend className="etiquette">{fr.annonces.champs.regions}</legend>
-          <p className={styles.aide}>{fr.annonces.champs.regionsAide}</p>
-          <div className={styles.formulaireInline}>
-            {CODES_REGION.map((code) => {
-              const coche = regions.includes(code)
-              return (
-                <label
-                  key={code}
-                  className={`bouton ${coche ? 'bouton-principal' : 'bouton-secondaire'}`}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={coche}
-                    onChange={() =>
-                      setRegions((r) => (coche ? r.filter((c) => c !== code) : [...r, code]))
-                    }
-                    style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
-                  />
-                  {NOMS_REGION[code]}
-                </label>
-              )
-            })}
-          </div>
-        </fieldset>
-        <div className={styles.piedFormulaire}>
-          <div>
-            <button
-              type="submit"
-              className="bouton bouton-principal"
-              disabled={envoi.isPending || restantes === 0}
+          <Champ
+            id={`${id}-corps`}
+            libelle={fr.annonces.champs.corps}
+            aide={fr.annonces.champs.corpsAide}
+            erreur={erreurs.corps ?? null}
+          >
+            <textarea
+              id={`${id}-corps`}
+              className="champ"
+              rows={3}
+              value={corps}
+              maxLength={240}
+              onChange={(e) => setCorps(e.target.value)}
+              aria-invalid={erreurs.corps ? 'true' : undefined}
+            />
+          </Champ>
+          <ChampImage
+            usage="annonces"
+            valeur={image}
+            onChange={setImage}
+            libelle={fr.annonces.champs.image}
+            aide={fr.annonces.champs.imageAide}
+          />
+          <div className={styles.grilleChamps}>
+            <Champ
+              id={`${id}-atelier`}
+              libelle={fr.annonces.champs.atelier}
+              aide={fr.annonces.champs.atelierAide}
             >
-              {fr.annonces.envoyer}
-            </button>
+              <select
+                id={`${id}-atelier`}
+                className="champ"
+                value={atelierId}
+                onChange={(e) => setAtelierId(e.target.value)}
+              >
+                <option value="">{fr.annonces.champs.sansAtelier}</option>
+                {(ateliers.data ?? []).map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.titre} · {formaterDate(a.date_debut)}
+                  </option>
+                ))}
+              </select>
+            </Champ>
           </div>
-          <p className={styles.aide}>
-            {regions.length === 0 ? fr.annonces.toutLeMonde : fr.annonces.nbRegions(regions.length)}
-          </p>
-        </div>
-      </form>
+          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend className="etiquette">{fr.annonces.champs.regions}</legend>
+            <p className={styles.aide}>{fr.annonces.champs.regionsAide}</p>
+            <div className={styles.formulaireInline}>
+              {CODES_REGION.map((code) => {
+                const coche = regions.includes(code)
+                return (
+                  <label
+                    key={code}
+                    className={`bouton ${coche ? 'bouton-principal' : 'bouton-secondaire'}`}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={coche}
+                      onChange={() =>
+                        setRegions((r) => (coche ? r.filter((c) => c !== code) : [...r, code]))
+                      }
+                      style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                    />
+                    {NOMS_REGION[code]}
+                  </label>
+                )
+              })}
+            </div>
+          </fieldset>
+          <div className={styles.piedFormulaire}>
+            <div>
+              <button
+                type="submit"
+                className="bouton bouton-principal"
+                disabled={envoi.isPending || restantes === 0}
+              >
+                {fr.annonces.envoyer}
+              </button>
+            </div>
+            <p className={styles.aide}>
+              {regions.length === 0
+                ? fr.annonces.toutLeMonde
+                : fr.annonces.nbRegions(regions.length)}
+            </p>
+          </div>
+        </form>
+        <ApercuNotification titre={titre} corps={corps} image={image} />
+      </div>
 
       <section aria-labelledby="historique-annonces" style={{ marginTop: 24 }}>
         <h2 id="historique-annonces" style={{ marginBottom: 10 }}>
           {fr.annonces.historique}
         </h2>
         {annonces.isPending ? (
-          <p className="etat" role="status">
-            {fr.commun.chargement}
-          </p>
+          <Squelette lignes={2} />
         ) : annonces.isError ? (
-          <div className="etat etat-erreur" role="alert">
-            <p>{fr.annonces.erreurChargement}</p>
-            <p className="mono">{annonces.error.message}</p>
-          </div>
+          <Echec titre={fr.annonces.erreurChargement} detail={annonces.error.message} />
         ) : annonces.data.length === 0 ? (
-          <p className="etat">{fr.annonces.vide}</p>
+          <Vide marque="✉" titre={fr.annonces.vide} texte={fr.annonces.videTexte} />
         ) : (
           <div className={`carte ${styles.liste}`}>
             {annonces.data.map((a) => (

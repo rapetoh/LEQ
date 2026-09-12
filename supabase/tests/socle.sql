@@ -205,8 +205,15 @@ reset role;
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 update public.configuration set valeur = '999' where cle = 'points_par_defi';
 select is((select valeur from public.configuration where cle = 'points_par_defi'), '25'::jsonb, 'A cannot update configuration');
-update public.drapeaux set actif = true where cle = 'arene';
-select is((select actif from public.drapeaux where cle = 'arene'), false, 'A cannot update drapeaux');
+-- What matters is that the value does not move, not what the value happens to be: the flags are
+-- switched on and off in production, and a suite must not depend on which way they sit today.
+reset role; select tests_leq.deconnecter();
+create temp table drapeau_avant as select actif from public.drapeaux where cle = 'arene';
+grant select on drapeau_avant to authenticated;
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+update public.drapeaux set actif = not (select actif from drapeau_avant) where cle = 'arene';
+select is((select actif from public.drapeaux where cle = 'arene'),
+          (select actif from drapeau_avant), 'A cannot update drapeaux');
 reset role;
 
 -- admin can update, cannot insert or delete

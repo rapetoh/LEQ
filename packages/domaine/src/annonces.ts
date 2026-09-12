@@ -18,6 +18,7 @@ export const AtelierSchema = z.object({
   places: z.int().positive().nullable(),
   lien: z.string().nullable(),
   recompense_id: UuidSchema.nullable(),
+  image_chemin: z.string().nullable(),
   publie: z.boolean(),
   cree_par: UuidSchema.nullable(),
   cree_le: IsoTimestampSchema,
@@ -42,6 +43,7 @@ export const AnnonceSchema = z.object({
   destinataires: z.int().min(0).nullable(),
   envoyes: z.int().min(0),
   echecs: z.int().min(0),
+  image_chemin: z.string().nullable(),
   cree_par: UuidSchema.nullable(),
   cree_le: IsoTimestampSchema,
 })
@@ -53,6 +55,7 @@ export const NouvelleAnnonceSchema = z.object({
   corps: z.string().trim().min(1).max(240),
   atelier_id: UuidSchema.nullable(),
   regions: z.array(CodeRegionSchema),
+  image_chemin: z.string().nullable(),
 })
 export type NouvelleAnnonce = z.output<typeof NouvelleAnnonceSchema>
 
@@ -74,3 +77,40 @@ export type Suspension = z.output<typeof SuspensionSchema>
 
 /** The push sent by the worker for an announcement (X6): the title is Rebecca's, the body too. */
 export const DONNEES_PUSH_ANNONCE = 'annonce_id' as const
+
+/**
+ * The bucket holding what Rebecca publishes: the picture of a workshop, of an announcement, of a
+ * reward. Public by design, unlike every other bucket in LEQ: these images are what the
+ * application shows to everyone it invites, and they hold nothing personal.
+ */
+export const BUCKET_MEDIAS = 'medias'
+export const TAILLE_MAX_MEDIA_OCTETS = 5 * 1024 * 1024
+export const TYPES_MEDIA_ACCEPTES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'] as const
+
+/** Why an image was refused, in the terms the admin shows. */
+export type RefusMedia = 'type' | 'taille'
+
+export function verifierMedia(fichier: { type: string; size: number }): RefusMedia | null {
+  if (!(TYPES_MEDIA_ACCEPTES as readonly string[]).includes(fichier.type)) return 'type'
+  if (fichier.size > TAILLE_MAX_MEDIA_OCTETS) return 'taille'
+  return null
+}
+
+/** Public URL of a stored image. The row keeps the path; the host is never written down. */
+export function urlMedia(urlSupabase: string, chemin: string | null): string | null {
+  if (!chemin) return null
+  return `${urlSupabase.replace(/\/$/, '')}/storage/v1/object/public/${BUCKET_MEDIAS}/${chemin}`
+}
+
+/**
+ * Where an image lives inside the bucket: one folder per kind, a random name, the original
+ * extension. Never the uploaded file name, which carries whatever was on someone's disk.
+ */
+export function cheminMedia(
+  usage: 'ateliers' | 'annonces' | 'recompenses',
+  identifiant: string,
+  typeMime: string,
+): string {
+  const extension = typeMime === 'image/jpeg' ? 'jpg' : typeMime.replace('image/', '')
+  return `${usage}/${identifiant}.${extension}`
+}
