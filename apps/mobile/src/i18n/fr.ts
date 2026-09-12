@@ -378,6 +378,9 @@ export const fr = {
     titre: "L'Arène",
     sujetDuMoment: 'Le sujet du moment',
     mesDuels: 'Mes duels',
+    ongletSujet: 'Le sujet',
+    ongletDuels: 'Mes duels',
+    ongletFace: 'Face-à-face',
     orateurs: '{{nombre}} ont parlé',
     orateurUn: '1 a parlé',
     sujetSemaine: 'Sujet de la semaine',
@@ -537,7 +540,9 @@ export const fr = {
     voirDebrief: 'Voir le débrief',
 
     // Refus.
+    refusTitre: 'Le débat ne peut pas commencer',
     refusCompteRequis: 'Crée ton compte pour débattre.',
+    refusCreerCompte: 'Créer mon compte',
     refusCompteSuspendu: 'Ton compte est suspendu : tu ne peux pas débattre.',
     refusEteint: "Le face-à-face n'est pas encore ouvert.",
     refusQuotaEpuise: 'Tu as utilisé tes sessions du mois. Elles reviennent le mois prochain.',

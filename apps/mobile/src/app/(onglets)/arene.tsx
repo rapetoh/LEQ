@@ -18,6 +18,7 @@ import {
   useMaPrise,
   useSujet,
 } from '@/services/arene'
+import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { minutesDe } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -27,22 +28,33 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 // subject runs seven days: you speak, you listen, you vote. The others stay veiled until you
 // have spoken yourself. The duels are private and their verdict comes from the analysis.
 
-type Onglet = 'sujet' | 'duels'
+type Onglet = 'sujet' | 'duels' | 'face'
 
 export default function Arene() {
   const theme = useTheme()
   const espaceBarre = useEspaceBarreOnglets()
   const drapeaux = useDrapeaux()
   const duelsActifs = drapeaux.data?.duels === true
+  // The face-à-face used to live under « Moi · mon profil d'orateur », where nobody thinks to
+  // look for a debate. It belongs here, next to the other two ways of speaking against someone.
+  const faceActif = drapeaux.data?.face_a_face === true
+  const onglets: Onglet[] = [
+    'sujet',
+    ...(duelsActifs ? (['duels'] as const) : []),
+    ...(faceActif ? (['face'] as const) : []),
+  ]
   const [onglet, setOnglet] = useState<Onglet>('sujet')
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
+    <ScrollView
+      style={{ backgroundColor: theme.fond }}
+      contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
+    >
       <EnteteEcran titre={t('arene.titre')} />
       <View style={styles.sections}>
-        {duelsActifs ? (
+        {onglets.length > 1 ? (
           <View style={[styles.bascule, { backgroundColor: theme.carteDouce }]}>
-            {(['sujet', 'duels'] as const).map((cle) => {
+            {onglets.map((cle) => {
               const actif = onglet === cle
               return (
                 <Pressable
@@ -53,19 +65,25 @@ export default function Arene() {
                   style={[styles.onglet, actif && { backgroundColor: theme.carte }]}
                 >
                   <Text
+                    numberOfLines={1}
                     style={[
                       typographie.corpsFort,
+                      styles.libelleOnglet,
                       { color: actif ? theme.texte : theme.texteSecondaire },
                     ]}
                   >
-                    {cle === 'sujet' ? t('arene.sujetDuMoment') : t('arene.mesDuels')}
+                    {cle === 'sujet'
+                      ? t('arene.ongletSujet')
+                      : cle === 'duels'
+                        ? t('arene.ongletDuels')
+                        : t('arene.ongletFace')}
                   </Text>
                 </Pressable>
               )
             })}
           </View>
         ) : null}
-        {onglet === 'sujet' ? <Sujet /> : <Duels />}
+        {onglet === 'sujet' ? <Sujet /> : onglet === 'duels' ? <Duels /> : <PorteFaceAFace />}
       </View>
     </ScrollView>
   )
@@ -227,6 +245,39 @@ function PodiumPasse() {
 }
 
 /** C4: the duels in progress and the finished ones. */
+/** The door to the face-à-face, where people actually look for it. E0's own screen prepares it. */
+function PorteFaceAFace() {
+  const theme = useTheme()
+  const router = useRouter()
+  const quota = useQuotaDebats()
+  const restantes = quota.data?.restants ?? null
+
+  return (
+    <>
+      <Carte teinte="douce" style={styles.porte}>
+        <Titre niveau="section">{t('debat.porte')}</Titre>
+        <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
+          {t('debat.porteDetail')}
+        </Text>
+        {restantes !== null ? (
+          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+            {restantes === 0
+              ? t('debat.aucuneSession')
+              : restantes === 1
+                ? t('debat.sessionRestante')
+                : t('debat.sessionsRestantes', { restantes: String(restantes) })}
+          </Text>
+        ) : null}
+      </Carte>
+      <Bouton
+        libelle={t('debat.commencer')}
+        onPress={() => router.push('/face-a-face')}
+        desactive={restantes === 0}
+      />
+    </>
+  )
+}
+
 function Duels() {
   const theme = useTheme()
   const router = useRouter()
@@ -315,7 +366,11 @@ const styles = StyleSheet.create({
   onglet: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: espaces.xs,
     paddingVertical: espaces.xs,
     borderRadius: rayons.pilule,
   },
+  libelleOnglet: { textAlign: 'center' },
+  porte: { gap: espaces.s },
 })

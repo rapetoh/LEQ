@@ -8,7 +8,6 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
-import { useDrapeaux } from '@/services/configuration'
 import { moisEtAnnee, useProfil } from '@/services/profil'
 import { supabase, useSession } from '@/services/supabase'
 import { usePoints, useSerie } from '@/services/progres'
@@ -21,7 +20,6 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 export default function Moi() {
   const theme = useTheme()
   const router = useRouter()
-  const drapeaux = useDrapeaux()
   const serie = useSerie()
   const points = usePoints()
   const espaceBarre = useEspaceBarreOnglets()
@@ -32,10 +30,8 @@ export default function Moi() {
   const prenom = profil.data?.prenom?.trim() ?? null
 
   const lignes: { libelle: string; detail?: string; action?: () => void }[] = [
-    // E0 · The door of the face-à-face. It only exists when the flag is on: no ghost row.
-    ...(drapeaux.data?.face_a_face === true
-      ? [{ libelle: t('moi.faceAFace'), action: () => router.push('/face-a-face') }]
-      : []),
+    // The face-à-face is not here. It lives in l'Arène, next to the other two ways of speaking
+    // against someone; under « mon profil d'orateur » nobody thought to look for a debate.
     { libelle: t('moi.mesRecompenses'), action: () => router.push('/recompenses') },
     {
       libelle: t('moi.monAbonnement'),
@@ -45,7 +41,10 @@ export default function Moi() {
   ]
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
+    <ScrollView
+      style={{ backgroundColor: theme.fond }}
+      contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
+    >
       <EnteteEcran titre={t('moi.titre')} />
 
       <View style={styles.sections}>

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -12,6 +12,7 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import {
   abandonnerDebat,
+  ErreurDebat,
   invaliderDebats,
   messageRefus,
   ouvrirDebat,
@@ -51,7 +52,6 @@ export default function PreparerDebat() {
   const [ecrireLaSienne, setEcrireLaSienne] = useState(false)
   const [ton, setTon] = useState<Ton | null>(null)
   const [envoi, setEnvoi] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
 
   if (theses.isPending || quota.isPending || reprise.isPending) return <EcranChargement />
   // A failed quota reads as zero, which would tell the person they have used sessions they have
@@ -76,7 +76,6 @@ export default function PreparerDebat() {
 
   const commencer = async (abandonnerLAutre = false) => {
     setEnvoi(true)
-    setMessage(null)
     try {
       if (abandonnerLAutre) await abandonnerDebat()
       const debat = await ouvrirDebat({
@@ -87,7 +86,19 @@ export default function PreparerDebat() {
       invaliderDebats(clientRequetes)
       router.replace(`/face-a-face/${debat.id}`)
     } catch (erreur) {
-      setMessage(messageRefus(erreur))
+      // A refusal used to be one orange line at the bottom of a long page, where it was missed.
+      // It takes the screen now, and the one that has a way forward offers it.
+      const compteManquant = erreur instanceof ErreurDebat && erreur.refus === 'compte_requis'
+      Alert.alert(
+        t('debat.refusTitre'),
+        messageRefus(erreur),
+        compteManquant
+          ? [
+              { text: t('commun.plusTard'), style: 'cancel' as const },
+              { text: t('debat.refusCreerCompte'), onPress: () => router.push('/accueil/compte') },
+            ]
+          : [{ text: t('commun.fermer') }],
+      )
     } finally {
       setEnvoi(false)
     }
@@ -228,8 +239,6 @@ export default function PreparerDebat() {
           )
         })}
       </View>
-
-      {message ? <Text style={[typographie.corps, { color: theme.accent }]}>{message}</Text> : null}
 
       <View style={styles.actions}>
         <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
