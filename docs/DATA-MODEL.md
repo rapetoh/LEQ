@@ -462,6 +462,7 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 
 - `id`, `utilisateur_id`, `tentative_id unique`, `contexte` (arena or duel, checked against `sujet_id` and `duel_id`), `chemin_audio`, `statut` (en_moderation, publiee, retiree), `motif_retrait`, `votes_recus`, `date_suppression`, `audio_supprime_le`, timestamps. One take per person per duel.
 - Created only by `publier_prise()`: the deliberate gesture of chapter 11, on an attempt of type `arene` or `duel` that is already analysed, never by an anonymous or suspended account.
+- `chemin_audio` here is `tentatives.chemin_audio_public`, the copy the worker keeps for the length of the contest: the private object is deleted as soon as the evaluation is committed (chapter 2), so it is null by the time anyone publishes. A take whose copy never arrived is refused with `analyse_incomplete` rather than published mute, because a silent card costs its owner the week: nobody votes for a voice they cannot hear.
 - RLS: own takes always; a published take of the active subject only once the caller has spoken on it (`a_parle_sur()`); a duel take only to the two participants and only once the duel is closed; the admin sees everything, including what waits for moderation.
 
 ### impressions, votes

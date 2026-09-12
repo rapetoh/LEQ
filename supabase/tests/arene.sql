@@ -90,7 +90,15 @@ create temp table prises as select
   tests_leq.prise_analysee((select b from ctx), 'arene', null, 18) as tb,
   tests_leq.prise_analysee((select c from ctx), 'arene', null, 25) as tc;
 grant select on prises to authenticated;
+-- A take whose public copy never arrived is refused rather than published mute.
+create temp table muette as select tests_leq.prise_analysee((select a from ctx), 'arene', null, 12) as t;
+grant select on muette to authenticated;
+update public.tentatives set chemin_audio_public = null where id = (select t from muette);
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+
+select throws_ok($$ select public.publier_prise((select t from muette)) $$, 'P0001', 'analyse_incomplete',
+  'a take with no audio to play is refused instead of published silent');
+
 select lives_ok($$ select public.publier_prise((select ta from prises)) $$, 'A publishes a take');
 -- The Arena asks people to compare two voices. A published take with no audio is a silent card.
 select isnt((select chemin_audio from public.prises_publiques where tentative_id = (select ta from prises)), null,
@@ -224,7 +232,11 @@ select lives_ok(
              (select id from duel_anon), now(), 'Europe/Paris', 120, 'envoyee') $$,
   'the anonymous invitee records a duel take');
 reset role; select tests_leq.deconnecter();
-update public.tentatives set statut = 'retour_disponible' where id = 'dddddddd-0000-4000-8000-000000000001';
+-- As the worker leaves it: the private object is gone, the copy for the contest is kept.
+update public.tentatives
+   set statut = 'retour_disponible', chemin_audio = null, audio_supprime_le = now(),
+       chemin_audio_public = '55555555-5555-4555-8555-555555555555/dddddddd.m4a'
+ where id = 'dddddddd-0000-4000-8000-000000000001';
 insert into public.evaluations (tentative_id, note_totale) values ('dddddddd-0000-4000-8000-000000000001', 19);
 select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
 select lives_ok($$ select public.publier_prise('dddddddd-0000-4000-8000-000000000001') $$, 'and publishes it, without an account');

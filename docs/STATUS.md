@@ -428,7 +428,9 @@ assertion says a published take can actually be heard. `verif-audio-public.mjs` 
 written to demonstrate that bug before it was fixed; it printed the same alarm afterwards and is
 gone, the suite covers it.
 
-Verified: 91 server tests, 88 mobile tests, 481 database assertions across the eight suites,
+`publier_prise` now refuses a take with no audio to play, instead of writing a silent card.
+
+Verified: 91 server tests, 88 mobile tests, 482 database assertions across the eight suites,
 `npm run check` and `npm run strings` green. Server deployed, migrations applied,
 `verif-securite`, `verif-medias` and `verif-anon` green against the hosted project.
 
