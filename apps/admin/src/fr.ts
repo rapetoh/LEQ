@@ -32,6 +32,7 @@ export const fr = {
     annonces: 'Annonces',
     ateliers: 'Ateliers',
     sujets: "Sujets de l'Arène",
+    theses: 'Thèses du face-à-face',
     moderation: 'Modération',
     utilisateurs: 'Utilisateurs',
     exports: 'Demandes de données',
@@ -108,6 +109,11 @@ export const fr = {
         titre: 'Les ateliers',
         texte: "Tes ateliers, en salle ou en ligne, tels que l'application les montre.",
         action: 'Ouvrir les ateliers',
+      },
+      theses: {
+        titre: 'Les thèses du face-à-face',
+        texte: 'La banque des sujets de débat, proposés en premier à qui veut débattre.',
+        action: 'Ouvrir la banque de thèses',
       },
       sujets: {
         titre: "Les sujets de l'Arène",
@@ -595,6 +601,38 @@ export const fr = {
       duree: 'Durée maximale',
       provisoireAide: "Tant que c'est coché, le sujet vient de la maquette et attend ta version.",
       actifAide: 'Un sujet inactif ne sera jamais activé.',
+    },
+  },
+
+  theses: {
+    titre: 'Les thèses du face-à-face',
+    intro:
+      "La banque des sujets de débat. C'est ce que l'application propose en premier, parce que la plupart des gens à qui on demande d'inventer un sujet se figent ou en choisissent un qu'ils ne savent pas défendre. Rétor défend la thèse ; la personne la contredit.",
+    creer: 'Créer une thèse',
+    vide: 'Aucune thèse dans la banque. Crée la première.',
+    erreurChargement: 'Impossible de charger les thèses.',
+    erreur: 'Enregistrement impossible.',
+    erreurDoublon: 'Une thèse porte déjà cette clé, ou cet ordre.',
+    cree: 'Thèse créée.',
+    enregistre: 'Thèse enregistrée.',
+    modifier: 'Modifier',
+    proposees: "Proposées dans l'application",
+    proposeesAide: 'Les trois premières thèses actives, dans leur ordre.',
+    tons: {
+      ferme: 'Ferme',
+      provocateur: 'Provocateur',
+      academique: 'Académique',
+      bienveillant: 'Bienveillant',
+    },
+    champs: {
+      texte: 'La thèse',
+      texteAide: 'Une phrase affirmative, que Rétor va défendre et que la personne va contredire.',
+      ton: 'Ton de Rétor',
+      tonAide: 'Le ton proposé par défaut. La personne peut en choisir un autre.',
+      ordre: 'Ordre',
+      ordreAide: "L'application propose les premières thèses actives, dans cet ordre.",
+      provisoireAide: "Tant que c'est coché, la thèse attend ta version.",
+      actifAide: "Une thèse inactive n'est jamais proposée.",
     },
   },
 

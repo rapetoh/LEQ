@@ -2,9 +2,12 @@ import { z } from 'zod'
 import {
   PrisePubliqueSchema,
   SujetAreneSchema,
+  TheseSchema,
   type PrisePublique,
   type SujetArene,
   type SujetAreneEditable,
+  type These,
+  type TheseEditable,
 } from '@leq/domaine'
 import { supabase } from './supabase'
 
@@ -78,4 +81,34 @@ export async function modererPrise(
     p_motif: motif ?? null,
   })
   if (error) throw new Error(error.message)
+}
+
+// --------------------------------------------------------------------------------------------
+// The thesis bank of the face-à-face (Phase 8)
+// --------------------------------------------------------------------------------------------
+
+export const cleRequeteTheses = ['theses'] as const
+
+export async function chargerTheses(): Promise<These[]> {
+  const { data, error } = await supabase.from('theses').select('*').order('ordre')
+  if (error) throw new Error(error.message)
+  return z.array(TheseSchema).parse(data)
+}
+
+export async function creerThese(valeur: TheseEditable): Promise<These> {
+  const { data, error } = await supabase.from('theses').insert(valeur).select('*').single()
+  if (error) throw new Error(error.message)
+  return TheseSchema.parse(data)
+}
+
+export type ModificationThese = { id: string; valeur: Partial<TheseEditable> }
+
+export async function modifierThese(modification: ModificationThese): Promise<void> {
+  const { data, error } = await supabase
+    .from('theses')
+    .update(modification.valeur)
+    .eq('id', modification.id)
+    .select('id')
+  if (error) throw new Error(error.message)
+  exigerLigne(data, 'cette thèse')
 }

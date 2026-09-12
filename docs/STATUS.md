@@ -286,9 +286,14 @@ Written before the work started. Cahier chapter 10, plan Phase 8. Everything shi
    - [x] `/debat` on `temps-reel` runs one session per socket; the worker does not offer the route at all. Job `debriefer_debat` writes the note from the written transcript, idempotently
    - [x] 39 server tests for this alone (72 in the workspace). Checked against the real project over a real socket: upgrade, Supabase authentication, refusal and clean close in 889 ms, writing nothing
 3. Mobile
-   - [ ] E0 (the face-à-face row on Moi), E2 (prepare), E3 (the debate), E3b (interrupted), E4 (the debrief)
+   - [x] E0: the face-à-face row on Moi opens the flow, and only exists when the flag is on
+   - [x] E2 (`/face-a-face`): the bank first, one's own thesis second and quietly, the tone, the sessions left this month, and the sentence that the text is kept and the voice is not. When the bank is empty (it is, until Rebecca fills it) the screen says so and opens the other door rather than showing an empty list
+   - [x] E3 (`/face-a-face/[debatId]`): the thread of the debate, the transcription while the person speaks, Rétor's answer as text the moment it exists. Half duplex per ADR-007: while Rétor speaks the microphone keeps running and nothing leaves the phone
+   - [x] E3b: the interrupted state, saying plainly that the cut was ours and the session is not counted, with the two ways out
+   - [x] E4 (`.../debrief`): the note, polled until the worker writes it, and one line saying it was written from the text because the voice was never kept
+   - [x] The audio path (`services/debatAudio.ts` and the pure `services/pcm.ts`): 16 kHz frames up as Int16, the voice down through a buffer queue so Rétor starts speaking before the answer is fully synthesised. 14 tests on the conversions alone, because an endianness mistake there is inaudible until the transcription is nonsense
 4. Admin
-   - [ ] The thesis bank
+   - [x] The thesis bank (`/theses`): create, edit, order, tone, provisional and active, with a badge on the theses the app would offer right now. Checked in a real browser with the network stubbed: the menu entry, the three theses, the badges, no console error
 5. Verification
    - [ ] The measured cost and the per-turn latency of one real five-minute session, which chapter 9 requires before the plan containing the face-à-face can be priced. Needs the provider keys
 

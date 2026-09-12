@@ -15,6 +15,7 @@ const LIENS = [
   { vers: '/annonces', libelle: fr.navigation.annonces, fin: false },
   { vers: '/ateliers', libelle: fr.navigation.ateliers, fin: false },
   { vers: '/sujets', libelle: fr.navigation.sujets, fin: false },
+  { vers: '/theses', libelle: fr.navigation.theses, fin: false },
   { vers: '/moderation', libelle: fr.navigation.moderation, fin: false },
   { vers: '/utilisateurs', libelle: fr.navigation.utilisateurs, fin: false },
   { vers: '/exports', libelle: fr.navigation.exports, fin: false },

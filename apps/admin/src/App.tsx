@@ -17,6 +17,7 @@ import { Grille } from './pages/grille/Grille'
 import { DemandesExport } from './pages/utilisateurs/DemandesExport'
 import { Moderation } from './pages/arene/Moderation'
 import { Sujets } from './pages/arene/Sujets'
+import { Theses } from './pages/debat/Theses'
 import { Utilisateurs } from './pages/utilisateurs/Utilisateurs'
 
 /** Every page except the login sits behind a session and the admin role. */
@@ -46,6 +47,7 @@ export function App() {
         <Route path="annonces" element={<Annonces />} />
         <Route path="ateliers" element={<Ateliers />} />
         <Route path="sujets" element={<Sujets />} />
+        <Route path="theses" element={<Theses />} />
         <Route path="moderation" element={<Moderation />} />
         <Route path="utilisateurs" element={<Utilisateurs />} />
         <Route path="exports" element={<DemandesExport />} />

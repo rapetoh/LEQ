@@ -30,7 +30,10 @@ export default function Moi() {
   const prenom = profil.data?.prenom?.trim() ?? null
 
   const lignes: { libelle: string; detail?: string; action?: () => void }[] = [
-    ...(drapeaux.data?.face_a_face === true ? [{ libelle: t('moi.faceAFace') }] : []),
+    // E0 · The door of the face-à-face. It only exists when the flag is on: no ghost row.
+    ...(drapeaux.data?.face_a_face === true
+      ? [{ libelle: t('moi.faceAFace'), action: () => router.push('/face-a-face') }]
+      : []),
     { libelle: t('moi.mesRecompenses'), action: () => router.push('/recompenses') },
     {
       libelle: t('moi.monAbonnement'),

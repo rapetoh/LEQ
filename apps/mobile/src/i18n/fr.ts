@@ -467,6 +467,76 @@ export const fr = {
     podiumAucun: "Aucune semaine terminée pour l'instant.",
     podiumAudio: 'Les enregistrements de la semaine ont été supprimés. Le classement reste.',
   },
+  debat: {
+    // E0 · La porte, sur Moi.
+    titre: 'Le face-à-face',
+    porte: 'Débattre contre Rétor',
+    porteDetail: 'Une IA qui argumente contre toi, en direct.',
+    sessionsRestantes: 'Il te reste {{restantes}} sessions ce mois-ci.',
+    sessionRestante: 'Il te reste 1 session ce mois-ci.',
+    aucuneSession: 'Tu as utilisé tes sessions du mois.',
+    reserveComplet: 'Le face-à-face fait partie de la formule Complet.',
+
+    // E2 · Préparer.
+    preparerTitre: 'Contre quoi tu veux te battre ?',
+    preparerCorps:
+      'Rétor défend la thèse. Toi, tu la contredis. Il répond vraiment à ce que tu dis, pas à un script.',
+    choisirSujet: 'Choisis un sujet',
+    banqueVide: 'Les sujets de Rebecca arrivent bientôt.',
+    banqueVideCorps: 'En attendant, écris la thèse que tu veux contredire.',
+    monSujet: 'Écrire ma propre thèse',
+    monSujetChamp: 'La thèse que Rétor va défendre',
+    monSujetAide: 'Une phrase, affirmative. Tu vas la contredire.',
+    ton: 'Le ton de Rétor',
+    tonFerme: 'Ferme',
+    tonProvocateur: 'Provocateur',
+    tonAcademique: 'Académique',
+    tonBienveillant: 'Bienveillant',
+    duree: '{{minutes}} min de parole pour toi',
+    commencer: 'Commencer le débat',
+    conservation: 'On garde le texte du débat, jamais ta voix.',
+
+    // E3 · Le débat.
+    connexion: 'On ouvre la ligne',
+    aToiDeParler: 'À toi.',
+    retorRepond: 'Rétor répond',
+    retorParle: 'Rétor parle',
+    jaiFini: "J'ai fini de parler",
+    terminer: 'Terminer le débat',
+    tempsRestant: '{{temps}} de parole restante',
+    toi: 'Toi',
+    retor: 'Rétor',
+
+    // E3b · L'interruption.
+    interrompuTitre: 'Le débat est interrompu.',
+    interrompuCorps:
+      "La coupure vient de chez nous, donc cette session ne t'est pas décomptée. Tu peux reprendre.",
+    reprendre: 'Reprendre le débat',
+    reprendreAutre: 'Commencer un autre débat',
+    repriseTitre: 'Tu as un débat en cours.',
+    repriseCorps: 'Tu peux le reprendre là où tu en étais, ou en commencer un autre.',
+
+    // E4 · Le débrief.
+    debriefTitre: 'Ce que tu as fait',
+    debriefEnCours: 'On relit le débat',
+    debriefEnCoursDetail: "Ça prend moins d'une minute.",
+    debriefMoments: 'Les moments qui comptent',
+    debriefAxe: 'À travailler',
+    debriefVide: 'Le débat était trop court pour en tirer quelque chose.',
+    debriefSource: "Écrit depuis le texte du débat. Ta voix, elle, n'a jamais été gardée.",
+    voirDebrief: 'Voir le débrief',
+
+    // Refus.
+    refusCompteRequis: 'Crée ton compte pour débattre.',
+    refusCompteSuspendu: 'Ton compte est suspendu : tu ne peux pas débattre.',
+    refusEteint: "Le face-à-face n'est pas encore ouvert.",
+    refusQuotaEpuise: 'Tu as utilisé tes sessions du mois. Elles reviennent le mois prochain.',
+    refusTheseIntrouvable: "Ce sujet n'existe plus.",
+    refusTheseRequise: 'Écris la thèse que Rétor va défendre.',
+    refusEnCours: 'Tu as déjà un débat en cours.',
+    refusInconnu: "Ça n'a pas marché. C'est nous, pas toi. Réessaie dans un instant.",
+    microRefuse: "Sans micro, LEQ ne peut pas t'entendre. Autorise-le dans les réglages.",
+  },
   defis: {
     titre: 'Défis',
     placeholder:

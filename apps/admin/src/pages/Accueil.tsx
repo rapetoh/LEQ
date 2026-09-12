@@ -13,6 +13,7 @@ const DISPONIBLES = [
   { vers: '/annonces', ...fr.accueil.cartes.annonces },
   { vers: '/ateliers', ...fr.accueil.cartes.ateliers },
   { vers: '/sujets', ...fr.accueil.cartes.sujets },
+  { vers: '/theses', ...fr.accueil.cartes.theses },
   { vers: '/moderation', ...fr.accueil.cartes.moderation },
   { vers: '/utilisateurs', ...fr.accueil.cartes.utilisateurs },
   { vers: '/exports', ...fr.accueil.cartes.exports },
