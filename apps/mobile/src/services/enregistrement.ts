@@ -14,11 +14,7 @@ import {
   type AudioEventSubscription,
 } from 'react-native-audio-api'
 
-import {
-  prendreSessionAudio,
-  rendreSessionAudio,
-  type ReclamationAudio,
-} from './sessionAudio'
+import { prendreSessionAudio, rendreSessionAudio, type ReclamationAudio } from './sessionAudio'
 
 // 22.05 kHz, not 16 kHz: the iOS AAC encoder refuses to open a 16 kHz file (AudioConverter
 // rejects the bit rate). The server resamples to 16 kHz with ffmpeg before measuring, so the

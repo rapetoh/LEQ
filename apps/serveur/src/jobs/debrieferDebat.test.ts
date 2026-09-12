@@ -1,5 +1,5 @@
 import { pino } from 'pino'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { Executeur } from '../db.js'
 import { AdversaireStub } from '../debat/fournisseurs.js'
@@ -16,7 +16,7 @@ function reponse(rows: unknown[]) {
 
 /** A database that holds one debate with two turns and no note yet. */
 function depot(options: { fait?: boolean; tours?: unknown[]; existe?: boolean } = {}) {
-  const ecrits: Array<{ moments: unknown; axe: unknown }> = []
+  const ecrits: Array<{ moments: unknown; axe: unknown; provisoire: unknown }> = []
   const lues: string[] = []
   const ex: Executeur = {
     async query(text: string, values?: unknown[]) {
@@ -36,7 +36,7 @@ function depot(options: { fait?: boolean; tours?: unknown[]; existe?: boolean } 
         )
       }
       if (text.includes('set debrief')) {
-        ecrits.push({ moments: values?.[1], axe: values?.[2] })
+        ecrits.push({ moments: values?.[1], axe: values?.[2], provisoire: values?.[3] })
         return reponse([])
       }
       throw new Error(`requête inattendue: ${text}`)
@@ -48,11 +48,30 @@ function depot(options: { fait?: boolean; tours?: unknown[]; existe?: boolean } 
 describe('debriefer_debat', () => {
   it('writes the note from the written transcript, never from audio', async () => {
     const { ex, ecrits, lues } = depot()
-    await creerHandlerDebrieferDebat({ ex, adversaire: new AdversaireStub() })(job, contexte)
+    // An opponent that quotes what it was given, so the assertion is about what the job hands
+    // over and not about whatever the stub happens to answer.
+    const adversaire = new AdversaireStub()
+    vi.spyOn(adversaire, 'debriefer').mockImplementation(async (contexteDebrief) => ({
+      moments: contexteDebrief.tours
+        .filter((t) => t.locuteur === 'utilisateur')
+        .map((t) => t.texte),
+      axe: 'Travaille tes silences.',
+      provisoire: false,
+    }))
+    await creerHandlerDebrieferDebat({ ex, adversaire })(job, contexte)
     expect(ecrits).toHaveLength(1)
     expect(JSON.parse(String(ecrits[0]?.moments))).toEqual(['Le hasard fait beaucoup.'])
     // Nothing in the chain ever reaches for a recording, because there is none.
     expect(lues.some((requete) => /audio|chemin/i.test(requete))).toBe(false)
+  })
+
+  // A debriefing written by the stub must say so, or E4 shows an empty note as if it were the
+  // real one.
+  it('marque provisoire un débriefing écrit par le bouchon', async () => {
+    const { ex, ecrits } = depot()
+    await creerHandlerDebrieferDebat({ ex, adversaire: new AdversaireStub() })(job, contexte)
+    expect(ecrits[0]?.provisoire).toBe(true)
+    expect(JSON.parse(String(ecrits[0]?.moments))).toEqual([])
   })
 
   it('leaves a debate that already has its note alone', async () => {

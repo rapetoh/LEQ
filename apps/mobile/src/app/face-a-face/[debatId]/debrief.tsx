@@ -73,6 +73,12 @@ export default function Debrief() {
         <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
           {essais >= ESSAIS_MAX ? t('debat.debriefTarde') : t('debat.debriefEnCoursDetail')}
         </Text>
+      ) : debrief.provisoire ? (
+        <Carte teinte="sombre" style={styles.bloc}>
+          <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+            {t('debat.debriefProvisoire')}
+          </Text>
+        </Carte>
       ) : debrief.moments.length === 0 ? (
         <Carte teinte="sombre" style={styles.bloc}>
           <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>

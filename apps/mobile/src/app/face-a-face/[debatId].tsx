@@ -43,6 +43,9 @@ export default function FaceAFace() {
   const [restantes, setRestantes] = useState<number | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [microCoupe, setMicroCoupe] = useState(false)
+  // The server runs on stubs until the providers are wired. A stubbed transcript reads exactly
+  // like a broken one, so the screen says which it is.
+  const [provisoire, setProvisoire] = useState(false)
 
   const audio = useRef(new AudioDebat())
   const client = useRef<ClientDebat | null>(null)
@@ -51,6 +54,7 @@ export default function FaceAFace() {
   const surMessage = useCallback((message: MessageSortant) => {
     switch (message.type) {
       case 'pret':
+        setProvisoire(message.provisoire)
         setThese(message.these)
         setLignes(message.tours)
         setRestantes(Math.max(0, message.duree_max_s - message.secondes_parlees))
@@ -251,6 +255,14 @@ export default function FaceAFace() {
         ) : null}
       </View>
 
+      {provisoire ? (
+        <Carte teinte="sombre" style={styles.provisoire}>
+          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+            {t('debat.provisoire')}
+          </Text>
+        </Carte>
+      ) : null}
+
       <ScrollView
         ref={defilement}
         style={styles.fil}
@@ -310,6 +322,7 @@ const styles = StyleSheet.create({
   majuscules: { textTransform: 'uppercase' },
   fil: { flex: 1 },
   filContenu: { paddingHorizontal: espaces.xl, paddingBottom: espaces.l, gap: espaces.s },
+  provisoire: { marginHorizontal: espaces.xl, marginBottom: espaces.s },
   bulleTexte: { gap: espaces.xxs },
   partiel: { fontStyle: 'italic' },
   pied: { paddingHorizontal: espaces.xl, paddingTop: espaces.s, gap: espaces.xs },

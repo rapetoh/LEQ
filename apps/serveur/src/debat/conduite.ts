@@ -214,8 +214,16 @@ export class Conduite {
       duree_max_s: debat.duree_max_s,
       secondes_parlees: debat.secondes_parlees,
       tours: this.tours,
+      provisoire: this.surStubs(),
     })
     this.ouvrirFlux()
+  }
+
+  /** A debate run on stubs is readable, but it is not a debate. The screen must say which. */
+  private surStubs(): boolean {
+    return [this.deps.transcripteur.nom, this.deps.adversaire.nom, this.deps.voix.nom].includes(
+      'stub',
+    )
   }
 
   private ouvrirFlux(): void {

@@ -81,6 +81,8 @@ export interface Debrief {
   moments: string[]
   /** The one thing to work on next. */
   axe: string
+  /** Written by a stubbed opponent, while the providers are not wired. */
+  provisoire: boolean
 }
 
 // --------------------------------------------------------------------------------------------
@@ -141,11 +143,13 @@ export class AdversaireStub implements Adversaire {
     return `Contre-argument ${tour} sur « ${contexte.these} », ton ${contexte.ton}.`
   }
 
-  async debriefer(contexte: ContexteAdversaire): Promise<Debrief> {
-    const miens = contexte.tours.filter((t) => t.locuteur === 'utilisateur')
+  async debriefer(_contexte: ContexteAdversaire): Promise<Debrief> {
+    // No invented moments: they would be the stub's own transcript, which reads as a bug. The
+    // screen says the debrief is provisional and shows nothing it would have to make up.
     return {
-      moments: miens.slice(0, 2).map((t) => t.texte),
-      axe: 'Débrief provisoire : le vrai texte arrive avec la clé Anthropic.',
+      moments: [],
+      axe: '',
+      provisoire: true,
     }
   }
 }

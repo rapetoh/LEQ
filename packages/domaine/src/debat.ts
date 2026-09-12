@@ -56,6 +56,11 @@ export function consommeUneSession(issue: IssueDebat | null): boolean {
 export const DebriefSchema = z.object({
   moments: z.array(z.string()),
   axe: z.string(),
+  /**
+   * Written by a stubbed opponent, while the providers are not wired. Debriefs already stored
+   * without the field are real ones, hence the default.
+   */
+  provisoire: z.boolean().default(false),
 })
 export type Debrief = z.output<typeof DebriefSchema>
 

@@ -68,6 +68,12 @@ export interface MessagePret {
   secondes_parlees: number
   /** Everything said so far. Empty on a fresh session, the whole debate on a resume. */
   tours: TourPublie[]
+  /**
+   * True while the server runs on stubs: the transcription counts chunks and Rétor answers with
+   * a placeholder. The screen has to say so, because a stubbed transcript looks exactly like a
+   * broken one.
+   */
+  provisoire: boolean
 }
 
 /** What the server hears, as it hears it. `partiel` means it may still change. */

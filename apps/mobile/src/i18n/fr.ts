@@ -498,6 +498,8 @@ export const fr = {
     conservation: "Ta voix n'est pas conservée. Seul le texte du débat l'est.",
 
     // E3 · Le débat.
+    provisoire:
+      "Rétor n'est pas encore connecté. La transcription et ses réponses sont provisoires.",
     connexion: 'Connexion en cours',
     aToiDeParler: 'À toi de parler',
     retorRepond: 'Rétor répond',
@@ -527,6 +529,8 @@ export const fr = {
     debriefTarde:
       "Le débrief n'est toujours pas là. Reviens plus tard, il t'attendra sur cette page.",
     debriefVide: 'Le débat était trop court pour être analysé.',
+    debriefProvisoire:
+      "Rétor n'est pas encore connecté. Le débrief arrivera avec les vraies réponses.",
     debriefSource: "Écrit à partir du texte du débat. Ta voix n'a pas été conservée.",
     voirDebrief: 'Voir le débrief',
 

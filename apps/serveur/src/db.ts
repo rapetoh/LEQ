@@ -943,11 +943,13 @@ export async function enregistrerDebrief(
   debatId: string,
   moments: readonly string[],
   axe: string,
+  provisoire: boolean,
 ): Promise<void> {
   await ex.query(
     `update public.debats
-        set debrief = jsonb_build_object('moments', $2::jsonb, 'axe', $3::text)
+        set debrief = jsonb_build_object(
+              'moments', $2::jsonb, 'axe', $3::text, 'provisoire', $4::boolean)
       where id = $1`,
-    [debatId, JSON.stringify(moments), axe],
+    [debatId, JSON.stringify(moments), axe, provisoire],
   )
 }

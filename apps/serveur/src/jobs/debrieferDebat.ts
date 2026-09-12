@@ -43,7 +43,7 @@ export function creerHandlerDebrieferDebat(deps: DependancesDebrief): HandlerJob
     if (debat.tours.length === 0) {
       // The screen reads "no note yet" as "still being written" and polls. Writing the empty
       // note is what ends that: a debate with nothing in it has nothing to say, and says so.
-      await enregistrerDebrief(deps.ex, debatId, [], '')
+      await enregistrerDebrief(deps.ex, debatId, [], '', false)
       journal.info('debat sans aucun tour, debriefing vide ecrit')
       return
     }
@@ -53,7 +53,7 @@ export function creerHandlerDebrieferDebat(deps: DependancesDebrief): HandlerJob
       ton: debat.ton,
       tours: debat.tours.map((tour) => ({ locuteur: tour.locuteur, texte: tour.texte })),
     })
-    await enregistrerDebrief(deps.ex, debatId, debrief.moments, debrief.axe)
+    await enregistrerDebrief(deps.ex, debatId, debrief.moments, debrief.axe, debrief.provisoire)
     journal.info({ moments: debrief.moments.length }, 'debriefing ecrit')
   }
 }

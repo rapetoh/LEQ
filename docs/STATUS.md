@@ -430,6 +430,13 @@ gone, the suite covers it.
 
 `publier_prise` now refuses a take with no audio to play, instead of writing a silent card.
 
+**Le face-à-face dit qu'il tourne sur des bouchons.** Without the provider keys the server
+transcribes by counting chunks and Rétor answers a placeholder, which on screen reads exactly like
+a broken transcription. The `pret` message carries `provisoire`, E3 shows a line saying Rétor is
+not connected yet, and the debriefing records how it was produced so E4 says the same instead of
+showing an empty note as if it were the real one. The stub no longer invents moments: they were
+its own transcript quoted back.
+
 Verified: 91 server tests, 88 mobile tests, 482 database assertions across the eight suites,
 `npm run check` and `npm run strings` green. Server deployed, migrations applied,
 `verif-securite`, `verif-medias` and `verif-anon` green against the hosted project.
