@@ -142,7 +142,14 @@ The two build arguments are what the browser needs to reach Supabase from the pu
 
 `--remote-only` builds on Fly's builders, so Docker is not needed locally. Add `--ha=false`: without it Fly creates two `temps-reel` machines and a standby `worker`, and `fly scale count worker=1` may keep the standby (which stays stopped) instead of the running one; that happened on the first deploy and was fixed with `fly machine destroy <standby> --force` then `fly scale count worker=1`. First deploy done on 2026-09-06 (Roch's Fly account, org personal). `fly scale count worker=1 temps-reel=1 -a leq-serveur` sets one machine per group; `min_machines_running = 1` in `fly.toml` keeps them up. `fly ssh console -a leq-serveur` opens a shell in a machine (useful to run `ffmpeg -version` and `python3 -c "import parselmouth"`).
 
-Verify the public pages after a deploy: `curl -sI https://leq-serveur.fly.dev/duel/test | head -1` answers `200`, and opening that address in a browser shows the invitation screen saying the link leads to no duel (the token is not real). A duel link made by the app reads `https://leq-serveur.fly.dev/duel/<jeton>`; `EXPO_PUBLIC_LIEN_DUEL` in `apps/mobile/.env` overrides the base when a domain exists.
+Both browser surfaces live on the same host as the real-time process (ADR-010): the public pages
+at the root (`/duel/:jeton`, `/confidentialite`, `/conditions`) and Rebecca's space under
+`/admin`. Everything the space shows is behind a sign-in and the admin role in row-level
+security, so serving its bundle publicly gives nothing away. `apps/admin` builds with
+`base: '/admin/'` and its router strips the trailing slash: with it kept, the bare `/admin`
+matches no route and the page renders empty, which is exactly what happened on the first deploy.
+
+Verify after a deploy: every one of `/sante`, `/confidentialite`, `/conditions`, `/duel/test`, `/admin` and `/admin/theses` answers `200`, and both `/admin` and `/admin/` actually render the sign-in form rather than an empty page. A 200 on the bundle proves nothing: the router can still match no route. A duel link made by the app reads `https://leq-serveur.fly.dev/duel/<jeton>`; `EXPO_PUBLIC_LIEN_DUEL` in `apps/mobile/.env` overrides the base when a domain exists.
 
 Verify a deploy: `curl https://leq-serveur.fly.dev/sante` answers, then insert a job in the dashboard SQL editor (`insert into public.jobs (type, charge, cle_idempotence) values ('balayer_audio', '{}', 'test:' || now())`) and watch `fly logs` show it claimed and finished.
 

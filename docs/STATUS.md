@@ -326,6 +326,22 @@ The banks of Arena subjects and debate theses are seeded provisional (`provisoir
 in the admin), the same way the path and the shop already were. Both screens were checked on the
 simulator with the flags on: no runtime error.
 
+## What is online, and where (2026-09-12)
+
+| Surface           | Address                                                     | Who it is for                                         |
+| ----------------- | ----------------------------------------------------------- | ----------------------------------------------------- |
+| The application   | TestFlight, build 8                                         | Roch, then the testers                                |
+| Rebecca's space   | https://leq-serveur.fly.dev/admin                           | Rebecca and Roch, behind a sign-in and the admin role |
+| The public pages  | https://leq-serveur.fly.dev/confidentialite and /conditions | Anyone, and the stores                                |
+| A duel invitation | https://leq-serveur.fly.dev/duel/&lt;jeton&gt;              | Someone with no application at all                    |
+| The server        | https://leq-serveur.fly.dev/sante                           | Not a surface: the worker and the debate socket       |
+
+There is nothing else to look at. `apps/serveur` is the backend, `packages/` are libraries.
+
+The public pages had been written, documented as hosted and never deployed: they answered 404 on
+the live server until this deploy. Rebecca's space had never been deployed at all, which made it
+invisible to the person it is built for.
+
 ## Next
 
 1. Roch: tap through flow A on the simulator or his iPhone (`cd apps/mobile && npx expo run:ios --device "iPhone 17" --port 8082`, or `--device` for the phone) with the worker running on this Mac (`PYTHON_PATH=apps/serveur/prosodie/.venv/bin/python3 npm run dev --workspace @leq/serveur`): A1 to A6, then the e-mail code on A7, then G3 deletion. Report what breaks; the slice 7 boxes are ticked from that.
