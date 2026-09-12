@@ -308,6 +308,7 @@ export const fr = {
     competence: (competence: string) => `compétence : ${competence}`,
     modifier: 'Modifier',
     nouveau: 'Nouvel exercice',
+    modifierTitre: "Modifier l'exercice",
     modification: "Modifier l'exercice",
     dureeChamp: 'Durée',
     cree: 'Exercice créé.',
@@ -322,6 +323,7 @@ export const fr = {
       "Un coût en points par récompense. Mets un plafond mensuel sur celles qui te coûtent de l'argent réel.",
     creer: 'Créer une récompense',
     nouvelle: 'Nouvelle récompense',
+    modifierTitre: 'Modifier la récompense',
     vide: 'Aucune récompense pour le moment. Crée la première.',
     erreurChargement: 'Impossible de charger les récompenses.',
     modifier: 'Modifier',
@@ -375,6 +377,8 @@ export const fr = {
   },
 
   grille: {
+    nouveauCritere: 'Nouveau critère',
+    modifierTitre: 'Modifier le critère',
     titre: 'La grille',
     intro:
       'Un brouillon se modifie critère par critère. Une fois publiée, une version ne bouge plus et note toutes les nouvelles prises.',
@@ -486,6 +490,7 @@ export const fr = {
     titre: 'Les ateliers',
     intro: "Un atelier publié apparaît dans l'application. Un brouillon reste ici.",
     creer: 'Créer un atelier',
+    modifierTitre: "Modifier l'atelier",
     vide: 'Aucun atelier. Crée le premier.',
     erreurChargement: 'Impossible de charger les ateliers.',
     erreur: 'Enregistrement impossible.',

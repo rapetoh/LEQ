@@ -372,8 +372,10 @@ hit area, and lost the underline that made "Modifier" read as a link somebody fo
 the flags on made `socle`, `arene` and `face_a_face` fail. They set up their own state now, and
 the flag assertion checks that a value does not move rather than what it happens to be.
 
-Still to do: the same sweep on Défis, Grille, Échanges, Utilisateurs and Modération, which have
-the shared pieces available but still write their own states.
+Every page that edits a row now opens it in a dialog over a dimmed, blurred page, instead of
+unfolding the form between two rows where it was easy to lose track of what was being changed:
+exercices, récompenses, sujets, thèses, ateliers and les critères de la grille. Checked in a
+browser on the deployed space, including that Escape closes each one.
 
 ## Next
 

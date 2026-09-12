@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { Interrupteur } from '../../composants/Interrupteur'
 import { ChampImage } from '../../composants/ChampImage'
+import { DialogueEdition } from '../../composants/DialogueEdition'
+import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import type { Erreurs } from '../../modele/defis'
@@ -32,6 +35,13 @@ export function Recompenses() {
   const clientRequetes = useQueryClient()
   const recompenses = useQuery({ queryKey: cleRequeteRecompenses, queryFn: chargerRecompenses })
   const [edition, setEdition] = useState<string | null>(null)
+  const filtre = useRecherche(recompenses.data, (r) => [
+    r.titre,
+    r.cle,
+    r.sous_titre,
+    r.description,
+  ])
+  const enEdition = (recompenses.data ?? []).find((r) => r.id === edition) ?? null
 
   const invalider = () => clientRequetes.invalidateQueries({ queryKey: cleRequeteRecompenses })
   const messageErreur = (erreur: Error) =>
@@ -78,9 +88,39 @@ export function Recompenses() {
         </button>
       </header>
 
-      {edition === 'nouveau' ? (
-        <div style={{ marginBottom: 20 }}>
-          <h2 style={{ marginBottom: 10 }}>{fr.recompenses.nouvelle}</h2>
+      <BarreOutils
+        recherche={filtre.recherche}
+        onRecherche={filtre.setRecherche}
+        placeholder={fr.etats.rechercher}
+        compte={filtre.actif ? fr.etats.resultats(filtre.resultats.length) : undefined}
+      />
+
+      {recompenses.isPending ? (
+        <Squelette lignes={4} />
+      ) : recompenses.isError ? (
+        <Echec titre={fr.recompenses.erreurChargement} detail={recompenses.error.message} />
+      ) : recompenses.data.length === 0 ? (
+        <Vide marque="◆" titre={fr.recompenses.vide} />
+      ) : filtre.resultats.length === 0 ? (
+        <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
+      ) : (
+        <div className={`carte ${styles.liste}`}>
+          {filtre.resultats.map((recompense) => (
+            <Ligne
+              key={recompense.id}
+              recompense={recompense}
+              onModifier={() => setEdition(recompense.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      <DialogueEdition
+        ouvert={edition !== null}
+        titre={edition === 'nouveau' ? fr.recompenses.nouvelle : fr.recompenses.modifierTitre}
+        onFermer={() => setEdition(null)}
+      >
+        {edition === 'nouveau' ? (
           <FormulaireRecompense
             initiale={saisieRecompenseVierge(prochainOrdreRecompense(recompenses.data ?? []))}
             creation
@@ -88,50 +128,16 @@ export function Recompenses() {
             onEnregistrer={(valeur) => creation.mutate(valeur)}
             onAnnuler={() => setEdition(null)}
           />
-        </div>
-      ) : null}
-
-      {recompenses.isPending ? (
-        <p className="etat" role="status">
-          {fr.commun.chargement}
-        </p>
-      ) : recompenses.isError ? (
-        <div className="etat etat-erreur" role="alert">
-          <p>{fr.recompenses.erreurChargement}</p>
-          <p className="mono">{recompenses.error.message}</p>
-          <button
-            type="button"
-            className="bouton bouton-secondaire"
-            onClick={() => void recompenses.refetch()}
-          >
-            {fr.commun.reessayer}
-          </button>
-        </div>
-      ) : recompenses.data.length === 0 ? (
-        <p className="etat">{fr.recompenses.vide}</p>
-      ) : (
-        <div className={`carte ${styles.liste}`}>
-          {recompenses.data.map((recompense) =>
-            edition === recompense.id ? (
-              <div key={recompense.id} style={{ padding: 4 }}>
-                <FormulaireRecompense
-                  initiale={saisieDepuisRecompense(recompense)}
-                  creation={false}
-                  enregistrement={enregistrement}
-                  onEnregistrer={(valeur) => modification.mutate({ id: recompense.id, valeur })}
-                  onAnnuler={() => setEdition(null)}
-                />
-              </div>
-            ) : (
-              <Ligne
-                key={recompense.id}
-                recompense={recompense}
-                onModifier={() => setEdition(recompense.id)}
-              />
-            ),
-          )}
-        </div>
-      )}
+        ) : enEdition ? (
+          <FormulaireRecompense
+            initiale={saisieDepuisRecompense(enEdition)}
+            creation={false}
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => modification.mutate({ id: enEdition.id, valeur })}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : null}
+      </DialogueEdition>
     </div>
   )
 }

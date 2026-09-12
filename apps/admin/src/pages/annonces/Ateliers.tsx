@@ -4,6 +4,8 @@ import { CODES_REGION, NOMS_REGION, type AtelierEditable, type CodeRegion } from
 import { useSession } from '../../auth/sessionContext'
 import { Interrupteur } from '../../composants/Interrupteur'
 import { ChampImage } from '../../composants/ChampImage'
+import { DialogueEdition } from '../../composants/DialogueEdition'
+import { Echec, Squelette, Vide } from '../../composants/Etats'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import {
@@ -30,6 +32,7 @@ export function Ateliers() {
   const ateliers = useQuery({ queryKey: cleRequeteAteliers, queryFn: chargerAteliers })
   const recompenses = useQuery({ queryKey: cleRequeteRecompenses, queryFn: chargerRecompenses })
   const [edition, setEdition] = useState<string | null>(null)
+  const enEdition = (ateliers.data ?? []).find((a) => a.id === edition) ?? null
   const invalider = () => clientRequetes.invalidateQueries({ queryKey: cleRequeteAteliers })
   const creation = useMutation({
     mutationFn: (valeur: AtelierEditable) => creerAtelier(valeur, session?.user.id ?? ''),
@@ -70,8 +73,59 @@ export function Ateliers() {
           {fr.ateliers.creer}
         </button>
       </header>
-      {edition === 'nouveau' ? (
-        <div style={{ marginBottom: 20 }}>
+      {ateliers.isPending ? (
+        <Squelette lignes={3} />
+      ) : ateliers.isError ? (
+        <Echec titre={fr.ateliers.erreurChargement} detail={ateliers.error.message} />
+      ) : ateliers.data.length === 0 ? (
+        <Vide marque="◉" titre={fr.ateliers.vide} />
+      ) : (
+        <div className={`carte ${styles.liste}`}>
+          {ateliers.data.map((a) => (
+            <div key={a.id} className={`${styles.ligne} ${a.publie ? '' : styles.ligneInactive}`}>
+              <span className={styles.ordre}>{a.places ?? '·'}</span>
+              <div>
+                <span className={styles.titre}>{a.titre}</span>
+                <p className={styles.detail}>
+                  {formaterDate(a.date_debut)} · {a.en_ligne ? fr.ateliers.enLigne : a.lieu}
+                  {a.region ? ` · ${NOMS_REGION[a.region]}` : ''}
+                  {a.sous_titre ? ` · ${a.sous_titre}` : ''}
+                </p>
+              </div>
+              <div className={styles.badges}>
+                <span className={a.publie ? styles.badgeValide : styles.badge}>
+                  {a.publie ? fr.ateliers.publie : fr.ateliers.brouillon}
+                </span>
+              </div>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className="bouton bouton-secondaire"
+                  onClick={() => setEdition(a.id)}
+                >
+                  {fr.ateliers.modifier}
+                </button>
+                <button
+                  type="button"
+                  className="bouton bouton-discret"
+                  disabled={enregistrement}
+                  onClick={() => modification.mutate({ id: a.id, valeur: { publie: !a.publie } })}
+                >
+                  {a.publie ? fr.ateliers.depublier : fr.ateliers.publier}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <DialogueEdition
+        ouvert={edition !== null}
+        titre={edition === 'nouveau' ? fr.ateliers.creer : fr.ateliers.modifierTitre}
+        onFermer={() => setEdition(null)}
+        large
+      >
+        {edition === 'nouveau' ? (
           <FormulaireAtelier
             initiale={vierge()}
             recompenses={recompenses.data ?? []}
@@ -79,70 +133,16 @@ export function Ateliers() {
             onEnregistrer={(v) => creation.mutate(v)}
             onAnnuler={() => setEdition(null)}
           />
-        </div>
-      ) : null}
-      {ateliers.isPending ? (
-        <p className="etat" role="status">
-          {fr.commun.chargement}
-        </p>
-      ) : ateliers.isError ? (
-        <div className="etat etat-erreur" role="alert">
-          <p>{fr.ateliers.erreurChargement}</p>
-          <p className="mono">{ateliers.error.message}</p>
-        </div>
-      ) : ateliers.data.length === 0 ? (
-        <p className="etat">{fr.ateliers.vide}</p>
-      ) : (
-        <div className={`carte ${styles.liste}`}>
-          {ateliers.data.map((a) =>
-            edition === a.id ? (
-              <div key={a.id} style={{ padding: 4 }}>
-                <FormulaireAtelier
-                  initiale={depuis(a)}
-                  recompenses={recompenses.data ?? []}
-                  enregistrement={enregistrement}
-                  onEnregistrer={(v) => modification.mutate({ id: a.id, valeur: v })}
-                  onAnnuler={() => setEdition(null)}
-                />
-              </div>
-            ) : (
-              <div key={a.id} className={`${styles.ligne} ${a.publie ? '' : styles.ligneInactive}`}>
-                <span className={styles.ordre}>{a.places ?? '·'}</span>
-                <div>
-                  <span className={styles.titre}>{a.titre}</span>
-                  <p className={styles.detail}>
-                    {formaterDate(a.date_debut)} · {a.en_ligne ? fr.ateliers.enLigne : a.lieu}
-                    {a.region ? ` · ${NOMS_REGION[a.region]}` : ''}
-                    {a.sous_titre ? ` · ${a.sous_titre}` : ''}
-                  </p>
-                </div>
-                <div className={styles.badges}>
-                  <span className={a.publie ? styles.badgeValide : styles.badge}>
-                    {a.publie ? fr.ateliers.publie : fr.ateliers.brouillon}
-                  </span>
-                </div>
-                <div className={styles.actions}>
-                  <button
-                    type="button"
-                    className="bouton bouton-secondaire"
-                    onClick={() => setEdition(a.id)}
-                  >
-                    {fr.ateliers.modifier}
-                  </button>
-                  <button
-                    type="button"
-                    className="bouton bouton-discret"
-                    disabled={enregistrement}
-                    onClick={() => modification.mutate({ id: a.id, valeur: { publie: !a.publie } })}
-                  >
-                    {a.publie ? fr.ateliers.depublier : fr.ateliers.publier}
-                  </button>
-                </div>
-              </div>
-            ),
-          )}
-        </div>
-      )}
+        ) : enEdition ? (
+          <FormulaireAtelier
+            initiale={depuis(enEdition)}
+            recompenses={recompenses.data ?? []}
+            enregistrement={enregistrement}
+            onEnregistrer={(v) => modification.mutate({ id: enEdition.id, valeur: v })}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : null}
+      </DialogueEdition>
     </div>
   )
 }

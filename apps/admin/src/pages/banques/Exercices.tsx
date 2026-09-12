@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { Interrupteur } from '../../composants/Interrupteur'
 import { BarreOutils, Echec, Squelette, Vide } from '../../composants/Etats'
+import { DialogueEdition } from '../../composants/DialogueEdition'
 import { useRecherche } from '../../composants/useRecherche'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
@@ -30,6 +31,7 @@ export function Exercices() {
   const exercices = useQuery({ queryKey: cleRequeteExercices, queryFn: chargerExercices })
   const [edition, setEdition] = useState<string | null>(null)
   const filtre = useRecherche(exercices.data, (e) => [e.titre, e.cle, e.consigne, e.competence])
+  const enEdition = (exercices.data ?? []).find((e) => e.id === edition) ?? null
 
   const invalider = () => void clientRequetes.invalidateQueries({ queryKey: cleRequeteExercices })
   const messageErreur = (erreur: Error) =>
@@ -76,19 +78,6 @@ export function Exercices() {
         </button>
       </header>
 
-      {edition === 'nouveau' ? (
-        <div style={{ marginBottom: 20 }}>
-          <h2 style={{ marginBottom: 10 }}>{fr.exercices.nouveau}</h2>
-          <FormulaireExercice
-            initiale={saisieExerciceVierge()}
-            creation
-            enregistrement={enregistrement}
-            onEnregistrer={(valeur) => creation.mutate(valeur)}
-            onAnnuler={() => setEdition(null)}
-          />
-        </div>
-      ) : null}
-
       <BarreOutils
         recherche={filtre.recherche}
         onRecherche={filtre.setRecherche}
@@ -106,27 +95,39 @@ export function Exercices() {
         <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {filtre.resultats.map((exercice) =>
-            edition === exercice.id ? (
-              <div key={exercice.id} style={{ padding: 4 }}>
-                <FormulaireExercice
-                  initiale={saisieDepuisExercice(exercice)}
-                  creation={false}
-                  enregistrement={enregistrement}
-                  onEnregistrer={(valeur) => modification.mutate({ id: exercice.id, valeur })}
-                  onAnnuler={() => setEdition(null)}
-                />
-              </div>
-            ) : (
-              <Ligne
-                key={exercice.id}
-                exercice={exercice}
-                onModifier={() => setEdition(exercice.id)}
-              />
-            ),
-          )}
+          {filtre.resultats.map((exercice) => (
+            <Ligne
+              key={exercice.id}
+              exercice={exercice}
+              onModifier={() => setEdition(exercice.id)}
+            />
+          ))}
         </div>
       )}
+
+      <DialogueEdition
+        ouvert={edition !== null}
+        titre={edition === 'nouveau' ? fr.exercices.nouveau : fr.exercices.modifierTitre}
+        onFermer={() => setEdition(null)}
+      >
+        {edition === 'nouveau' ? (
+          <FormulaireExercice
+            initiale={saisieExerciceVierge()}
+            creation
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => creation.mutate(valeur)}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : enEdition ? (
+          <FormulaireExercice
+            initiale={saisieDepuisExercice(enEdition)}
+            creation={false}
+            enregistrement={enregistrement}
+            onEnregistrer={(valeur) => modification.mutate({ id: enEdition.id, valeur })}
+            onAnnuler={() => setEdition(null)}
+          />
+        ) : null}
+      </DialogueEdition>
     </div>
   )
 }

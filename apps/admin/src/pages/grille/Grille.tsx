@@ -20,6 +20,7 @@ import {
   supprimerCritere,
   type GrilleAvecCriteres,
 } from '../../services/grille'
+import { DialogueEdition } from '../../composants/DialogueEdition'
 import { FormulaireCritere } from './FormulaireCritere'
 import styles from '../banques/Banques.module.css'
 
@@ -114,6 +115,7 @@ export function Grille() {
   const publiee = liste.find((g) => g.publiee_le !== null) ?? null
   const grille = liste.find((g) => g.id === choisie) ?? liste[0] ?? null
   const brouillon = grille !== null && grille.publiee_le === null
+  const critereEnEdition = grille?.criteres.find((c) => c.id === edition) ?? null
   const enregistrement = creation.isPending || modification.isPending
 
   return (
@@ -194,8 +196,59 @@ export function Grille() {
 
           {!brouillon ? <p className={styles.aide}>{fr.grille.lectureSeule}</p> : null}
 
-          {edition === 'nouveau' && brouillon ? (
-            <div style={{ marginBottom: 16 }}>
+          <div className={`carte ${styles.liste}`}>
+            {grille.criteres.length === 0 ? (
+              <p className={styles.vide}>{fr.grille.aucunCritere}</p>
+            ) : null}
+            {grille.criteres.map((critere) => (
+              <div key={critere.id} className={styles.ligne}>
+                <span className={styles.ordre}>{critere.ordre}</span>
+                <div>
+                  <span className={styles.titre}>{critere.nom}</span>
+                  <p className={styles.detail}>
+                    <span className="mono">{critere.cle}</span> ·{' '}
+                    {fr.grille.surMax(critere.regle.score_max)} ·{' '}
+                    {fr.grille.nbElements(critere.regle.elements.length)} · {critere.definition}
+                  </p>
+                </div>
+                <div className={styles.badges}>
+                  {critere.regle.elements.map((e) => (
+                    <span key={e.mesure} className={`${styles.badgeInactif} mono`}>
+                      {e.mesure}
+                    </span>
+                  ))}
+                </div>
+                <div className={styles.actions}>
+                  {brouillon ? (
+                    <>
+                      <button
+                        type="button"
+                        className="bouton bouton-secondaire"
+                        onClick={() => setEdition(critere.id)}
+                      >
+                        {fr.grille.modifier}
+                      </button>
+                      <button
+                        type="button"
+                        className="bouton bouton-discret"
+                        onClick={() => setASupprimer(critere)}
+                      >
+                        {fr.grille.supprimer}
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogueEdition
+            ouvert={edition !== null && brouillon}
+            titre={edition === 'nouveau' ? fr.grille.nouveauCritere : fr.grille.modifierTitre}
+            onFermer={() => setEdition(null)}
+            large
+          >
+            {edition === 'nouveau' ? (
               <FormulaireCritere
                 initiale={saisieCritereVierge()}
                 ordre={grille.criteres.length + 1}
@@ -203,66 +256,16 @@ export function Grille() {
                 onEnregistrer={(valeur) => creation.mutate({ grilleId: grille.id, valeur })}
                 onAnnuler={() => setEdition(null)}
               />
-            </div>
-          ) : null}
-
-          <div className={`carte ${styles.liste}`}>
-            {grille.criteres.length === 0 ? (
-              <p className={styles.vide}>{fr.grille.aucunCritere}</p>
+            ) : critereEnEdition ? (
+              <FormulaireCritere
+                initiale={saisieDepuisCritere(critereEnEdition)}
+                ordre={critereEnEdition.ordre}
+                enregistrement={enregistrement}
+                onEnregistrer={(valeur) => modification.mutate({ id: critereEnEdition.id, valeur })}
+                onAnnuler={() => setEdition(null)}
+              />
             ) : null}
-            {grille.criteres.map((critere) =>
-              edition === critere.id && brouillon ? (
-                <div key={critere.id} style={{ padding: 4 }}>
-                  <FormulaireCritere
-                    initiale={saisieDepuisCritere(critere)}
-                    ordre={critere.ordre}
-                    enregistrement={enregistrement}
-                    onEnregistrer={(valeur) => modification.mutate({ id: critere.id, valeur })}
-                    onAnnuler={() => setEdition(null)}
-                  />
-                </div>
-              ) : (
-                <div key={critere.id} className={styles.ligne}>
-                  <span className={styles.ordre}>{critere.ordre}</span>
-                  <div>
-                    <span className={styles.titre}>{critere.nom}</span>
-                    <p className={styles.detail}>
-                      <span className="mono">{critere.cle}</span> ·{' '}
-                      {fr.grille.surMax(critere.regle.score_max)} ·{' '}
-                      {fr.grille.nbElements(critere.regle.elements.length)} · {critere.definition}
-                    </p>
-                  </div>
-                  <div className={styles.badges}>
-                    {critere.regle.elements.map((e) => (
-                      <span key={e.mesure} className={`${styles.badgeInactif} mono`}>
-                        {e.mesure}
-                      </span>
-                    ))}
-                  </div>
-                  <div className={styles.actions}>
-                    {brouillon ? (
-                      <>
-                        <button
-                          type="button"
-                          className="bouton bouton-secondaire"
-                          onClick={() => setEdition(critere.id)}
-                        >
-                          {fr.grille.modifier}
-                        </button>
-                        <button
-                          type="button"
-                          className="bouton bouton-discret"
-                          onClick={() => setASupprimer(critere)}
-                        >
-                          {fr.grille.supprimer}
-                        </button>
-                      </>
-                    ) : null}
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
+          </DialogueEdition>
         </section>
       ) : null}
 
