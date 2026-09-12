@@ -420,8 +420,17 @@ Then the phone:
 - **Une image remplacée s'affiche.** `ImageMedia` kept a boolean failure flag that never reset
   when the path changed, so a recycled row or an image Rebecca replaced stayed blank for ever.
 
-Verified: 91 server tests, 88 mobile tests, 480 database assertions across the eight suites,
-`npm run check` and `npm run strings` green. Server deployed, migrations applied.
+And one the review had not found, caught while re-running the checks: **the Arena suite was
+passing over takes that would have been silent.** `publier_prise` reads `chemin_audio_public`,
+the copy the worker keeps for the length of the contest, but the fixture still filled
+`chemin_audio`, which is null by then. The fixture matches what the worker leaves now, and an
+assertion says a published take can actually be heard. `verif-audio-public.mjs` was a diagnostic
+written to demonstrate that bug before it was fixed; it printed the same alarm afterwards and is
+gone, the suite covers it.
+
+Verified: 91 server tests, 88 mobile tests, 481 database assertions across the eight suites,
+`npm run check` and `npm run strings` green. Server deployed, migrations applied,
+`verif-securite`, `verif-medias` and `verif-anon` green against the hosted project.
 
 ## Next
 

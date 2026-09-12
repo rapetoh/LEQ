@@ -20,15 +20,19 @@ begin
 end; $$;
 create function tests_leq.deconnecter() returns void language plpgsql as $$
 begin perform set_config('request.jwt.claims', '', true); end; $$;
--- An analysed take of the given type, with a grid total, as the worker leaves it.
+-- An analysed take of the given type, with a grid total, exactly as the worker leaves it: the
+-- private object is gone and its column is null, the copy kept for the contest is the public one.
+-- The fixture used to fill `chemin_audio` instead, which no longer exists by then, so every
+-- assertion here passed over takes that would have been silent in the Arena.
 create function tests_leq.prise_analysee(p_uid uuid, p_type text, p_duel uuid, p_note numeric)
 returns uuid language plpgsql as $$
 declare v_id uuid := gen_random_uuid();
 begin
   insert into public.tentatives (id, utilisateur_id, type, duel_id, enregistre_le, fuseau_horaire,
-                                 decalage_minutes, statut, chemin_audio)
+                                 decalage_minutes, statut, chemin_audio, chemin_audio_public,
+                                 audio_supprime_le)
   values (v_id, p_uid, p_type, p_duel, now(), 'Europe/Paris', 120, 'retour_disponible',
-          p_uid::text || '/' || v_id::text || '.m4a');
+          null, p_uid::text || '/' || v_id::text || '.m4a', now());
   insert into public.evaluations (tentative_id, note_totale) values (v_id, p_note);
   return v_id;
 end; $$;
@@ -88,6 +92,9 @@ create temp table prises as select
 grant select on prises to authenticated;
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select lives_ok($$ select public.publier_prise((select ta from prises)) $$, 'A publishes a take');
+-- The Arena asks people to compare two voices. A published take with no audio is a silent card.
+select isnt((select chemin_audio from public.prises_publiques where tentative_id = (select ta from prises)), null,
+  'and the published take can actually be heard');
 select is((select public.publier_prise((select ta from prises))), (select id from public.prises_publiques where tentative_id = (select ta from prises)), 'publishing twice answers the same take');
 reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
