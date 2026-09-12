@@ -457,6 +457,21 @@ The transcription provider still reads `stub` and the evaluation still says « g
 those are the two inputs that are not ours to invent, and the check reports them rather than
 hiding them.
 
+## Le duel par le navigateur, et le trou qu'il a révélé (2026-09-12)
+
+`verif-duel-web.mjs` walks the only path where someone with no account writes audio into the
+project: the invitation link, an anonymous session, the slot claimed before anything is recorded,
+both takes uploaded and analysed, both published, the verdict, and the two voices dated for
+deletion. Twenty-two checks.
+
+It found a real one. `cloturer_duel` decided whether someone had answered by reading their grid
+total. No grid is published yet, so both totals are null, both were read as silence, and at the
+deadline the duel expired over two takes that were sitting right there: each person had spent a
+take and was told nobody had come. Even with a grid, one evaluation that never landed would have
+done the same to the other person. Presence is a question about the take now, and when both are
+there and nothing can separate them the duel closes on `sans_verdict`, which the app and the
+invitation page both say in words. The duels flag is on in TestFlight, so this was live.
+
 ## Les deux promesses vérifiées contre la production (2026-09-12)
 
 **« On compare deux voix »**: `verif-arene-audible.mjs` records a take, publishes it, signs a
