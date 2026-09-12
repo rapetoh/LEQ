@@ -55,6 +55,18 @@ body {
   min-height: 100dvh;
 }
 
+/* The brand mark keeps its own proportions; only its height is ever set. */
+.sigle {
+  width: auto;
+  display: block;
+}
+
+.entete-marque {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
 /* One column, phone width, always centred. */
 .ecran {
   display: flex;

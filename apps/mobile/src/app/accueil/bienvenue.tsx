@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -8,7 +8,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useTheme } from '@/theme/ThemeProvider'
-import { couleurs, espaces, polices, typographie } from '@/theme/tokens'
+import { espaces, typographie } from '@/theme/tokens'
 
 // A1 · Bienvenue. Bleu nuit hero: Bulle greets, one promise, one button. No carousel.
 export default function Bienvenue() {
@@ -29,10 +29,14 @@ export default function Bienvenue() {
     >
       <CielEtoile />
 
-      <View style={styles.marque} accessibilityRole="header" accessibilityLabel={t('marque')}>
-        <Text style={[styles.marqueTexte, { color: theme.heroTexte }]}>{t('marque')}</Text>
-        <View style={styles.marquePoint} />
-      </View>
+      {/* The mark itself, not a letter and a dot standing in for it. */}
+      <Image
+        source={require('../../../assets/marque/sigle-blanc.png')}
+        style={styles.marque}
+        resizeMode="contain"
+        accessibilityRole="image"
+        accessibilityLabel={t('marque')}
+      />
 
       <View style={styles.centre}>
         <Bulle taille="grande" />
@@ -62,15 +66,7 @@ export default function Bienvenue() {
 
 const styles = StyleSheet.create({
   ecran: { flex: 1, paddingHorizontal: espaces.xl },
-  marque: { flexDirection: 'row', alignItems: 'flex-end', gap: 3 },
-  marqueTexte: { fontFamily: polices.extraBold, fontSize: 24, lineHeight: 28, letterSpacing: 1 },
-  marquePoint: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: couleurs.orange,
-    marginBottom: 4,
-  },
+  marque: { width: 92, height: 28, alignSelf: 'flex-start' },
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: espaces.l },
   titre: { marginTop: espaces.m },
   sousTitre: { textAlign: 'center', maxWidth: 320 },

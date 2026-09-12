@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { AnneauMinuteur } from '../composants/AnneauMinuteur'
 import { Bouton } from '../composants/Bouton'
 import { Bulle } from '../composants/Bulle'
+import { Sigle } from '../composants/Sigle'
 import { fr } from '../fr'
 import { resteAvant } from '../services/delai'
 import { formaterDuree } from '../services/duree'
@@ -253,6 +254,7 @@ export function Duel() {
       {etat.phase === 'invitation' ? (
         <>
           <div className="entete-bulle">
+            <Sigle hauteur={24} />
             <Bulle taille={96} visage="parle" />
             <p className="surtitre">{fr.duel.surtitre}</p>
           </div>

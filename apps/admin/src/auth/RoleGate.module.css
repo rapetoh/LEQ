@@ -22,11 +22,12 @@
   justify-items: start;
 }
 
-.marque {
-  font-weight: 800;
-  color: var(--bleu);
-  letter-spacing: 0.06em;
-  font-size: 12px;
+/* The mark itself, on a light card: the bleu nuit version, at its own proportions. */
+.sigle {
+  height: 30px;
+  width: auto;
+  display: block;
+  margin-bottom: 2px;
 }
 
 .detail {

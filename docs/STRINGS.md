@@ -97,6 +97,21 @@ the act names ("Les crêtes du rythme", "Sous la brume", which are names, not co
 sentence that is already plain and already says something true does not get rewritten to sound more
 corporate.
 
+## The brand mark is a file, never letters
+
+LEQ has a mark: `apps/mobile/assets/marque/`, in three versions (`icone.png` for the app icon and
+the browser tab, `sigle-blanc.png` on bleu nuit, `sigle-bleu-nuit.png` on light). It is copied
+into `apps/admin/public/marque/` and `apps/web/public/marque/` so every surface carries the same
+file.
+
+Writing the name in a heavy font with an orange dot beside it is not the mark. It is close enough
+to look intentional and wrong enough to look careless, which is worse than either. Wherever the
+brand appears as an image, use the file; `fr.app.nom` stays as its alternative text. The name as
+running text inside a sentence ("Ouvre LEQ", "Installer LEQ") is text and stays text.
+
+This was got wrong on the admin sign-in, in both browser tabs and on the mobile welcome screen,
+and fixed on 2026-09-12.
+
 ## Review checklist
 
 Run it on every diff that touches a `fr.ts`.

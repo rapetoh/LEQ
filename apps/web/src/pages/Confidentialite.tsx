@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 
 import { Bouton } from '../composants/Bouton'
+import { Sigle } from '../composants/Sigle'
 import { fr } from '../fr'
 
 // Chapter 2, written for the person and not for the lawyer. The wording itself still goes to a
@@ -9,6 +10,9 @@ export function Confidentialite() {
   const naviguer = useNavigate()
   return (
     <main className="document">
+      <div className="entete-marque">
+        <Sigle />
+      </div>
       <h1>{fr.legal.confidentialiteTitre}</h1>
       <p className="petit">{fr.legal.relecture}</p>
 

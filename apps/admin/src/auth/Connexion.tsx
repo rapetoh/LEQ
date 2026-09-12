@@ -61,7 +61,11 @@ export function Connexion() {
   return (
     <main className={styles.page}>
       <form className={styles.boite} onSubmit={soumettre} noValidate>
-        <p className={styles.marque}>{fr.app.nom}</p>
+        <img
+          className={styles.sigle}
+          src={`${import.meta.env.BASE_URL}marque/sigle-bleu-nuit.png`}
+          alt={fr.app.nom}
+        />
         <h1>{fr.app.sousTitre}</h1>
         <p className={styles.intro}>{fr.connexion.intro}</p>
 

@@ -20,6 +20,8 @@ beforeAll(async () => {
   await writeFile(path.join(dossier, 'favicon.svg'), '<svg/>')
   await mkdir(path.join(dossier, 'assets'))
   await writeFile(path.join(dossier, 'assets', 'index.css'), 'body{}')
+  await mkdir(path.join(dossier, 'marque'))
+  await writeFile(path.join(dossier, 'marque', 'icone.png'), 'png')
   // serveStatic resolves against the working directory, the way the image does.
   relatif = path.relative(process.cwd(), dossier)
 
@@ -28,6 +30,8 @@ beforeAll(async () => {
   await writeFile(path.join(dossierAdmin, 'favicon.svg'), '<svg/>')
   await mkdir(path.join(dossierAdmin, 'assets'))
   await writeFile(path.join(dossierAdmin, 'assets', 'index.js'), 'export {}')
+  await mkdir(path.join(dossierAdmin, 'marque'))
+  await writeFile(path.join(dossierAdmin, 'marque', 'icone.png'), 'png')
   relatifAdmin = path.relative(process.cwd(), dossierAdmin)
 })
 
@@ -50,6 +54,7 @@ describe("Rebecca's space", () => {
   it('serves its bundle from under the same prefix, which is what the build writes', async () => {
     expect((await espace().request('/admin/assets/index.js')).status).toBe(200)
     expect((await espace().request('/admin/favicon.svg')).status).toBe(200)
+    expect((await espace().request('/admin/marque/icone.png')).status).toBe(200)
   })
 
   it('does not shadow the public pages', async () => {
@@ -102,10 +107,19 @@ describe('the public pages', () => {
     }
   })
 
-  it('serves the bundle and the icon', async () => {
+  it('serves whatever the build produced, not a hand-written list of paths', async () => {
     const app = creerApplication('temps-reel', relatif)
     expect((await app.request('/assets/index.css')).status).toBe(200)
     expect((await app.request('/favicon.svg')).status).toBe(200)
+    // The brand mark: a file added to the bundle after the routes were written.
+    expect((await app.request('/marque/icone.png')).status).toBe(200)
+  })
+
+  it('leaves the health route alone while serving the bundle from the root', async () => {
+    const app = creerApplication('temps-reel', relatif)
+    const reponse = await app.request('/sante')
+    expect(reponse.status).toBe(200)
+    await expect(reponse.json()).resolves.toMatchObject({ ok: true })
   })
 
   it('serves nothing when no bundle was built into the image', async () => {

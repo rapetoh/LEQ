@@ -97,6 +97,14 @@ Making the first admin: as `postgres` in the SQL editor, `update public.profils 
 
 The admin's pages today: Configuration, Drapeaux, Défis (the bank act by act; a défi's title and consigne change for everyone at once, its order and threshold only for paths created afterwards; "Marquer comme validé" turns `provisoire` off so the phone stops saying the consigne awaits Rebecca), Exercices (the remediation bank, matched to défis by `competence`).
 
+## Making an administrator
+
+`node supabase/tests/creer-admin.mjs <email> <mot-de-passe>` creates the auth user (e-mail already
+confirmed), sets the password and puts `admin` on the profile in one go. It needs `SUPABASE_URL`,
+`SUPABASE_SECRET_KEY`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD`. Run again with the same
+address to reset a password. The role reaches the token at the next sign-in, so sign out and back
+in if the space says the access is reserved.
+
 ## Turning the Arena, duels and face-à-face on for a testing build
 
 They ship off (cahier chapter 11): Rebecca switches them on from `/drapeaux` when there are

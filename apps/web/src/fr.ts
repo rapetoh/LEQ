@@ -6,6 +6,9 @@
  * itself in three sentences and then gets out of the way.
  */
 export const fr = {
+  app: {
+    nom: 'LEQ',
+  },
   commun: {
     bulle: 'Bulle, la mascotte de LEQ',
     chargement: 'Chargement',

@@ -30,8 +30,15 @@ export function Layout() {
     <div className={styles.coquille}>
       <aside className={styles.barre}>
         <div className={styles.marque}>
-          <span className={styles.nom}>{fr.app.nom}</span>
-          <span className={styles.point} aria-hidden="true" />
+          {/* The mark itself, not letters standing in for it: the sidebar is bleu nuit, so the
+              white version. `fr.app.nom` stays as the alternative text. */}
+          <img
+            className={styles.sigle}
+            src={`${import.meta.env.BASE_URL}marque/sigle-blanc.png`}
+            alt={fr.app.nom}
+            width={72}
+            height={32}
+          />
           <span className={styles.sousTitre}>{fr.app.sousTitre}</span>
         </div>
         <nav aria-label={fr.navigation.libelle} className={styles.navigation}>

@@ -25,7 +25,11 @@ export function RoleGate({ children }: { children: ReactNode }) {
   return (
     <main className={styles.refus} aria-labelledby="titre-acces">
       <div className={styles.boite}>
-        <p className={styles.marque}>{fr.app.nom}</p>
+        <img
+          className={styles.sigle}
+          src={`${import.meta.env.BASE_URL}marque/sigle-bleu-nuit.png`}
+          alt={fr.app.nom}
+        />
         <h1 id="titre-acces">{fr.acces.reserve}</h1>
         {email ? <p className={styles.detail}>{fr.acces.connecteAvec(email)}</p> : null}
         <button

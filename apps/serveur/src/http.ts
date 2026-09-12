@@ -38,26 +38,29 @@ export function creerApplication(
 
   app.get('/sante', (c) => c.json({ ok: true, processus }))
 
+  // Rebecca's space, under /admin on the same host. Everything it shows is behind a sign-in and
+  // the admin role in row-level security, so serving the bundle publicly gives nothing away.
+  // It comes before the public pages so that /admin is never swallowed by their fallback.
+  if (processus === 'temps-reel' && dossierAdmin) {
+    app.use(
+      '/admin/*',
+      serveStatic({ root: dossierAdmin, rewriteRequestPath: (c) => c.replace(/^\/admin/, '') }),
+    )
+    // Anything the bundle does not hold is a route of the space: same document, as a
+    // single-page application needs.
+    app.get('/admin', serveStatic({ path: `${dossierAdmin}/index.html` }))
+    app.get('/admin/*', serveStatic({ path: `${dossierAdmin}/index.html` }))
+  }
+
   if (processus === 'temps-reel' && dossierWeb) {
-    // The built bundle, then the page itself for every route it owns: a single-page
-    // application needs the same document at every address.
-    app.use('/assets/*', serveStatic({ root: dossierWeb }))
-    app.get('/favicon.svg', serveStatic({ path: `${dossierWeb}/favicon.svg` }))
+    // Whatever the build produced, served as it is. Listing the paths by hand is how the brand
+    // mark ended up 404ing: a bundle grows files, and the list does not follow.
+    // `serveStatic` calls the next handler when the file is not there, so /sante and /debat
+    // are untouched.
+    app.use('/*', serveStatic({ root: dossierWeb }))
     for (const chemin of CHEMINS_WEB) {
       app.get(chemin, serveStatic({ path: `${dossierWeb}/index.html` }))
     }
-  }
-
-  // Rebecca's space, under /admin on the same host. Everything it shows is behind a sign-in and
-  // the admin role in row-level security, so serving the bundle publicly gives nothing away.
-  if (processus === 'temps-reel' && dossierAdmin) {
-    app.use(
-      '/admin/assets/*',
-      serveStatic({ root: dossierAdmin, rewriteRequestPath: (c) => c.replace(/^\/admin/, '') }),
-    )
-    app.get('/admin/favicon.svg', serveStatic({ path: `${dossierAdmin}/favicon.svg` }))
-    app.get('/admin', serveStatic({ path: `${dossierAdmin}/index.html` }))
-    app.get('/admin/*', serveStatic({ path: `${dossierAdmin}/index.html` }))
   }
 
   if (processus === 'temps-reel') {
