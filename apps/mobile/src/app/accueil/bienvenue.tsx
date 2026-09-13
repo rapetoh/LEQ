@@ -51,7 +51,7 @@ export default function Bienvenue() {
       <View style={styles.actions}>
         <Bouton
           libelle={t('accueil.bienvenue.commencer')}
-          onPress={() => router.push('/accueil/micro')}
+          onPress={() => router.push('/accueil/decouverte')}
         />
         <Bouton
           libelle={t('accueil.bienvenue.dejaUnCompte')}

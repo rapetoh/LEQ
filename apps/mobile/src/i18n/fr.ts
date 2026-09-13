@@ -53,6 +53,20 @@ export const fr = {
       continuerSansMicro: 'Continuer sans micro',
     },
   },
+  decouverte: {
+    passer: 'Passer',
+    etape: 'Écran {{numero}} sur {{total}}',
+    commencer: "C'est parti",
+    defi: 'Un défi par jour',
+    defiCorps: "Tu enregistres une prise de deux minutes. C'est tout ce que la journée demande.",
+    retour: 'Un retour sur ta voix',
+    retourCorps:
+      'Ton débit, tes silences et tes mots béquilles sont mesurés sur ce que tu viens de dire.',
+    arene: "L'Arène, quand tu veux",
+    areneCorps:
+      "Tu peux confronter ta voix à celle des autres sur le sujet de la semaine, ou défier quelqu'un.",
+  },
+
   questions: {
     compteur: 'Question {{numero}} sur {{total}}',
     continuer: 'Continuer',
