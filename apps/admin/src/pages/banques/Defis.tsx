@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { DialogueEdition } from '../../composants/DialogueEdition'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import {
@@ -16,6 +17,7 @@ import {
   chargerModelesActes,
   cleRequeteActes,
   cleRequeteDefis,
+  dupliquerDefi,
   echangerOrdreDefis,
   enregistrerModeleActe,
   type ModeleActeEditable,
@@ -40,6 +42,21 @@ export function Defis() {
   })
 
   const [renommage, setRenommage] = useState<number | null>(null)
+  // Reusing a challenge without retyping it: the same quiz every Friday with different answers,
+  // or one exercise that belongs in two actes.
+  const [aDupliquer, setADupliquer] = useState<Defi | null>(null)
+  const duplication = useMutation({
+    mutationFn: (cible: number) =>
+      dupliquerDefi({ defi: aDupliquer!, ordreActe: cible, defis: defis.data ?? [] }),
+    onSuccess: (copie) => {
+      void defis.refetch()
+      setADupliquer(null)
+      notifier({ type: 'succes', message: fr.defis.duplique(copie.titre) })
+    },
+    onError: (e: Error) =>
+      notifier({ type: 'erreur', message: fr.defis.erreurDuplication, details: e.message }),
+  })
+
   const acte = useMutation({
     mutationFn: enregistrerModeleActe,
     onSuccess: () => {
@@ -106,6 +123,7 @@ export function Defis() {
               onOuvrirRenommage={() => setRenommage(groupe.acte.ordre)}
               onFermerRenommage={() => setRenommage(null)}
               onDeplacer={deplacer}
+              onDupliquer={setADupliquer}
               onRenommer={(valeur) => acte.mutate(valeur)}
             />
           ))}
@@ -127,6 +145,27 @@ export function Defis() {
           )}
         </>
       )}
+
+      <DialogueEdition
+        ouvert={aDupliquer !== null}
+        titre={fr.defis.dupliquerTitre}
+        description={aDupliquer ? fr.defis.dupliquerIntro(aDupliquer.titre) : undefined}
+        onFermer={() => setADupliquer(null)}
+      >
+        <div className={styles.duplication}>
+          {(actes.data ?? []).map((a) => (
+            <button
+              key={a.ordre}
+              type="button"
+              className="bouton bouton-secondaire"
+              disabled={duplication.isPending}
+              onClick={() => duplication.mutate(a.ordre)}
+            >
+              {fr.defis.acte(a.ordre)} · {a.titre}
+            </button>
+          ))}
+        </div>
+      </DialogueEdition>
     </div>
   )
 }
@@ -139,6 +178,7 @@ function Acte({
   onOuvrirRenommage,
   onFermerRenommage,
   onDeplacer,
+  onDupliquer,
   onRenommer,
 }: {
   groupe: GroupeActe
@@ -148,6 +188,7 @@ function Acte({
   onOuvrirRenommage: () => void
   onFermerRenommage: () => void
   onDeplacer: (defi: Defi, direction: 'haut' | 'bas') => void
+  onDupliquer: (defi: Defi) => void
   onRenommer: (valeur: ModeleActeEditable) => void
 }) {
   const { acte, defis } = groupe
@@ -231,6 +272,13 @@ function Acte({
                 onClick={() => onDeplacer(defi, 'bas')}
               >
                 ↓
+              </button>
+              <button
+                type="button"
+                className="bouton bouton-discret"
+                onClick={() => onDupliquer(defi)}
+              >
+                {fr.defis.dupliquer}
               </button>
               <Link to={`/defis/${defi.id}`} className="bouton bouton-secondaire">
                 {fr.defis.modifier}

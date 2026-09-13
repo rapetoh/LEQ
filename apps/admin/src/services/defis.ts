@@ -61,6 +61,40 @@ export async function creerDefi(valeur: DefiEditable): Promise<Defi> {
   return DefiSchema.parse(data)
 }
 
+/**
+ * Copies a challenge into an acte, with a key of its own.
+ *
+ * Rebecca asked to reuse a challenge without retyping it: the same quiz every Friday, with
+ * different answers, or one exercise that belongs in two actes. A copy rather than a shared row,
+ * because she then edits each one on its own, which is the whole point of the Friday quiz.
+ */
+export async function dupliquerDefi(options: {
+  defi: Defi
+  ordreActe: number
+  defis: readonly Defi[]
+}): Promise<Defi> {
+  const { defi, ordreActe, defis } = options
+  const prises = new Set(defis.map((d) => d.cle))
+  const base = `${defi.cle}_copie`
+  let cle = base
+  for (let n = 2; prises.has(cle); n += 1) cle = `${base}_${n}`
+  const ordre =
+    defis.filter((d) => d.ordre_acte === ordreActe).reduce((max, d) => Math.max(max, d.ordre), 0) +
+    1
+
+  const { id, cree_le, modifie_le, ...reste } = defi
+  void id
+  void cree_le
+  void modifie_le
+  const { data, error } = await supabase
+    .from('defis')
+    .insert({ ...reste, cle, ordre_acte: ordreActe, ordre })
+    .select('*')
+    .single()
+  if (error) throw new Error(error.message)
+  return DefiSchema.parse(data)
+}
+
 export type ModificationDefi = { id: string; valeur: Partial<DefiEditable> }
 
 export async function modifierDefi(modification: ModificationDefi): Promise<void> {

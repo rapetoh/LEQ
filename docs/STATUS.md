@@ -628,6 +628,31 @@ Produit:
 Design (flat, too beige, wants illustration and play) goes to Claude Design, not here, unless a
 structural change is needed to support it.
 
+## Ce que la réunion a produit, au fur et à mesure (2026-09-12)
+
+Closed so far, from the seventeen items:
+
+1. **La note se fabrique de deux mains.** Six axes out of thirty, four computed from what the
+   machine hears and two judged by the model against Rebecca's reference. The balance is a
+   setting, `publier_grille()` refuses a grid whose judged axes carry no worked examples, and what
+   the model notices outside the grid reaches the person without entering the score.
+2. **Un défi s'ajoute dans un acte**, and a technical key is written from the title.
+3. **Le menu ne blanchit plus** quand on fait défiler l'espace d'administration.
+4. **Le face-à-face vit dans l'Arène**, en troisième onglet, et un refus prend l'écran.
+5. **Répondre à un duel demande qui on est** : un prénom et une adresse, avant que la place soit
+   prise.
+6. **L'analyse tourne** : trois points immobiles ne se lisaient pas comme quelque chose qui se
+   passe.
+7. **Les semaines de l'Arène se programment** : une date fait passer un sujet devant le jour venu,
+   une semaine fermée descend en bas de la liste, et un filtre par état la trie. `resume_sujet_arene()`
+   dit qui a parlé, combien de voix et combien de votants.
+8. **Un défi se duplique** dans l'acte de son choix, avec une clé à lui. Une copie et pas une ligne
+   partagée : le quiz du vendredi change de contenu chaque semaine, donc chaque copie s'édite seule.
+
+Still open: the three onboarding screens, the Bulle glitch, the padding on « avec Rebecca ce
+mois-ci », l'Arène à six écoutes, l'arc long du parcours, le contenu des formules réglable, le
+défi hebdomadaire récurrent, and the revenue dashboard.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
