@@ -353,5 +353,47 @@ select throws_ok($$ select public.resume_sujet_arene((select id from public.suje
   '42501', 'admin only', 'and nobody but the admin reads it');
 reset role; select tests_leq.deconnecter();
 
+-- six écoutes par jour, et la parole reste libre ---------------------------------------------------
+-- Rebecca asked for six after imagining herself listening to twelve takes on one question. She
+-- was solving a listening problem, and said in the same breath what she wanted for speaking:
+-- « il ne faut pas qu'il y ait de la hiérarchie, liberté pour tous ».
+delete from public.impressions;
+delete from public.votes;
+delete from public.prises_publiques where sujet_id is not null;
+update public.sujets_arene set actif_le = null, ferme_le = null;
+update public.sujets_arene set actif_le = now() where cle = 'sujet_un';
+update public.configuration set valeur = '2'::jsonb where cle = 'prises_ecoutees_par_jour';
+
+-- Three people speak on the week's subject: nothing caps who may record.
+create temp table voix as select
+  tests_leq.prise_analysee((select a from ctx), 'arene', null, 20) as ta,
+  tests_leq.prise_analysee((select b from ctx), 'arene', null, 18) as tb,
+  tests_leq.prise_analysee((select c from ctx), 'arene', null, 25) as tc;
+grant select on voix to authenticated;
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select ta from voix)) $$, 'A speaks');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tb from voix)) $$, 'B speaks too');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tc from voix)) $$, 'and C, with nobody turned away');
+reset role; select tests_leq.deconnecter();
+update public.prises_publiques set statut = 'publiee' where sujet_id is not null;
+
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((public.paire_a_voter()) ->> 'raison', 'ok', 'A is offered a pair to compare');
+reset role; select tests_leq.deconnecter();
+-- Two takes heard is the limit here, so the next call stops rather than proposing a third voice.
+-- Impressions are written by the vote path, never by a person, so this goes in without the role.
+insert into public.impressions (votant_id, prise_id)
+select (select a from ctx), id from public.prises_publiques where utilisateur_id <> (select a from ctx)
+on conflict do nothing;
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((public.paire_a_voter()) ->> 'raison', 'assez_ecoute',
+  'past the limit the Arena says the listening is done for today');
+reset role; select tests_leq.deconnecter();
+update public.configuration set valeur = '6'::jsonb where cle = 'prises_ecoutees_par_jour';
+
 select * from finish();
 rollback;

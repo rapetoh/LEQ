@@ -417,6 +417,9 @@ export const fr = {
     parleDAbordTitre: "Parle d'abord.",
     parleDAbordCorps: "Les passages des autres restent masqués tant que tu n'as pas parlé.",
     rienAComparerTitre: 'Tu as tout écouté.',
+    assezEcouteTitre: 'Tu as écouté six passages',
+    assezEcouteCorps:
+      "C'est assez pour aujourd'hui. Les autres passages t'attendent demain, et ton classement continue de compter les voix.",
     rienAComparerCorps: "De nouvelles paires apparaîtront quand d'autres auront parlé.",
     classement: 'Le classement',
     votes: '{{votes}} voix',

@@ -475,6 +475,7 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 - `impressions (votant_id, prise_id)` records what a voter has been shown, so `paire_a_voter()` can balance the sampling.
 - `votes (votant_id, sujet_id, gagnante_id, perdante_id, paire)` with `unique (votant_id, paire)`: a pair is voted once. `paire` is the two identifiers sorted (`cle_paire()`).
 - `paire_a_voter()` answers `parle_d_abord` until the caller has spoken, never their own takes, the least shown first, and records the two impressions. `voter()` refuses a vote on one's own take, a pair already voted and a pair from two subjects; it credits `points_par_vote` through the ledger, keyed by the vote id.
+- **Six est une limite d'écoute, pas une limite de parole** (meeting of 12 September 2026). Anyone records on the week's subject: Rebecca's own words were « il ne faut pas qu'il y ait de la hiérarchie, liberté pour tous ». What she was solving was the listening, after imagining herself sitting through twelve takes on one question. So `paire_a_voter()` answers `assez_ecoute` once `prises_ecoutees_par_jour` (6) distinct takes have been offered to that person today, in their own zone. The ranking keeps counting votes and the pairs are still drawn from the whole pool, so a late take is heard as much as an early one.
 - RLS: a person reads their own votes and impressions, nobody reads who voted for whom.
 
 ### duels

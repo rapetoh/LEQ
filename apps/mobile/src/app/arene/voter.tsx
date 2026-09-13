@@ -29,7 +29,10 @@ import { espaces, typographie } from '@/theme/tokens'
 type Etat =
   | { phase: 'chargement' }
   | { phase: 'paire'; paire: Extract<PaireAVoter, { raison: 'ok' }>; numero: number }
-  | { phase: 'fini'; raison: 'parle_d_abord' | 'rien_a_comparer' | 'aucun_sujet' }
+  | {
+      phase: 'fini'
+      raison: 'parle_d_abord' | 'rien_a_comparer' | 'aucun_sujet' | 'assez_ecoute'
+    }
   | { phase: 'erreur'; message: string }
 
 export default function Voter() {
@@ -172,7 +175,9 @@ export default function Voter() {
                 ? t('arene.parleDAbordTitre')
                 : etat.raison === 'aucun_sujet'
                   ? t('arene.aucunSujetTitre')
-                  : t('arene.rienAComparerTitre')}
+                  : etat.raison === 'assez_ecoute'
+                    ? t('arene.assezEcouteTitre')
+                    : t('arene.rienAComparerTitre')}
           </Titre>
           <Text style={[typographie.corps, styles.centreTexte, { color: theme.texteSecondaire }]}>
             {etat.phase === 'erreur'
@@ -181,7 +186,9 @@ export default function Voter() {
                 ? t('arene.parleDAbordCorps')
                 : etat.raison === 'aucun_sujet'
                   ? t('arene.aucunSujetCorps')
-                  : t('arene.rienAComparerCorps')}
+                  : etat.raison === 'assez_ecoute'
+                    ? t('arene.assezEcouteCorps')
+                    : t('arene.rienAComparerCorps')}
           </Text>
           {gagnes > 0 ? (
             <Text style={[typographie.corpsFort, { color: theme.accent }]}>

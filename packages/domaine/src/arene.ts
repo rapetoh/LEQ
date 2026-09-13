@@ -109,7 +109,14 @@ export const DuelParJetonSchema = z.discriminatedUnion('raison', [
 ])
 export type DuelParJeton = z.output<typeof DuelParJetonSchema>
 
-export const RAISONS_PAIRE = ['ok', 'aucun_sujet', 'parle_d_abord', 'rien_a_comparer'] as const
+/** `assez_ecoute`: six takes heard today. A listening limit, never a limit on who may speak. */
+export const RAISONS_PAIRE = [
+  'ok',
+  'aucun_sujet',
+  'parle_d_abord',
+  'rien_a_comparer',
+  'assez_ecoute',
+] as const
 export const RaisonPaireSchema = z.enum(RAISONS_PAIRE)
 export type RaisonPaire = z.infer<typeof RaisonPaireSchema>
 
@@ -118,6 +125,7 @@ export const PaireAVoterSchema = z.discriminatedUnion('raison', [
   z.object({ raison: z.literal('aucun_sujet') }),
   z.object({ raison: z.literal('parle_d_abord') }),
   z.object({ raison: z.literal('rien_a_comparer') }),
+  z.object({ raison: z.literal('assez_ecoute') }),
   z.object({
     raison: z.literal('ok'),
     sujet: z.object({ id: UuidSchema, texte: z.string(), consigne: z.string().nullable() }),

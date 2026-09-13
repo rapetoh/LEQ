@@ -48,13 +48,12 @@ export function Bulle({ taille = 'moyenne', calme = false, visage, style }: Prop
   const parle2 = useSharedValue(1)
   const parle3 = useSharedValue(0.7)
 
+  // Two effects, not one. When they were together, changing the mouth restarted the float and
+  // the blink as well: Bulle jumped every time a screen went from speaking to smiling.
   useEffect(() => {
     if (immobile) {
       cancelAnimation(flotte)
       cancelAnimation(cligne)
-      cancelAnimation(parle1)
-      cancelAnimation(parle2)
-      cancelAnimation(parle3)
       flotte.set(withTiming(0, { duration: 300 }))
       cligne.set(1)
       return
@@ -73,33 +72,44 @@ export function Bulle({ taille = 'moyenne', calme = false, visage, style }: Prop
         false,
       ),
     )
-    if (face === 'parle') {
-      parle1.set(
-        withRepeat(withTiming(1, { duration: 700, easing: Easing.inOut(Easing.sin) }), -1, true),
-      )
-      parle2.set(
-        withRepeat(withTiming(0.4, { duration: 850, easing: Easing.inOut(Easing.sin) }), -1, true),
-      )
-      parle3.set(
-        withRepeat(withTiming(0.35, { duration: 750, easing: Easing.inOut(Easing.sin) }), -1, true),
-      )
-    }
     return () => {
       cancelAnimation(flotte)
       cancelAnimation(cligne)
+    }
+  }, [immobile, flotte, cligne])
+
+  useEffect(() => {
+    if (immobile || face !== 'parle') {
+      cancelAnimation(parle1)
+      cancelAnimation(parle2)
+      cancelAnimation(parle3)
+      return
+    }
+    parle1.set(
+      withRepeat(withTiming(1, { duration: 700, easing: Easing.inOut(Easing.sin) }), -1, true),
+    )
+    parle2.set(
+      withRepeat(withTiming(0.4, { duration: 850, easing: Easing.inOut(Easing.sin) }), -1, true),
+    )
+    parle3.set(
+      withRepeat(withTiming(0.35, { duration: 750, easing: Easing.inOut(Easing.sin) }), -1, true),
+    )
+    return () => {
       cancelAnimation(parle1)
       cancelAnimation(parle2)
       cancelAnimation(parle3)
     }
-  }, [immobile, face, flotte, cligne, parle1, parle2, parle3])
+  }, [immobile, face, parle1, parle2, parle3])
 
   const styleFlotte = useAnimatedStyle(() => ({
     transform: [{ translateY: -4 * s * flotte.get() }],
   }))
   const styleYeux = useAnimatedStyle(() => ({ transform: [{ scaleY: cligne.get() }] }))
-  const styleBarre1 = useAnimatedStyle(() => ({ height: 17 * s * parle1.get() }))
-  const styleBarre2 = useAnimatedStyle(() => ({ height: 17 * s * parle2.get() }))
-  const styleBarre3 = useAnimatedStyle(() => ({ height: 17 * s * parle3.get() }))
+  // The mouth scales, it does not resize. Animating `height` ran a layout pass on every frame for
+  // four bars that are barely two points wide at the small size, and that is what flickered.
+  const styleBarre1 = useAnimatedStyle(() => ({ transform: [{ scaleY: parle1.get() }] }))
+  const styleBarre2 = useAnimatedStyle(() => ({ transform: [{ scaleY: parle2.get() }] }))
+  const styleBarre3 = useAnimatedStyle(() => ({ transform: [{ scaleY: parle3.get() }] }))
 
   const oeil = {
     position: 'absolute' as const,
@@ -109,7 +119,12 @@ export function Bulle({ taille = 'moyenne', calme = false, visage, style }: Prop
     borderRadius: 6 * s,
     backgroundColor: couleurs.bleuNuit,
   }
-  const barre = { width: 4.5 * s, borderRadius: 2 * s, backgroundColor: couleurs.bleuNuit }
+  const barre = {
+    width: 4.5 * s,
+    height: 17 * s,
+    borderRadius: 2 * s,
+    backgroundColor: couleurs.bleuNuit,
+  }
 
   return (
     <Animated.View
