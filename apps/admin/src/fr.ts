@@ -219,6 +219,7 @@ export const fr = {
       texteRequis: 'Un défi texte a besoin de son texte à lire.',
       preparationRequise: 'Un grand format a besoin de sa durée de préparation.',
       bande: 'Le max doit être supérieur ou égal au min.',
+      date: 'Choisis une date.',
       contrat: 'Cette valeur ne respecte pas le contrat.',
     },
     champs: {
@@ -583,6 +584,11 @@ export const fr = {
     modifier: 'Modifier',
     duree: (secondes: number) => `${secondes} s de parole`,
     actifDepuis: (date: string) => `actif depuis le ${date}`,
+    prevu: 'Jour de passage',
+    prevuAide: "Le sujet passe en premier à partir de ce jour. Vide\u00a0: il suit l'ordre.",
+    prevuLe: (jour: string) => `prévu le ${jour}`,
+    filtreEtat: 'Filtrer par état',
+    filtreTous: 'Tous',
     etats: {
       passe: 'Passé',
       en_cours: 'En cours',
@@ -590,6 +596,8 @@ export const fr = {
       inactif: 'Inactif',
     },
     champs: {
+      prevu: 'Jour de passage',
+      prevuAide: "Le sujet passe en premier à partir de ce jour. Vide : il suit l'ordre.",
       texte: 'Le sujet',
       texteAide: 'La question, en une phrase, telle que les gens la liront.',
       consigne: 'Consigne',

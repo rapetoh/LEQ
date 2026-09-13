@@ -13,6 +13,8 @@ export const SujetAreneSchema = z.object({
   consigne: z.string().nullable(),
   ordre: z.int().positive(),
   duree_max_s: z.int().positive(),
+  /** The day from which this subject goes first. Empty: it follows the order. */
+  prevu_le: z.string().nullable().default(null),
   actif_le: IsoTimestampSchema.nullable(),
   ferme_le: IsoTimestampSchema.nullable(),
   provisoire: z.boolean(),

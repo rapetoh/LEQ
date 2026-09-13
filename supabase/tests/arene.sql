@@ -321,5 +321,37 @@ select is(
   'r'::"char",
   'deleting a subject is restricted, so a week''s ranking cannot be erased');
 
+-- programmer une semaine ------------------------------------------------------------------------
+-- Rebecca writes her subjects in batches and wants to give them a date. The rotation took the
+-- next one in order, whatever she had planned.
+delete from public.prises_publiques where sujet_id is not null;
+delete from public.votes;
+update public.sujets_arene set actif_le = null, ferme_le = null, prevu_le = null;
+-- Orders below every seeded subject, so the assertion is about the rule and not about what the
+-- bank happens to hold.
+insert into public.sujets_arene (cle, texte, ordre, prevu_le, provisoire) values
+  ('sujet_ordre', 'Celui qui suit l''ordre.', -3, null, true),
+  ('sujet_date', 'Celui dont le jour est venu.', 99, current_date, true),
+  ('sujet_plus_tard', 'Celui de la semaine prochaine.', -2, current_date + 7, true);
+select is((select cle from public.sujets_arene
+            where id = ((public.roter_sujet_arene()) ->> 'actif')::uuid),
+  'sujet_date', 'a subject whose day has come goes first, whatever its order');
+update public.sujets_arene set actif_le = now() - interval '30 days' where cle = 'sujet_date';
+select is((select cle from public.sujets_arene
+            where id = ((public.roter_sujet_arene()) ->> 'actif')::uuid),
+  'sujet_ordre', 'and the ones with no date keep following the order');
+
+-- ce qui s'est passé dans une semaine ------------------------------------------------------------
+select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');
+select is(((public.resume_sujet_arene((select id from public.sujets_arene where cle = 'sujet_ordre'))) ->> 'votants')::int,
+  0, 'a week nobody voted in says so');
+select is(jsonb_array_length((public.resume_sujet_arene((select id from public.sujets_arene where cle = 'sujet_ordre'))) -> 'prises'),
+  0, 'and lists no take');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select throws_ok($$ select public.resume_sujet_arene((select id from public.sujets_arene where cle = 'sujet_ordre')) $$,
+  '42501', 'admin only', 'and nobody but the admin reads it');
+reset role; select tests_leq.deconnecter();
+
 select * from finish();
 rollback;

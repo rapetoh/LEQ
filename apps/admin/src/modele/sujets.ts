@@ -8,6 +8,8 @@ export type SaisieSujet = {
   consigne: string
   ordre: string
   duree_max_s: string
+  /** The day this subject takes over, `YYYY-MM-DD`. Empty: it follows the order. */
+  prevu_le: string
   provisoire: boolean
   actif: boolean
 }
@@ -19,6 +21,7 @@ export function saisieSujetVierge(ordre: number): SaisieSujet {
     consigne: '',
     ordre: String(ordre),
     duree_max_s: '90',
+    prevu_le: '',
     provisoire: true,
     actif: true,
   }
@@ -31,6 +34,7 @@ export function saisieDepuisSujet(sujet: SujetArene): SaisieSujet {
     consigne: sujet.consigne ?? '',
     ordre: String(sujet.ordre),
     duree_max_s: String(sujet.duree_max_s),
+    prevu_le: sujet.prevu_le ?? '',
     provisoire: sujet.provisoire,
     actif: sujet.actif,
   }
@@ -61,6 +65,8 @@ export function validerSujet(saisie: SaisieSujet): ResultatValidation<SujetArene
   if (!ordre.ok) erreurs.ordre = ordre.code
   const duree = entier(saisie.duree_max_s, 1)
   if (!duree.ok) erreurs.duree_max_s = duree.code
+  const prevu = saisie.prevu_le.trim()
+  if (prevu !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(prevu)) erreurs.prevu_le = 'date'
   if (Object.keys(erreurs).length > 0 || !ordre.ok || !duree.ok) return { ok: false, erreurs }
 
   const lu = SujetAreneEditableSchema.safeParse({
@@ -69,6 +75,7 @@ export function validerSujet(saisie: SaisieSujet): ResultatValidation<SujetArene
     consigne: saisie.consigne.trim() || null,
     ordre: ordre.valeur,
     duree_max_s: duree.valeur,
+    prevu_le: prevu === '' ? null : prevu,
     provisoire: saisie.provisoire,
     actif: saisie.actif,
   })

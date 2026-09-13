@@ -14,6 +14,7 @@ import {
   saisieDepuisSujet,
   saisieSujetVierge,
   validerSujet,
+  type EtatSujet,
   type SaisieSujet,
 } from '../../modele/sujets'
 import { chargerSujets, cleRequeteSujets, creerSujet, modifierSujet } from '../../services/arene'
@@ -32,6 +33,23 @@ export function Sujets() {
   const [edition, setEdition] = useState<string | null>(null)
   const enEdition = (sujets.data ?? []).find((sujet) => sujet.id === edition) ?? null
   const filtre = useRecherche(sujets.data, (s) => [s.texte, s.cle, s.consigne])
+  const [etatFiltre, setEtatFiltre] = useState<EtatSujet | 'tous'>('tous')
+  // A closed week sinks: Rebecca opens this page to see what is running and what comes next, not
+  // to scroll past everything that is over.
+  const rangDe = (sujet: SujetArene): number => {
+    const etat = etatSujet(sujet)
+    return etat === 'en_cours' ? 0 : etat === 'a_venir' ? 1 : etat === 'inactif' ? 2 : 3
+  }
+  const liste = [...filtre.resultats]
+    .filter((sujet) => etatFiltre === 'tous' || etatSujet(sujet) === etatFiltre)
+    .sort((a, b) => {
+      const rang = rangDe(a) - rangDe(b)
+      if (rang !== 0) return rang
+      if (a.prevu_le && b.prevu_le && a.prevu_le !== b.prevu_le) {
+        return a.prevu_le < b.prevu_le ? -1 : 1
+      }
+      return a.ordre - b.ordre
+    })
 
   const invalider = () => clientRequetes.invalidateQueries({ queryKey: cleRequeteSujets })
   const messageErreur = (erreur: Error) =>
@@ -80,8 +98,24 @@ export function Sujets() {
         recherche={filtre.recherche}
         onRecherche={filtre.setRecherche}
         placeholder={fr.etats.rechercher}
-        compte={filtre.actif ? fr.etats.resultats(filtre.resultats.length) : undefined}
-      />
+        compte={fr.etats.resultats(liste.length)}
+      >
+        {/* Twenty subjects written in one sitting need a way to see only what is coming. */}
+        <label className={styles.filtreEtat}>
+          <span className="etiquette">{fr.sujets.filtreEtat}</span>
+          <select
+            className="champ"
+            value={etatFiltre}
+            onChange={(e) => setEtatFiltre(e.target.value as EtatSujet | 'tous')}
+          >
+            <option value="tous">{fr.sujets.filtreTous}</option>
+            <option value="en_cours">{fr.sujets.etats.en_cours}</option>
+            <option value="a_venir">{fr.sujets.etats.a_venir}</option>
+            <option value="passe">{fr.sujets.etats.passe}</option>
+            <option value="inactif">{fr.sujets.etats.inactif}</option>
+          </select>
+        </label>
+      </BarreOutils>
 
       {sujets.isPending ? (
         <Squelette lignes={4} />
@@ -89,11 +123,11 @@ export function Sujets() {
         <Echec titre={fr.sujets.erreurChargement} detail={sujets.error.message} />
       ) : sujets.data.length === 0 ? (
         <Vide marque="◎" titre={fr.sujets.vide} />
-      ) : filtre.resultats.length === 0 ? (
+      ) : liste.length === 0 ? (
         <Vide marque="⌕" titre={fr.etats.aucunResultat} texte={fr.etats.aucunResultatTexte} />
       ) : (
         <div className={`carte ${styles.liste}`}>
-          {filtre.resultats.map((sujet) => (
+          {liste.map((sujet) => (
             <Ligne key={sujet.id} sujet={sujet} onModifier={() => setEdition(sujet.id)} />
           ))}
         </div>
@@ -142,6 +176,7 @@ function Ligne({ sujet, onModifier }: { sujet: SujetArene; onModifier: () => voi
         <p className={styles.detail}>
           <span className="mono">{sujet.cle}</span> · {fr.sujets.duree(sujet.duree_max_s)}
           {sujet.actif_le ? ` · ${fr.sujets.actifDepuis(formaterDate(sujet.actif_le))}` : ''}
+          {!sujet.actif_le && sujet.prevu_le ? ` · ${fr.sujets.prevuLe(sujet.prevu_le)}` : ''}
           {sujet.consigne ? ` · ${sujet.consigne}` : ''}
         </p>
       </div>
@@ -231,6 +266,18 @@ function FormulaireSujet({
             unite="s"
             invalide={Boolean(erreurs.duree_max_s)}
             onChange={(v) => changer('duree_max_s', v)}
+          />
+        </Champ>
+        {/* A dated subject goes first the day it comes. The rest keep following the order, so
+            nothing has to be dated for the Arena to run. */}
+        <Champ id={`${id}-prevu`} libelle={s.prevu} aide={s.prevuAide} erreur={erreur('prevu_le')}>
+          <input
+            id={`${id}-prevu`}
+            type="date"
+            className="champ"
+            value={saisie.prevu_le}
+            onChange={(e) => changer('prevu_le', e.target.value)}
+            aria-invalid={erreurs.prevu_le ? 'true' : undefined}
           />
         </Champ>
       </div>

@@ -231,3 +231,11 @@
   gap: 8px;
   align-items: center;
 }
+
+/* The state filter sits in the toolbar beside the search: twenty subjects written in one sitting
+   need a way to see only what is coming. */
+.filtreEtat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

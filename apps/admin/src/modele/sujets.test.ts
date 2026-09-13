@@ -10,6 +10,7 @@ function sujet(surcharges: Partial<SujetArene>): SujetArene {
     consigne: null,
     ordre: 1,
     duree_max_s: 90,
+    prevu_le: null,
     actif_le: null,
     ferme_le: null,
     provisoire: true,
@@ -71,5 +72,35 @@ describe('etatSujet', () => {
       ),
     ).toBe('passe')
     expect(etatSujet(sujet({ actif: false }), maintenant)).toBe('inactif')
+  })
+})
+
+// Rebecca writes her subjects in batches and gives some of them a day. The rotation then puts a
+// dated subject first when its day comes, and everything else keeps following the order.
+describe('la date de passage', () => {
+  it("accepte une date, et refuse ce qui n'en est pas une", () => {
+    const bon = validerSujet({
+      ...saisieSujetVierge(1),
+      cle: 'sujet_un',
+      texte: 'x',
+      prevu_le: '2026-10-05',
+    })
+    expect(bon.ok).toBe(true)
+    if (bon.ok) expect(bon.valeur.prevu_le).toBe('2026-10-05')
+
+    const mauvais = validerSujet({
+      ...saisieSujetVierge(1),
+      cle: 'sujet_un',
+      texte: 'x',
+      prevu_le: 'lundi',
+    })
+    expect(mauvais.ok).toBe(false)
+    if (!mauvais.ok) expect(mauvais.erreurs.prevu_le).toBe('date')
+  })
+
+  it("laisse la date vide, et le sujet suit alors l'ordre", () => {
+    const resultat = validerSujet({ ...saisieSujetVierge(1), cle: 'sujet_un', texte: 'x' })
+    expect(resultat.ok).toBe(true)
+    if (resultat.ok) expect(resultat.valeur.prevu_le).toBeNull()
   })
 })
