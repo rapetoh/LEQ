@@ -13,6 +13,7 @@ import {
   type Comptes,
   type Stockage,
 } from '../stockage.js'
+import { JugeOpenAI } from '../openai/juge.js'
 import { choisirTranscripteur } from '../transcription/index.js'
 import { choisirAdversaire } from '../debat/index.js'
 import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
@@ -82,7 +83,7 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
           utilisateurId,
           tentativeId,
         ),
-      transcripteur: choisirTranscripteur(config.transcripteur),
+      transcripteur: choisirTranscripteur(config.transcripteur, config.openai),
       decoder: creerDecodeur({ ffmpegPath: config.ffmpegPath, delaiMs: config.delaiOutilMs }),
       prosodie: new ExtracteurProsodiePraat({
         pythonPath: config.pythonPath,
@@ -91,6 +92,8 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
       }),
       mesurer,
       evaluerRegle,
+      // The judged axes. Absent while no key is wired: the measured half carries the note alone.
+      ...(config.juge === 'openai' && config.openai ? { juge: new JugeOpenAI(config.openai) } : {}),
     }),
     supprimer_compte: creerHandlerSupprimerCompte(suppression),
     balayer_audio: creerHandlerBalayerAudio({ ex: pool, stockage }),
@@ -102,7 +105,7 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     envoyer_resultat_arene: creerHandlerEnvoyerResultatArene({ ex: pool, envoyer: envoyerViaExpo }),
     debriefer_debat: creerHandlerDebrieferDebat({
       ex: pool,
-      adversaire: choisirAdversaire(config.adversaire),
+      adversaire: choisirAdversaire(config.adversaire, config.openai),
     }),
   }
 }

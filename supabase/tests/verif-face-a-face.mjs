@@ -14,9 +14,26 @@
  * The session it opens is deleted at the end, whatever happened, so the month it charges is
  * given back.
  */
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 import pg from 'pg'
 import WebSocket from 'ws'
+
+/** A French sentence as 16 kHz mono PCM16, the way the phone sends it. */
+function parlerPcm(dossier, nom, phrase) {
+  const aiff = join(dossier, `${nom}.aiff`)
+  const pcm = join(dossier, `${nom}.pcm`)
+  execFileSync('say', ['-v', 'Thomas', '-o', aiff, phrase], { stdio: 'pipe' })
+  execFileSync(
+    'ffmpeg',
+    ['-loglevel', 'error', '-i', aiff, '-ac', '1', '-ar', '16000', '-f', 's16le', pcm],
+    { stdio: 'pipe' },
+  )
+  return readFileSync(pcm)
+}
 
 const THESE = "Une vérification de bout en bout vaut mieux qu'une relecture."
 const ATTENTE_MS = 45_000
@@ -127,19 +144,52 @@ try {
     pret.provisoire ? 'bouchons' : 'vrais fournisseurs',
   )
 
-  // Two turns. The audio is silence: the point here is the loop, not the transcription.
-  const morceau = Buffer.alloc(3200).toString('base64')
-  for (let tour = 1; tour <= 2; tour += 1) {
-    const avantTour = recus.length
-    for (let i = 0; i < 5; i += 1) socket.send(JSON.stringify({ type: 'audio', donnees: morceau }))
-    socket.send(JSON.stringify({ type: 'fin_tour' }))
-    const reponse = await attendre('reponse_texte', avantTour)
-    verifier(
-      typeof reponse.texte === 'string' && reponse.texte.length > 0,
-      `Rétor répond au tour ${tour}`,
-      reponse.texte.slice(0, 60),
-    )
-    await attendre('reponse_audio', avantTour)
+  // Two turns of real speech, 100 ms chunks as the phone sends them. With the real providers
+  // this is the whole loop: transcription while speaking, Rétor's answer, Rétor's voice.
+  const dossier = mkdtempSync(join(tmpdir(), 'leq-debat-'))
+  const phrases = [
+    "Je ne suis pas d'accord. Une vérification de bout en bout coûte du temps, et une relecture attentive attrape la plupart des erreurs pour bien moins cher.",
+    "Et puis une relecture se fait à deux, ce qui apprend quelque chose aux deux personnes. Une vérification automatique n'apprend rien à personne.",
+  ]
+  try {
+    for (let tour = 1; tour <= 2; tour += 1) {
+      const avantTour = recus.length
+      const octets = parlerPcm(dossier, `t${tour}`, phrases[tour - 1])
+      const debutTour = Date.now()
+      for (let i = 0; i < octets.length; i += 3200) {
+        socket.send(
+          JSON.stringify({
+            type: 'audio',
+            donnees: octets.subarray(i, i + 3200).toString('base64'),
+          }),
+        )
+        await new Promise((r) => setTimeout(r, 100))
+      }
+      const finParole = Date.now()
+      socket.send(JSON.stringify({ type: 'fin_tour' }))
+      const reponse = await attendre('reponse_texte', avantTour)
+      const latence = Date.now() - finParole
+      verifier(
+        typeof reponse.texte === 'string' && reponse.texte.length > 0,
+        `Rétor répond au tour ${tour}`,
+        `${latence} ms après la fin de parole · « ${reponse.texte.slice(0, 90)} »`,
+      )
+      verifier(!/[—–’]/.test(reponse.texte), 'sans tiret cadratin ni apostrophe courbe')
+      const transcrit = recus
+        .slice(avantTour)
+        .filter((m) => m.type === 'transcription' && !m.partiel)
+        .at(-1)
+      verifier(
+        transcrit !== undefined && /relecture/i.test(transcrit.texte),
+        `et a entendu ce qui a été dit au tour ${tour}`,
+        transcrit?.texte.slice(0, 80) ?? 'aucune transcription définitive',
+      )
+      const audio = await attendre('reponse_audio', avantTour)
+      verifier(audio.fin === true || audio.donnees.length > 0, 'et sa voix arrive')
+      void debutTour
+    }
+  } finally {
+    rmSync(dossier, { recursive: true, force: true })
   }
 
   socket.send(JSON.stringify({ type: 'terminer' }))

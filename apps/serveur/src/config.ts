@@ -10,17 +10,22 @@ export type Processus = (typeof PROCESSUS)[number]
 export const NIVEAUX_LOG = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const
 export type NiveauLog = (typeof NIVEAUX_LOG)[number]
 
-export const TRANSCRIPTEURS = ['stub'] as const
+// One OpenAI key covers every provider below: Whisper for a recorded take, the realtime session
+// for the debate, a chat model for Rétor and for the judged axes, and a voice. Chosen on
+// 12 September 2026 because Roch already holds the key; the bench can still compare later.
+export const TRANSCRIPTEURS = ['stub', 'openai'] as const
 export type NomTranscripteur = (typeof TRANSCRIPTEURS)[number]
 
 // The face-à-face needs three providers, and the bench may not pick one company for all three:
 // the best French streaming transcription and the best French voice are not obviously the same
 // supplier. Each is named on its own so any of them can be swapped without touching the others.
-export const TRANSCRIPTEURS_FLUX = ['stub'] as const
+export const TRANSCRIPTEURS_FLUX = ['stub', 'openai'] as const
 export type NomTranscripteurFlux = (typeof TRANSCRIPTEURS_FLUX)[number]
-export const ADVERSAIRES = ['stub'] as const
+export const ADVERSAIRES = ['stub', 'openai'] as const
 export type NomAdversaire = (typeof ADVERSAIRES)[number]
-export const VOIX = ['stub'] as const
+export const VOIX = ['stub', 'openai'] as const
+export const JUGES = ['aucun', 'openai'] as const
+export type NomJuge = (typeof JUGES)[number]
 export type NomVoix = (typeof VOIX)[number]
 
 // prosodie/extraire.py sits one level above src/ and above dist/, so the same
@@ -51,6 +56,10 @@ const SchemaEnv = z.object({
   TRANSCRIPTEUR_FLUX: z.enum(TRANSCRIPTEURS_FLUX).default('stub'),
   ADVERSAIRE: z.enum(ADVERSAIRES).default('stub'),
   VOIX: z.enum(VOIX).default('stub'),
+  /** The judged axes of the note. `aucun` while no key is wired: the measured half then carries it. */
+  JUGE: z.enum(JUGES).default('aucun'),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_BASE_URL: z.url().optional(),
   FFMPEG_PATH: z.string().min(1).default('ffmpeg'),
   // Built bundle of apps/web, served by the public process. Unset means no public pages,
   // which is what a local worker or a developer's machine wants.
@@ -75,6 +84,8 @@ export interface Config {
   transcripteurFlux: NomTranscripteurFlux
   adversaire: NomAdversaire
   voix: NomVoix
+  juge: NomJuge
+  openai: { cle: string; base?: string } | null
   ffmpegPath: string
   dossierWeb: string | undefined
   dossierAdmin: string | undefined
@@ -118,6 +129,10 @@ export function chargerConfig(env: NodeJS.ProcessEnv = process.env): Config {
     transcripteurFlux: e.TRANSCRIPTEUR_FLUX,
     adversaire: e.ADVERSAIRE,
     voix: e.VOIX,
+    juge: e.JUGE,
+    openai: e.OPENAI_API_KEY
+      ? { cle: e.OPENAI_API_KEY, ...(e.OPENAI_BASE_URL ? { base: e.OPENAI_BASE_URL } : {}) }
+      : null,
     ffmpegPath: e.FFMPEG_PATH,
     dossierWeb: e.DOSSIER_WEB,
     dossierAdmin: e.DOSSIER_ADMIN,

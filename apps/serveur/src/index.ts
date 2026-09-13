@@ -34,7 +34,7 @@ async function principal(): Promise<void> {
     const pool = creerPool(config.databaseUrl)
     const supabase = creerClientSupabase(config.supabaseUrl, config.supabaseSecretKey)
     const journalDebat = creerLogger(config.logLevel, { module: 'debat' })
-    const adversaire = choisirAdversaire(config.adversaire)
+    const adversaire = choisirAdversaire(config.adversaire, config.openai)
     debat = {
       creerConduite: (canal) =>
         new Conduite(
@@ -54,9 +54,13 @@ async function principal(): Promise<void> {
               demanderDebrief: (id) =>
                 db.creerJob(pool, 'debriefer_debat', { debat_id: id }, `debrief:${id}`),
             },
-            transcripteur: choisirTranscripteurFlux(config.transcripteurFlux),
+            transcripteur: choisirTranscripteurFlux(
+              config.transcripteurFlux,
+              config.openai,
+              journalDebat,
+            ),
             adversaire,
-            voix: choisirVoix(config.voix),
+            voix: choisirVoix(config.voix, config.openai),
             log: journalDebat,
           },
           canal,

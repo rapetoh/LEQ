@@ -653,6 +653,33 @@ Still open: the three onboarding screens, the Bulle glitch, the padding on « av
 mois-ci », l'Arène à six écoutes, l'arc long du parcours, le contenu des formules réglable, le
 défi hebdomadaire récurrent, and the revenue dashboard.
 
+## Les vrais fournisseurs sont branchés (2026-09-13)
+
+One OpenAI key, Roch's, covers the four things a debate and a take need. Chosen over the plan's
+Anthropic pick because he already held it and because one key gives transcription, the opponent,
+the judge and the voice in one place, one DPA, one bill. The bench of chapter 13 can still
+compare later; `TRANSCRIPTEUR=stub` puts any of the four back on its stub.
+
+- **Whisper** (`whisper-1`) for a recorded take, the only model of theirs that gives every word a
+  start and an end, which the measures need. Live on the worker: a take measured at 204 words per
+  minute from real timings, `analyses.fournisseur_transcription = openai:whisper-1`.
+- **The realtime session** (`gpt-4o-mini-transcribe`, server VAD) while the person speaks in the
+  face-à-face. The GA endpoint refuses anything under 24 kHz and the phone sends 16, so every
+  chunk is brought up two-to-three on the way in. Against production: it heard both sentences,
+  and Rétor answered 2,3 s after the end of speech on the second turn.
+- **Rétor and the debrief** on `gpt-4.1-mini`, with docs/STRINGS.md in the system prompt. The
+  model still writes the contrastive pair about one turn in three, so the guard is in code: a
+  curly apostrophe is straightened, a « ce n'est pas X, c'est Y » is sent back once to be
+  rewritten.
+- **The judge** for the two judged axes, against Rebecca's two worked examples, and the remarks
+  outside the grid. On its first real call it flagged a « euh » as `mots_bequilles`, which is
+  exactly what Rebecca asked the model to do.
+- **The voice** (`gpt-4o-mini-tts`, 24 kHz PCM, streamed): first chunk in about a second.
+
+`apps/serveur/scripts/verif-openai.mjs` calls all four against the real API with a spoken French
+sentence; `verif-face-a-face.mjs` now speaks two real sentences into the production socket instead
+of silence. Both green.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
