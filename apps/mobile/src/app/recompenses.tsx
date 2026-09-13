@@ -19,6 +19,7 @@ import {
   invaliderProgres,
   useBoutique,
 } from '@/services/progres'
+import { nomFormule, useFormules } from '@/services/formules'
 import { ilYA } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
@@ -28,6 +29,7 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 
 export default function Recompenses() {
   const theme = useTheme()
+  const formules = useFormules()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
@@ -88,7 +90,7 @@ export default function Recompenses() {
         </Text>
         <View style={styles.ligne}>
           <Text style={[typographie.petit, { color: theme.texteSecondaire, flex: 1 }]}>
-            {t('recompenses.formule', { formule: t(`formules.${points.formule}`) })}
+            {t('recompenses.formule', { formule: nomFormule(formules.data, points.formule) })}
           </Text>
           {points.cette_semaine > 0 ? (
             <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>

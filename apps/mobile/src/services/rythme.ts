@@ -73,14 +73,17 @@ export function positionDefi(
   return { genre: 'courante', ...base, ordre, total }
 }
 
-/** The free formula reads "un défi par jour"; a limit of 0 means unlimited. */
+/**
+ * The day's rhythm, read from the number alone. It used to ask the tier as well and answer
+ * « sans limite » for Complet whatever its number said; the tiers are rows now and a third one
+ * would have fallen through to « plusieurs par jour » whatever Rebecca had set.
+ */
 export function rythmeDeFormule(
-  formule: Formule,
   limiteEtapes: number,
 ): 'unParJour' | 'sansLimite' | 'plusieursParJour' {
   if (limiteEtapes === 0) return 'sansLimite'
   if (limiteEtapes === 1) return 'unParJour'
-  return formule === 'complet' ? 'sansLimite' : 'plusieursParJour'
+  return 'plusieursParJour'
 }
 
 export type NoeudCarte = {

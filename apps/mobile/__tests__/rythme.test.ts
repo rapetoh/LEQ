@@ -138,10 +138,12 @@ describe('the brief helpers', () => {
     })
   })
 
-  it('reads the rhythm of a formula from its limit', () => {
-    expect(rythmeDeFormule('gratuit', 1)).toBe('unParJour')
-    expect(rythmeDeFormule('complet', 0)).toBe('sansLimite')
-    expect(rythmeDeFormule('gratuit', 2)).toBe('plusieursParJour')
+  // The number alone decides. Asking the tier as well answered « sans limite » for Complet
+  // whatever its own setting said, and a third tier fell through to « plusieurs par jour ».
+  it('reads the rhythm from the limit alone', () => {
+    expect(rythmeDeFormule(1)).toBe('unParJour')
+    expect(rythmeDeFormule(0)).toBe('sansLimite')
+    expect(rythmeDeFormule(2)).toBe('plusieursParJour')
   })
 })
 

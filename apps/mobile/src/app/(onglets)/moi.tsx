@@ -8,6 +8,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
+import { nomFormule, useFormules } from '@/services/formules'
 import { moisEtAnnee, useProfil } from '@/services/profil'
 import { supabase, useSession } from '@/services/supabase'
 import { usePoints, useSerie } from '@/services/progres'
@@ -19,6 +20,7 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 
 export default function Moi() {
   const theme = useTheme()
+  const formules = useFormules()
   const router = useRouter()
   const serie = useSerie()
   const points = usePoints()
@@ -35,7 +37,7 @@ export default function Moi() {
     { libelle: t('moi.mesRecompenses'), action: () => router.push('/recompenses') },
     {
       libelle: t('moi.monAbonnement'),
-      ...(points.data ? { detail: t(`formules.${points.data.formule}`) } : {}),
+      ...(points.data ? { detail: nomFormule(formules.data, points.data.formule) } : {}),
     },
     { libelle: t('moi.reglages'), action: () => router.push('/reglages') },
   ]

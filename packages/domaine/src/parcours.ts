@@ -18,9 +18,28 @@ export const STATUTS_ETAPE = ['verrouillee', 'disponible', 'validee'] as const
 export const StatutEtapeSchema = z.enum(STATUTS_ETAPE)
 export type StatutEtape = z.infer<typeof StatutEtapeSchema>
 
-export const FORMULES = ['gratuit', 'complet'] as const
-export const FormuleSchema = z.enum(FORMULES)
+/**
+ * The tiers live in `formules`, one row each, so a third one is a setting and not a release
+ * (meeting of 12 September 2026). The key is whatever Rebecca named it; `gratuit` is the one
+ * everybody has without paying and the only one the code still names.
+ */
+export const FORMULE_PAR_DEFAUT = 'gratuit'
+export const FormuleSchema = z.string().min(1)
 export type Formule = z.infer<typeof FormuleSchema>
+
+/** One tier, as the application reads it. */
+export const FormuleDetailSchema = z.object({
+  cle: z.string().min(1),
+  nom: z.string().min(1),
+  ordre: z.int(),
+  etapes_par_jour: z.int().min(0),
+  debats_par_mois: z.int().min(0),
+  duree_debat_s: z.int().positive(),
+  acces_communaute: z.boolean(),
+  produit_store: z.string().nullable(),
+  actif: z.boolean(),
+})
+export type FormuleDetail = z.output<typeof FormuleDetailSchema>
 
 export const RAISONS_RYTHME = [
   'ok',

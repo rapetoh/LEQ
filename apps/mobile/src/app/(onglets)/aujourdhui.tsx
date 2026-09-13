@@ -10,6 +10,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { nomFormule, useFormules } from '@/services/formules'
 import { jourDuSujet, useSujet } from '@/services/arene'
 import { useDrapeaux } from '@/services/configuration'
 import { useEtapeDuJour } from '@/services/parcours'
@@ -41,6 +42,7 @@ export default function Aujourdhui() {
   const drapeaux = useDrapeaux()
   const areneActive = drapeaux.data?.arene === true
   const sujet = useSujet(areneActive)
+  const formules = useFormules()
   const serie = useSerie()
   const points = usePoints()
   const ateliers = useAteliers()
@@ -193,6 +195,7 @@ export function CarteDuJour() {
   const theme = useTheme()
   const router = useRouter()
   const jour = useEtapeDuJour()
+  const formules = useFormules()
 
   if (jour.isPending) {
     return (
@@ -224,9 +227,9 @@ export function CarteDuJour() {
 
   const donnees = jour.data
   const etat = etatAujourdhui(donnees)
-  const rythme = t(`defi.${rythmeDeFormule(donnees.formule, donnees.rythme.limite_etapes)}`)
+  const rythme = t(`defi.${rythmeDeFormule(donnees.rythme.limite_etapes)}`)
   const formule = t('defi.formule', {
-    formule: t(`formules.${donnees.formule}`),
+    formule: nomFormule(formules.data, donnees.formule),
     rythme,
   })
 

@@ -428,6 +428,14 @@ The debate against Rétor, cahier chapter 10, shipped off behind the `face_a_fac
 - The bank prepared in advance and fed from Rebecca's space. Offered first, because most people asked to invent a debate subject freeze or pick something they cannot defend, and the session is lost before it starts. RLS: authenticated read the active ones, admin writes.
 - `theses_proposees(n)` answers the first `n` active theses, in order.
 
+### formules
+
+- `cle` (pk), `nom`, `ordre`, `etapes_par_jour` (0: sans limite), `debats_par_mois` (0: la formule n'en donne aucun), `duree_debat_s`, `acces_communaute`, `produit_store`, `actif`, timestamps.
+- **Une troisième formule est un réglage, pas une version** (decision of 12 September 2026). Two tiers used to be written into a check constraint and their rights into configuration keys named one per tier (`etapes_par_jour_gratuit`, `quota_face_a_face_complet`, `duree_face_a_face_gratuit_s`), so adding one meant a migration, code and a release. `etape_du_jour()`, `quota_debats()` and `ouvrir_debat()` read the row of the person's tier, and `formule_de()` answers whatever tier their subscription names, falling back to the first active one by `ordre`.
+- **L'accès à la communauté est une case sur une formule**, never a tier of its own: Rebecca's Discord community is sold inside a tier, and someone who takes one-to-one coaching with her gets everything.
+- Prices are not here. They live in App Store Connect and Play Console, and `produit_store` is the identifier that ties a tier to its store product.
+- RLS: everyone reads the tiers, the admin writes them. `abonnements.formule` is a foreign key on `formules.cle`, on update cascade, so renaming a key carries the subscriptions with it.
+
 ### debats
 
 - `id`, `utilisateur_id`, `these_id` (nullable), `these_texte`, `origine_these` (banque, personnelle), `ton_adversaire`, `duree_max_s`, `statut` (ouverte, terminee, interrompue, abandonnee), `issue` (terminee, interrompue_par_nous, abandonnee), `secondes_parlees numeric`, `session_id` (the connection holding it), `commence_le`, `derniere_activite_le`, `termine_le`, timestamps.

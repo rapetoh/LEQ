@@ -39,6 +39,8 @@ insert into public.configuration (cle, type, valeur, description) values
   ('duree_face_a_face_complet_s', 'nombre', '480', 'x'),
   ('reprise_debat_minutes', 'nombre', '30', 'x')
 on conflict (cle) do update set valeur = excluded.valeur;
+update public.formules set debats_par_mois = 0, duree_debat_s = 180 where cle = 'gratuit';
+update public.formules set debats_par_mois = 8, duree_debat_s = 480 where cle = 'complet';
 
 -- The suite owns this bank: the project holds real rows whose `ordre` would collide with
 -- the fixtures, and whose presence would change what the rotation answers. Rolled back
@@ -192,7 +194,8 @@ reset role; select tests_leq.deconnecter();
 
 -- the quota actually stops the ninth session -------------------------------------------------------------
 select lives_ok($$ select public.cloturer_debat((select id from debat4), 'terminee') $$, 'close the current one');
-update public.configuration set valeur = '3' where cle = 'quota_face_a_face_complet';
+-- The rights live on the tier now, not on a key named after it.
+update public.formules set debats_par_mois = 3 where cle = 'complet';
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select is(((public.quota_debats()) ->> 'restants')::integer, 0, 'the month is used up at the new cap');
 select throws_ok($$ select public.ouvrir_debat((select t1 from ctx)) $$, 'P0001', 'quota_epuise',
@@ -212,7 +215,7 @@ reset role; select tests_leq.deconnecter();
 -- one debate, one connection ------------------------------------------------------------------------------
 -- Two sockets held the same debate when a phone reconnected before the old one was collected.
 -- Both wrote turn n+1, and the upsert on (debat_id, numero) let the loser replace the live turn.
-update public.configuration set valeur = '8' where cle = 'quota_face_a_face_complet';
+update public.formules set debats_par_mois = 8 where cle = 'complet';
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 create temp table debat5 as select * from public.ouvrir_debat(null, 'Le silence est une réponse.');
 grant select on debat5 to authenticated;
@@ -276,6 +279,22 @@ select is(public.fermer_debats_interrompus(), 0, 'that one is left alone');
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select is(((public.quota_debats()) ->> 'utilises')::integer, 5, 'and it still costs nothing');
 reset role; select tests_leq.deconnecter();
+
+-- une troisième formule est un réglage, pas une version ---------------------------------------------
+-- Two tiers were written into a constraint and their rights into keys named one per tier, so a
+-- third one meant a migration, code and a release.
+insert into public.formules (cle, nom, ordre, etapes_par_jour, debats_par_mois, duree_debat_s, acces_communaute)
+values ('atelier', 'Atelier', 3, 0, 20, 900, true);
+insert into public.abonnements (utilisateur_id, formule, source)
+values ('11111111-1111-4111-8111-111111111111', 'atelier', 'manuel')
+on conflict (utilisateur_id) do update set formule = excluded.formule;
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select is(((public.quota_debats()) ->> 'plafond')::integer, 20,
+  'a tier added as a row gives its own month, with no code touched');
+select is(((public.quota_debats()) ->> 'formule'), 'atelier', 'and the person is on it');
+reset role; select tests_leq.deconnecter();
+select is((select acces_communaute from public.formules where cle = 'atelier'), true,
+  'community access is a box on a tier, never a tier of its own');
 
 select * from finish();
 rollback;

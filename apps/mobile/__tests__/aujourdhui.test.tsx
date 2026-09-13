@@ -17,6 +17,12 @@ jest.mock('@/services/supabase', () => ({
 }))
 jest.mock('@/services/profil', () => ({ useProfil: jest.fn(() => ({ data: undefined })) }))
 jest.mock('@/services/rebecca', () => ({ useAteliers: jest.fn(() => ({ data: undefined })) }))
+// The tiers are rows now; the card only needs their names.
+jest.mock('@/services/formules', () => ({
+  useFormules: jest.fn(() => ({ data: [{ cle: 'gratuit', nom: 'Gratuit' }] })),
+  nomFormule: (formules: { cle: string; nom: string }[] | undefined, cle: string) =>
+    formules?.find((f) => f.cle === cle)?.nom ?? cle,
+}))
 jest.mock('@/services/progres', () => ({
   useSerie: jest.fn(() => ({ data: undefined })),
   usePoints: jest.fn(() => ({ data: undefined })),
