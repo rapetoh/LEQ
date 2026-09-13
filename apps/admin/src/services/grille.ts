@@ -75,6 +75,11 @@ export async function creerVersion(options: {
       cle: c.cle,
       nom: c.nom,
       definition: c.definition,
+      // A judged axis without its worked examples cannot be published, so a new version that
+      // dropped them would silently become unpublishable.
+      source: c.source,
+      exemple_cinq: c.exemple_cinq,
+      exemple_deux: c.exemple_deux,
       regle: c.regle,
       ordre: c.ordre,
     }))
@@ -107,16 +112,15 @@ export async function supprimerCritere(id: string): Promise<void> {
   exigerLigne(data, 'ce critère')
 }
 
-/** Publishing is one-way: the worker uses the most recent published version from then on. */
+/**
+ * Publishing is one-way: the worker uses the most recent published version from then on. It goes
+ * through the database function, which refuses a grid whose judged axes carry no worked examples.
+ * Without them the model scores against its own idea of a good speaker and the same take drifts
+ * from one week to the next.
+ */
 export async function publierGrille(id: string): Promise<void> {
-  const { data, error } = await supabase
-    .from('grilles')
-    .update({ publiee_le: new Date().toISOString() })
-    .eq('id', id)
-    .is('publiee_le', null)
-    .select('id')
+  const { error } = await supabase.rpc('publier_grille', { p_grille: id })
   if (error) throw new Error(error.message)
-  exigerLigne(data, 'cette grille')
 }
 
 export async function modifierNotesGrille(id: string, notes: string | null): Promise<void> {

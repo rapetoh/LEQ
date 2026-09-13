@@ -2,6 +2,12 @@
 //   envoyee -> en_transcription -> en_mesure -> en_evaluation -> audio_supprime -> retour_disponible
 //   any failure -> echec_technique (retry by echouer_job) -> abandon_technique after the last try.
 // Every dependency is injected so the order of writes is testable without a database.
+import {
+  composerNote,
+  partNormalisee,
+  type ObservationHorsGrille,
+  type SousNote,
+} from '@leq/domaine'
 import { z } from 'zod'
 import type {
   ExtracteurProsodie,
@@ -11,6 +17,7 @@ import type {
 } from '../contrat.js'
 import type { Decodeur } from '../audio/decoder.js'
 import type {
+  CritereGrille,
   GrillePubliee,
   NouvelleAnalyse,
   NouvelleEvaluation,
@@ -25,8 +32,43 @@ import type { ContexteJob, HandlerJob } from './types.js'
 
 export const VERSION_SCHEMA_ANALYSE = 1
 
+/**
+ * What the model gives back after listening: a score for each judged axis, against Rebecca's
+ * reference, and what it noticed that no criterion covers.
+ */
+export interface Jugement {
+  sous_notes: Record<string, SousNote>
+  hors_grille: ObservationHorsGrille[]
+}
+
+/** The balance between the two halves of a note, and what the note is out of. Rebecca's to move. */
+export interface PoidsNote {
+  mesure: number
+  jugement: number
+  noteMax: number
+}
+
+export const POIDS_PAR_DEFAUT: PoidsNote = { mesure: 0.65, jugement: 0.35, noteMax: 30 }
+
 export class ErreurPipeline extends Error {
   override name = 'ErreurPipeline'
+}
+
+/**
+ * What listens to the whole performance and scores what cannot be measured.
+ *
+ * It judges against Rebecca's reference, held by the two worked examples on each axis, and not
+ * against its own idea of a good speaker. It also reports what it noticed outside the grid: that
+ * never enters the note, and it is how the grid grows from what the application actually hears.
+ */
+export interface Juge {
+  readonly nom: string
+  juger(contexte: {
+    transcription: { texte: string }
+    mesures: Mesures
+    criteres: readonly CritereGrille[]
+    criteresCouverts: readonly string[]
+  }): Promise<Jugement>
 }
 
 /** The database operations the pipeline needs, implemented by db.ts and faked in tests. */
@@ -35,6 +77,8 @@ export interface DepotAnalyse {
   mettreAJourStatut(id: string, statut: StatutTentative): Promise<void>
   mettreAJourDuree(id: string, dureeS: number): Promise<void>
   lireGrillePubliee(): Promise<GrillePubliee | null>
+  /** The balance between the measured and the judged halves, and what the note is out of. */
+  lirePoidsNote(): Promise<PoidsNote>
   /** The filler words Rebecca edits in the admin (configuration `mots_bequilles`). */
   lireMotsBequilles(): Promise<readonly string[]>
   /** Must write both rows in one transaction. */
@@ -71,6 +115,8 @@ export interface DependancesAnalyse {
   prosodie: ExtracteurProsodie
   mesurer: FonctionMesurer
   evaluerRegle: FonctionEvaluerRegle
+  /** Absent while no key is wired: the measured half then carries the note on its own. */
+  juge?: Juge
 }
 
 export type ResultatAnalyse =
@@ -95,11 +141,23 @@ export function creerHandlerAnalyserTentative(deps: DependancesAnalyse): Handler
  * note_totale (the contract). With one: every critere is scored by evaluerRegle,
  * note_totale is the sum of the scores. seuil_reussite comes from the step (Phase 4), null now.
  */
+/**
+ * The note, from its two halves (chapter 5, rewritten 12 September 2026).
+ *
+ * Four axes are computed from what the machine hears. Two are judged by the model against
+ * Rebecca's reference, held in place by a worked example at five and one at two. The split
+ * between the halves is a setting, not an accident of how many axes sit in each group: adding a
+ * fifth measured axis must not quietly move the balance.
+ *
+ * What the model noticed outside the grid never enters the note, and always reaches the person.
+ */
 export function construireEvaluation(
   tentativeId: string,
   grille: GrillePubliee | null,
   mesures: Mesures,
   evaluerRegle: FonctionEvaluerRegle,
+  jugement: Jugement | null = null,
+  poids: PoidsNote = POIDS_PAR_DEFAUT,
 ): NouvelleEvaluation {
   if (!grille) {
     return {
@@ -108,22 +166,46 @@ export function construireEvaluation(
       version_grille: null,
       sous_notes: {},
       note_totale: null,
+      note_mesure: null,
+      note_jugement: null,
+      hors_grille: jugement?.hors_grille ?? [],
       seuil_reussite: null,
     }
   }
   const sous_notes: NouvelleEvaluation['sous_notes'] = {}
-  let total = 0
+  const clesMesure: string[] = []
+  const clesJugement: string[] = []
   for (const critere of grille.criteres) {
+    if (critere.source === 'jugement') {
+      const note = jugement?.sous_notes[critere.cle]
+      // A judged axis the model did not answer on is left out rather than scored zero: zero says
+      // the person did badly, and nothing was measured at all.
+      if (!note) continue
+      sous_notes[critere.cle] = { score: note.score, max: note.max }
+      clesJugement.push(critere.cle)
+      continue
+    }
     const note = evaluerRegle(critere.regle, mesures)
     sous_notes[critere.cle] = { score: note.score, max: note.max }
-    total += note.score
+    clesMesure.push(critere.cle)
   }
+  const partMesure = partNormalisee(sous_notes, clesMesure)
+  const partJugement = partNormalisee(sous_notes, clesJugement)
   return {
     tentative_id: tentativeId,
     grille_id: grille.id,
     version_grille: grille.version,
     sous_notes,
-    note_totale: Math.round(total * 100) / 100,
+    note_totale: composerNote({
+      mesure: partMesure,
+      jugement: partJugement,
+      poidsMesure: poids.mesure,
+      poidsJugement: poids.jugement,
+      noteMax: poids.noteMax,
+    }),
+    note_mesure: partMesure,
+    note_jugement: partJugement,
+    hors_grille: jugement?.hors_grille ?? [],
     seuil_reussite: null,
   }
 }
@@ -187,7 +269,27 @@ export async function analyserTentative(
     // Evaluation
     await depot.mettreAJourStatut(tentativeId, 'en_evaluation')
     const grille = await depot.lireGrillePubliee()
-    const evaluation = construireEvaluation(tentativeId, grille, mesures, deps.evaluerRegle)
+    const poids = await depot.lirePoidsNote()
+    // The judged axes, scored against Rebecca's reference. Without a judge, or without any judged
+    // axis, the measured half carries the note on its own.
+    const aJuger = (grille?.criteres ?? []).filter((c) => c.source === 'jugement')
+    const jugement =
+      deps.juge && aJuger.length > 0
+        ? await deps.juge.juger({
+            transcription,
+            mesures,
+            criteres: aJuger,
+            criteresCouverts: (grille?.criteres ?? []).map((c) => c.nom),
+          })
+        : null
+    const evaluation = construireEvaluation(
+      tentativeId,
+      grille,
+      mesures,
+      deps.evaluerRegle,
+      jugement,
+      poids,
+    )
     const analyse: NouvelleAnalyse = {
       tentative_id: tentativeId,
       version_schema: VERSION_SCHEMA_ANALYSE,

@@ -424,6 +424,16 @@ export const fr = {
       nom: 'Nom montré',
       scoreMax: 'Note maximale',
       scoreMaxAide: 'La somme des notes maximales des critères fait la note totale de la grille.',
+      source: 'Comment cet axe est noté',
+      sourceAide:
+        "Mesuré\u00a0: la machine le calcule sur l'enregistrement. Jugé\u00a0: le modèle le note contre tes deux exemples.",
+      sourceMesure: "Mesuré sur l'enregistrement",
+      sourceJugement: 'Jugé contre tes exemples',
+      exemples: 'Tes deux exemples',
+      exemplesAide:
+        "Ils tiennent la note en place d'une prise à l'autre. Sans eux, le modèle note contre sa propre idée d'un bon orateur.",
+      exempleCinq: 'Une prestation qui vaut cinq sur cet axe',
+      exempleDeux: 'Une prestation qui vaut deux sur cet axe',
       definition: 'Définition',
       definitionAide: 'En une phrase, montrée à côté du nom.',
       elements: 'Les mesures écoutées',

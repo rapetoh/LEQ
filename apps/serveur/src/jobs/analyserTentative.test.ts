@@ -74,6 +74,7 @@ function construireFaux(
       journal.push(`duree:${dureeS}`)
     },
     lireGrillePubliee: async () => options.grille ?? null,
+    lirePoidsNote: async () => ({ mesure: 0.65, jugement: 0.35, noteMax: 30 }),
     lireMotsBequilles: async () => ['euh'],
     enregistrerAnalyseEtEvaluation: async (analyse, evaluation) => {
       echec('enregistrer')
@@ -218,6 +219,9 @@ describe('analyserTentative', () => {
           nom: 'Rythme',
           definition: '',
           ordre: 0,
+          source: 'mesure',
+          exemple_cinq: null,
+          exemple_deux: null,
           regle: { version: 1, score_max: 10, elements: [] },
         },
         {
@@ -227,6 +231,9 @@ describe('analyserTentative', () => {
           nom: 'Silence',
           definition: '',
           ordre: 1,
+          source: 'mesure',
+          exemple_cinq: null,
+          exemple_deux: null,
           regle: { version: 1, score_max: 5, elements: [] },
         },
       ],
@@ -240,7 +247,11 @@ describe('analyserTentative', () => {
       rythme: { score: 5, max: 10 },
       silence: { score: 2.5, max: 5 },
     })
-    expect(evaluation.note_totale).toBe(7.5)
+    // Both axes are measured here, so the measured half carries the whole note: half of fifteen
+    // out of fifteen, brought back onto thirty.
+    expect(evaluation.note_mesure).toBe(0.5)
+    expect(evaluation.note_jugement).toBeNull()
+    expect(evaluation.note_totale).toBe(15)
   })
 })
 
@@ -269,5 +280,85 @@ describe('la copie publique', () => {
       await analyserTentative(faux.deps, ID, { log, dernierEssai: false })
       expect(faux.journal).not.toContain('televersement_public')
     }
+  })
+})
+
+// Chapter 5 as rewritten on 12 September 2026: four axes measured, two judged against Rebecca's
+// reference, and the balance between them a setting rather than an accident of the axis counts.
+describe('la note à deux mains', () => {
+  const grilleMixte: GrillePubliee = {
+    id: '2b2b2b2b-2b2b-4b2b-8b2b-2b2b2b2b2b2b',
+    version: 4,
+    publiee_le: new Date(),
+    criteres: [
+      critere('debit', 'mesure', 0),
+      critere('bequilles', 'mesure', 1),
+      critere('structure', 'jugement', 2),
+      critere('conviction', 'jugement', 3),
+    ],
+  }
+
+  function critere(cle: string, source: 'mesure' | 'jugement', ordre: number) {
+    return {
+      id: cle,
+      grille_id: 'g',
+      cle,
+      nom: cle,
+      definition: '',
+      ordre,
+      source,
+      exemple_cinq: source === 'jugement' ? 'ce qui vaut cinq' : null,
+      exemple_deux: source === 'jugement' ? 'ce qui vaut deux' : null,
+      regle: { version: 1 as const, score_max: 5, elements: [] },
+    }
+  }
+
+  it('pèse les mesures et le jugement selon le réglage', () => {
+    const evaluation = construireEvaluation(
+      ID,
+      grilleMixte,
+      MESURES,
+      (regle) => ({ score: regle.score_max, max: regle.score_max }),
+      {
+        sous_notes: { structure: { score: 0, max: 5 }, conviction: { score: 0, max: 5 } },
+        hors_grille: [],
+      },
+      { mesure: 0.65, jugement: 0.35, noteMax: 30 },
+    )
+    expect(evaluation.note_mesure).toBe(1)
+    expect(evaluation.note_jugement).toBe(0)
+    expect(evaluation.note_totale).toBe(19.5)
+  })
+
+  // Zero says the person did badly. A judged axis nobody answered on was not measured at all.
+  it('laisse de côté un axe jugé sans réponse, au lieu de le noter zéro', () => {
+    const evaluation = construireEvaluation(
+      ID,
+      grilleMixte,
+      MESURES,
+      (regle) => ({ score: regle.score_max, max: regle.score_max }),
+      { sous_notes: {}, hors_grille: [] },
+    )
+    expect(Object.keys(evaluation.sous_notes)).toEqual(['debit', 'bequilles'])
+    expect(evaluation.note_jugement).toBeNull()
+    expect(evaluation.note_totale).toBe(30)
+  })
+
+  // Someone who says « euh » two hundred times is told, even when no criterion mentions it.
+  it('garde ce que le modèle a remarqué hors de la grille, sans le compter', () => {
+    const evaluation = construireEvaluation(
+      ID,
+      grilleMixte,
+      MESURES,
+      (regle) => ({ score: regle.score_max / 2, max: regle.score_max }),
+      {
+        sous_notes: { structure: { score: 5, max: 5 }, conviction: { score: 5, max: 5 } },
+        hors_grille: [{ sujet: 'mots_bequilles', remarque: 'Tu dis « euh » très souvent.' }],
+      },
+    )
+    expect(evaluation.hors_grille).toEqual([
+      { sujet: 'mots_bequilles', remarque: 'Tu dis « euh » très souvent.' },
+    ])
+    expect(evaluation.note_totale).toBe(0.65 * 0.5 * 30 + 0.35 * 1 * 30)
   })
 })

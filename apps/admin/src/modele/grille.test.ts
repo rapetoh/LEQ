@@ -101,6 +101,9 @@ describe('validerCritere', () => {
       cle: 'debit',
       nom: 'Le débit',
       definition: 'Entre 130 et 150 mots par minute.',
+      source: 'mesure',
+      exemple_cinq: null,
+      exemple_deux: null,
       regle: {
         version: 1,
         score_max: 10,
@@ -119,5 +122,36 @@ describe('validerCritere', () => {
     const resultat = validerCritere(saisieDepuisCritere(critere), 1)
     expect(resultat.ok).toBe(true)
     if (resultat.ok) expect(resultat.valeur.regle).toEqual(critere.regle)
+  })
+})
+
+// Chapter 5, rewritten 12 September 2026: two of the six axes are judged and not measured, and
+// what holds a judged axis in place is the pair of worked examples.
+describe('un axe jugé', () => {
+  const jugé = {
+    cle: 'structure',
+    nom: 'La structure du propos',
+    definition: 'Une entrée, un développement, une sortie.',
+    source: 'jugement' as const,
+    score_max: '5',
+    exemple_cinq: "Elle annonce son plan, le tient, et conclut sur ce qu'elle a promis.",
+    exemple_deux: 'Elle part dans trois directions et ne revient sur aucune.',
+    elements: [],
+  }
+
+  it('se valide sans bandes, puisque rien ne se calcule', () => {
+    const resultat = validerCritere(jugé, 2)
+    expect(resultat.ok).toBe(true)
+    if (resultat.ok) {
+      expect(resultat.valeur.source).toBe('jugement')
+      expect(resultat.valeur.regle.elements).toEqual([])
+      expect(resultat.valeur.exemple_cinq).toContain('annonce son plan')
+    }
+  })
+
+  it('refuse de partir sans ses deux exemples', () => {
+    const resultat = validerCritere({ ...jugé, exemple_deux: '  ' }, 2)
+    expect(resultat.ok).toBe(false)
+    if (!resultat.ok) expect(resultat.erreurs.exemple_deux).toBe('requis')
   })
 })

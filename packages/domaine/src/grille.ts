@@ -57,7 +57,12 @@ export type ElementRegle = z.infer<typeof ElementRegleSchema>
 export const RegleCritereV1Schema = z.object({
   version: z.literal(1),
   score_max: z.number().positive(),
-  elements: z.array(ElementRegleSchema).min(1),
+  /**
+   * Empty for a judged axis: there is nothing to compute, the model scores it against Rebecca's
+   * worked examples. A measured axis without a single element is refused where the source is
+   * known, which is the form and the grid editor.
+   */
+  elements: z.array(ElementRegleSchema),
 })
 export type RegleCritereV1 = z.infer<typeof RegleCritereV1Schema>
 
@@ -66,12 +71,24 @@ export const RegleCritereSchema = z.discriminatedUnion('version', [RegleCritereV
 export type RegleCritere = z.infer<typeof RegleCritereSchema>
 
 /** A row of `criteres_grille` as read back from the database. */
+/**
+ * A measured axis is computed from the audio. A judged one is scored by the model against
+ * Rebecca's reference, held in place by a worked example at five and one at two (chapter 5,
+ * rewritten 12 September 2026).
+ */
+export const SOURCES_CRITERE = ['mesure', 'jugement'] as const
+export const SourceCritereSchema = z.enum(SOURCES_CRITERE)
+export type SourceCritere = z.infer<typeof SourceCritereSchema>
+
 export const CritereGrilleSchema = z.object({
   id: UuidSchema,
   grille_id: UuidSchema,
   cle: CleCritereSchema,
   nom: z.string().min(1),
   definition: z.string().min(1),
+  source: SourceCritereSchema.default('mesure'),
+  exemple_cinq: z.string().nullable().default(null),
+  exemple_deux: z.string().nullable().default(null),
   regle: RegleCritereSchema,
   ordre: z.int().min(0),
   cree_le: IsoTimestampSchema,

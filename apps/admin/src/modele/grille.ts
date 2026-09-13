@@ -14,11 +14,22 @@ export type { CritereGrille, RegleCritereV1 }
 
 export type SaisieBande = { min: string; max: string; score: string }
 export type SaisieElement = { mesure: string; poids: string; bandes: SaisieBande[] }
+/**
+ * An axis is measured or judged (chapter 5, rewritten 12 September 2026). A measured axis is
+ * computed from the audio and carries bands. A judged one is scored by the model against
+ * Rebecca's reference, and what holds it in place from one take to the next is the pair of
+ * worked examples: without them the model scores against its own idea of a good speaker.
+ */
+export type SourceCritere = 'mesure' | 'jugement'
+
 export type SaisieCritere = {
   cle: string
   nom: string
   definition: string
+  source: SourceCritere
   score_max: string
+  exemple_cinq: string
+  exemple_deux: string
   elements: SaisieElement[]
 }
 
@@ -26,6 +37,9 @@ export type CritereEditable = {
   cle: string
   nom: string
   definition: string
+  source: SourceCritere
+  exemple_cinq: string | null
+  exemple_deux: string | null
   regle: RegleCritereV1
   ordre: number
 }
@@ -39,7 +53,16 @@ export function elementVierge(): SaisieElement {
 }
 
 export function saisieCritereVierge(): SaisieCritere {
-  return { cle: '', nom: '', definition: '', score_max: '10', elements: [elementVierge()] }
+  return {
+    cle: '',
+    nom: '',
+    definition: '',
+    source: 'mesure',
+    score_max: '5',
+    exemple_cinq: '',
+    exemple_deux: '',
+    elements: [elementVierge()],
+  }
 }
 
 export function saisieDepuisCritere(critere: CritereGrille): SaisieCritere {
@@ -48,6 +71,9 @@ export function saisieDepuisCritere(critere: CritereGrille): SaisieCritere {
     cle: critere.cle,
     nom: critere.nom,
     definition: critere.definition,
+    source: critere.source ?? 'mesure',
+    exemple_cinq: critere.exemple_cinq ?? '',
+    exemple_deux: critere.exemple_deux ?? '',
     score_max: texte(regle.score_max),
     elements: regle.elements.map((e) => ({
       mesure: e.mesure,
@@ -93,6 +119,34 @@ export function validerCritere(
   const scoreMax = nombre(saisie.score_max, true, 0)
   if (!scoreMax.ok) erreurs.score_max = scoreMax.code
   else if ((scoreMax.valeur ?? 0) <= 0) erreurs.score_max = 'positif'
+
+  // A judged axis has no bands to compute, and it cannot be published without its two worked
+  // examples: they are what keeps the same take scoring the same twice.
+  if (saisie.source === 'jugement') {
+    if (saisie.exemple_cinq.trim() === '') erreurs.exemple_cinq = 'requis'
+    if (saisie.exemple_deux.trim() === '') erreurs.exemple_deux = 'requis'
+    if (Object.keys(erreurs).length > 0) return { ok: false, erreurs }
+    const regleJugee = RegleCritereV1Schema.safeParse({
+      version: 1,
+      score_max: scoreMax.ok ? scoreMax.valeur : 0,
+      elements: [],
+    })
+    if (!regleJugee.success) return { ok: false, erreurs: { contrat: 'contrat' } }
+    return {
+      ok: true,
+      valeur: {
+        cle,
+        nom: saisie.nom.trim(),
+        definition: saisie.definition.trim(),
+        source: 'jugement',
+        exemple_cinq: saisie.exemple_cinq.trim(),
+        exemple_deux: saisie.exemple_deux.trim(),
+        regle: regleJugee.data,
+        ordre,
+      },
+    }
+  }
+
   if (saisie.elements.length === 0) erreurs.elements = 'requis'
 
   const elements = saisie.elements.map((element, i) => {
@@ -144,6 +198,9 @@ export function validerCritere(
       cle,
       nom: saisie.nom.trim(),
       definition: saisie.definition.trim(),
+      source: 'mesure',
+      exemple_cinq: null,
+      exemple_deux: null,
       regle: regle.data,
       ordre,
     },

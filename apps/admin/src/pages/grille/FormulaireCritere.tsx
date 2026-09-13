@@ -94,6 +94,25 @@ export function FormulaireCritere({
           />
         </Champ>
       </div>
+      {/* Four axes are computed from the audio, two are judged by the model against Rebecca's
+          reference. A judged axis has no bands to set: what holds it in place from one take to
+          the next is the pair of worked examples. */}
+      <Champ id={`${id}-source`} libelle={g.source} aide={g.sourceAide} erreur={erreur('source')}>
+        <select
+          id={`${id}-source`}
+          className="champ"
+          value={saisie.source}
+          onChange={(e) =>
+            changer((s) => ({
+              ...s,
+              source: e.target.value === 'jugement' ? 'jugement' : 'mesure',
+            }))
+          }
+        >
+          <option value="mesure">{g.sourceMesure}</option>
+          <option value="jugement">{g.sourceJugement}</option>
+        </select>
+      </Champ>
       <Champ
         id={`${id}-definition`}
         libelle={g.definition}
@@ -110,191 +129,230 @@ export function FormulaireCritere({
         />
       </Champ>
 
-      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-        <legend className="etiquette">{g.elements}</legend>
-        <p className={styles.aide}>{g.elementsAide}</p>
-        {erreur('elements') ? <p className="erreur-champ">{erreur('elements')}</p> : null}
-        <div className={styles.appuis}>
-          {saisie.elements.map((element, i) => (
-            <div key={i} className="carte" style={{ padding: 14, display: 'grid', gap: 10 }}>
-              <div className={styles.grilleChamps}>
-                <Champ
-                  id={`${id}-mesure-${i}`}
-                  libelle={g.mesure}
-                  aide={g.mesureAide}
-                  erreur={erreur(`elements.${i}.mesure`)}
-                >
-                  <select
+      {saisie.source === 'jugement' ? (
+        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend className="etiquette">{g.exemples}</legend>
+          <p className={styles.aide}>{g.exemplesAide}</p>
+          <Champ id={`${id}-cinq`} libelle={g.exempleCinq} erreur={erreur('exemple_cinq')}>
+            <textarea
+              id={`${id}-cinq`}
+              className="champ"
+              rows={3}
+              value={saisie.exemple_cinq}
+              onChange={(e) => changer((s) => ({ ...s, exemple_cinq: e.target.value }))}
+              aria-invalid={erreurs.exemple_cinq ? 'true' : undefined}
+            />
+          </Champ>
+          <Champ id={`${id}-deux`} libelle={g.exempleDeux} erreur={erreur('exemple_deux')}>
+            <textarea
+              id={`${id}-deux`}
+              className="champ"
+              rows={3}
+              value={saisie.exemple_deux}
+              onChange={(e) => changer((s) => ({ ...s, exemple_deux: e.target.value }))}
+              aria-invalid={erreurs.exemple_deux ? 'true' : undefined}
+            />
+          </Champ>
+        </fieldset>
+      ) : (
+        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend className="etiquette">{g.elements}</legend>
+          <p className={styles.aide}>{g.elementsAide}</p>
+          {erreur('elements') ? <p className="erreur-champ">{erreur('elements')}</p> : null}
+          <div className={styles.appuis}>
+            {saisie.elements.map((element, i) => (
+              <div key={i} className="carte" style={{ padding: 14, display: 'grid', gap: 10 }}>
+                <div className={styles.grilleChamps}>
+                  <Champ
                     id={`${id}-mesure-${i}`}
-                    className="champ champ-mono"
-                    value={
-                      estCheminConnu(element.mesure) && !element.mesure.startsWith(PREFIXE_PAR_TYPE)
-                        ? element.mesure
-                        : PREFIXE_PAR_TYPE
-                    }
-                    onChange={(e) =>
-                      changerElement(i, (el) => ({
-                        ...el,
-                        mesure:
-                          e.target.value === PREFIXE_PAR_TYPE
-                            ? `${PREFIXE_PAR_TYPE}euh`
-                            : e.target.value,
-                      }))
-                    }
+                    libelle={g.mesure}
+                    aide={g.mesureAide}
+                    erreur={erreur(`elements.${i}.mesure`)}
                   >
-                    {CHEMINS_MESURES_V1.map((chemin) => (
-                      <option key={chemin} value={chemin}>
-                        {chemin}
-                      </option>
-                    ))}
-                    <option value={PREFIXE_PAR_TYPE}>{g.parType}</option>
-                  </select>
-                </Champ>
-                {element.mesure.startsWith(PREFIXE_PAR_TYPE) ? (
-                  <Champ id={`${id}-mot-${i}`} libelle={g.mot}>
-                    <input
-                      id={`${id}-mot-${i}`}
+                    <select
+                      id={`${id}-mesure-${i}`}
                       className="champ champ-mono"
-                      value={element.mesure.slice(PREFIXE_PAR_TYPE.length)}
+                      value={
+                        estCheminConnu(element.mesure) &&
+                        !element.mesure.startsWith(PREFIXE_PAR_TYPE)
+                          ? element.mesure
+                          : PREFIXE_PAR_TYPE
+                      }
                       onChange={(e) =>
                         changerElement(i, (el) => ({
                           ...el,
-                          mesure: `${PREFIXE_PAR_TYPE}${e.target.value}`,
+                          mesure:
+                            e.target.value === PREFIXE_PAR_TYPE
+                              ? `${PREFIXE_PAR_TYPE}euh`
+                              : e.target.value,
                         }))
                       }
+                    >
+                      {CHEMINS_MESURES_V1.map((chemin) => (
+                        <option key={chemin} value={chemin}>
+                          {chemin}
+                        </option>
+                      ))}
+                      <option value={PREFIXE_PAR_TYPE}>{g.parType}</option>
+                    </select>
+                  </Champ>
+                  {element.mesure.startsWith(PREFIXE_PAR_TYPE) ? (
+                    <Champ id={`${id}-mot-${i}`} libelle={g.mot}>
+                      <input
+                        id={`${id}-mot-${i}`}
+                        className="champ champ-mono"
+                        value={element.mesure.slice(PREFIXE_PAR_TYPE.length)}
+                        onChange={(e) =>
+                          changerElement(i, (el) => ({
+                            ...el,
+                            mesure: `${PREFIXE_PAR_TYPE}${e.target.value}`,
+                          }))
+                        }
+                      />
+                    </Champ>
+                  ) : null}
+                  <Champ
+                    id={`${id}-poids-${i}`}
+                    libelle={g.poids}
+                    aide={g.poidsAide}
+                    erreur={erreur(`elements.${i}.poids`)}
+                  >
+                    <Nombre
+                      id={`${id}-poids-${i}`}
+                      valeur={element.poids}
+                      invalide={Boolean(erreurs[`elements.${i}.poids`])}
+                      onChange={(v) => changerElement(i, (el) => ({ ...el, poids: v }))}
                     />
                   </Champ>
-                ) : null}
-                <Champ
-                  id={`${id}-poids-${i}`}
-                  libelle={g.poids}
-                  aide={g.poidsAide}
-                  erreur={erreur(`elements.${i}.poids`)}
-                >
-                  <Nombre
-                    id={`${id}-poids-${i}`}
-                    valeur={element.poids}
-                    invalide={Boolean(erreurs[`elements.${i}.poids`])}
-                    onChange={(v) => changerElement(i, (el) => ({ ...el, poids: v }))}
-                  />
-                </Champ>
-              </div>
-              <div>
-                <span className="etiquette">{g.bandes}</span>
-                <p className={styles.aide}>{g.bandesAide}</p>
-                {erreur(`elements.${i}.bandes`) ? (
-                  <p className="erreur-champ">{erreur(`elements.${i}.bandes`)}</p>
-                ) : null}
-                <div className={styles.appuis}>
-                  {element.bandes.map((bande, j) => (
-                    <div key={j} className={styles.appui}>
-                      <span className={styles.appuiNumero}>{j + 1}</span>
-                      <input
-                        className="champ"
-                        aria-label={`${g.min} ${j + 1}`}
-                        placeholder={g.min}
-                        value={bande.min}
-                        aria-invalid={erreurs[`elements.${i}.bandes.${j}.min`] ? 'true' : undefined}
-                        onChange={(e) =>
-                          changerElement(i, (el) => ({
-                            ...el,
-                            bandes: el.bandes.map((b, k) =>
-                              k === j ? { ...b, min: e.target.value } : b,
-                            ),
-                          }))
-                        }
-                      />
-                      <input
-                        className="champ"
-                        aria-label={`${g.max} ${j + 1}`}
-                        placeholder={g.max}
-                        value={bande.max}
-                        aria-invalid={erreurs[`elements.${i}.bandes.${j}.max`] ? 'true' : undefined}
-                        onChange={(e) =>
-                          changerElement(i, (el) => ({
-                            ...el,
-                            bandes: el.bandes.map((b, k) =>
-                              k === j ? { ...b, max: e.target.value } : b,
-                            ),
-                          }))
-                        }
-                      />
-                      <div className={styles.formulaireInline}>
+                </div>
+                <div>
+                  <span className="etiquette">{g.bandes}</span>
+                  <p className={styles.aide}>{g.bandesAide}</p>
+                  {erreur(`elements.${i}.bandes`) ? (
+                    <p className="erreur-champ">{erreur(`elements.${i}.bandes`)}</p>
+                  ) : null}
+                  <div className={styles.appuis}>
+                    {element.bandes.map((bande, j) => (
+                      <div key={j} className={styles.appui}>
+                        <span className={styles.appuiNumero}>{j + 1}</span>
                         <input
                           className="champ"
-                          style={{ maxWidth: 90 }}
-                          aria-label={`${g.score} ${j + 1}`}
-                          placeholder={g.score}
-                          value={bande.score}
+                          aria-label={`${g.min} ${j + 1}`}
+                          placeholder={g.min}
+                          value={bande.min}
                           aria-invalid={
-                            erreurs[`elements.${i}.bandes.${j}.score`] ? 'true' : undefined
+                            erreurs[`elements.${i}.bandes.${j}.min`] ? 'true' : undefined
                           }
                           onChange={(e) =>
                             changerElement(i, (el) => ({
                               ...el,
                               bandes: el.bandes.map((b, k) =>
-                                k === j ? { ...b, score: e.target.value } : b,
+                                k === j ? { ...b, min: e.target.value } : b,
                               ),
                             }))
                           }
                         />
-                        <button
-                          type="button"
-                          className="bouton bouton-discret"
-                          aria-label={g.retirerBande(j + 1)}
-                          onClick={() =>
+                        <input
+                          className="champ"
+                          aria-label={`${g.max} ${j + 1}`}
+                          placeholder={g.max}
+                          value={bande.max}
+                          aria-invalid={
+                            erreurs[`elements.${i}.bandes.${j}.max`] ? 'true' : undefined
+                          }
+                          onChange={(e) =>
                             changerElement(i, (el) => ({
                               ...el,
-                              bandes: el.bandes.filter((_b, k) => k !== j),
+                              bandes: el.bandes.map((b, k) =>
+                                k === j ? { ...b, max: e.target.value } : b,
+                              ),
                             }))
                           }
-                        >
-                          ×
-                        </button>
+                        />
+                        <div className={styles.formulaireInline}>
+                          <input
+                            className="champ"
+                            style={{ maxWidth: 90 }}
+                            aria-label={`${g.score} ${j + 1}`}
+                            placeholder={g.score}
+                            value={bande.score}
+                            aria-invalid={
+                              erreurs[`elements.${i}.bandes.${j}.score`] ? 'true' : undefined
+                            }
+                            onChange={(e) =>
+                              changerElement(i, (el) => ({
+                                ...el,
+                                bandes: el.bandes.map((b, k) =>
+                                  k === j ? { ...b, score: e.target.value } : b,
+                                ),
+                              }))
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="bouton bouton-discret"
+                            aria-label={g.retirerBande(j + 1)}
+                            onClick={() =>
+                              changerElement(i, (el) => ({
+                                ...el,
+                                bandes: el.bandes.filter((_b, k) => k !== j),
+                              }))
+                            }
+                          >
+                            ×
+                          </button>
+                        </div>
+                        {['min', 'max', 'score'].map((champ) =>
+                          erreur(`elements.${i}.bandes.${j}.${champ}`) ? (
+                            <p
+                              key={champ}
+                              className="erreur-champ"
+                              style={{ gridColumn: '1 / -1' }}
+                            >
+                              {erreur(`elements.${i}.bandes.${j}.${champ}`)}
+                            </p>
+                          ) : null,
+                        )}
                       </div>
-                      {['min', 'max', 'score'].map((champ) =>
-                        erreur(`elements.${i}.bandes.${j}.${champ}`) ? (
-                          <p key={champ} className="erreur-champ" style={{ gridColumn: '1 / -1' }}>
-                            {erreur(`elements.${i}.bandes.${j}.${champ}`)}
-                          </p>
-                        ) : null,
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.formulaireInline} style={{ marginTop: 8 }}>
-                  <button
-                    type="button"
-                    className="bouton bouton-secondaire"
-                    onClick={() =>
-                      changerElement(i, (el) => ({ ...el, bandes: [...el.bandes, bandeVierge()] }))
-                    }
-                  >
-                    {g.ajouterBande}
-                  </button>
-                  <button
-                    type="button"
-                    className="bouton bouton-discret"
-                    onClick={() =>
-                      changer((s) => ({ ...s, elements: s.elements.filter((_e, k) => k !== i) }))
-                    }
-                  >
-                    {g.retirerElement}
-                  </button>
+                    ))}
+                  </div>
+                  <div className={styles.formulaireInline} style={{ marginTop: 8 }}>
+                    <button
+                      type="button"
+                      className="bouton bouton-secondaire"
+                      onClick={() =>
+                        changerElement(i, (el) => ({
+                          ...el,
+                          bandes: [...el.bandes, bandeVierge()],
+                        }))
+                      }
+                    >
+                      {g.ajouterBande}
+                    </button>
+                    <button
+                      type="button"
+                      className="bouton bouton-discret"
+                      onClick={() =>
+                        changer((s) => ({ ...s, elements: s.elements.filter((_e, k) => k !== i) }))
+                      }
+                    >
+                      {g.retirerElement}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          className="bouton bouton-secondaire"
-          style={{ marginTop: 8 }}
-          onClick={() => changer((s) => ({ ...s, elements: [...s.elements, elementVierge()] }))}
-        >
-          {g.ajouterElement}
-        </button>
-      </fieldset>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="bouton bouton-secondaire"
+            style={{ marginTop: 8 }}
+            onClick={() => changer((s) => ({ ...s, elements: [...s.elements, elementVierge()] }))}
+          >
+            {g.ajouterElement}
+          </button>
+        </fieldset>
+      )}
 
       <div className={styles.piedFormulaire}>
         <div>

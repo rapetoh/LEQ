@@ -111,6 +111,11 @@ export interface CritereGrille {
   definition: string
   regle: RegleCritere
   ordre: number
+  /** `mesure`: computed from the audio. `jugement`: scored by the model against the reference. */
+  source: 'mesure' | 'jugement'
+  /** The two worked examples that hold a judged axis in place from one take to the next. */
+  exemple_cinq: string | null
+  exemple_deux: string | null
 }
 
 export interface GrillePubliee {
@@ -134,6 +139,11 @@ export interface NouvelleEvaluation {
   version_grille: number | null
   sous_notes: Record<string, { score: number; max: number }>
   note_totale: number | null
+  /** The two halves, kept so the note can be read rather than taken on faith. */
+  note_mesure: number | null
+  note_jugement: number | null
+  /** What the model noticed and no criterion covers. Never in the note, always in the feedback. */
+  hors_grille: { sujet: string; remarque: string }[]
   seuil_reussite: number | null
 }
 
@@ -221,6 +231,9 @@ export function versCritereGrille(row: pg.QueryResultRow): CritereGrille {
       ? JSON.parse(row['regle'])
       : row['regle']) as RegleCritere,
     ordre: nombre(row['ordre'], 'criteres_grille.ordre'),
+    source: row['source'] === 'jugement' ? 'jugement' : 'mesure',
+    exemple_cinq: row['exemple_cinq'] === null ? null : String(row['exemple_cinq'] ?? '') || null,
+    exemple_deux: row['exemple_deux'] === null ? null : String(row['exemple_deux'] ?? '') || null,
   }
 }
 
@@ -658,6 +671,32 @@ export async function marquerCheminAudioSupprime(ex: Executeur, id: string): Pro
 // ---------------------------------------------------------------------------
 
 /** The latest published grid with its criteria in order, or null while Rebecca has not provided one. */
+/**
+ * The balance between the two halves of a note. Rebecca moves it from the admin, and the first
+ * real scores are what will move it: two thirds measure and one third judgement is a starting
+ * point, not a law.
+ */
+export async function lirePoidsNote(ex: Executeur): Promise<{
+  mesure: number
+  jugement: number
+  noteMax: number
+}> {
+  const { rows } = await ex.query(
+    `select cle, valeur from public.configuration
+      where cle in ('poids_mesure', 'poids_jugement', 'note_max_prestation')`,
+  )
+  const lu = new Map(rows.map((r) => [String(r['cle']), Number(r['valeur'])]))
+  const positif = (cle: string, defaut: number) => {
+    const valeur = lu.get(cle)
+    return valeur !== undefined && Number.isFinite(valeur) && valeur > 0 ? valeur : defaut
+  }
+  return {
+    mesure: positif('poids_mesure', 0.65),
+    jugement: positif('poids_jugement', 0.35),
+    noteMax: positif('note_max_prestation', 30),
+  }
+}
+
 export async function lireGrillePubliee(ex: Executeur): Promise<GrillePubliee | null> {
   const grilles = await ex.query(
     `select id, version, publiee_le from public.grilles
@@ -716,13 +755,18 @@ export async function enregistrerAnalyseEtEvaluation(
       ],
     )
     await client.query(
-      `insert into public.evaluations (tentative_id, grille_id, version_grille, sous_notes, note_totale, seuil_reussite)
-       values ($1, $2, $3, $4::jsonb, $5, $6)
+      `insert into public.evaluations (tentative_id, grille_id, version_grille, sous_notes,
+                                       note_totale, note_mesure, note_jugement, hors_grille,
+                                       seuil_reussite)
+       values ($1, $2, $3, $4::jsonb, $5, $7, $8, $9::jsonb, $6)
        on conflict (tentative_id) do update
          set grille_id = excluded.grille_id,
              version_grille = excluded.version_grille,
              sous_notes = excluded.sous_notes,
              note_totale = excluded.note_totale,
+             note_mesure = excluded.note_mesure,
+             note_jugement = excluded.note_jugement,
+             hors_grille = excluded.hors_grille,
              seuil_reussite = excluded.seuil_reussite`,
       [
         evaluation.tentative_id,
@@ -731,6 +775,9 @@ export async function enregistrerAnalyseEtEvaluation(
         JSON.stringify(evaluation.sous_notes),
         evaluation.note_totale,
         evaluation.seuil_reussite,
+        evaluation.note_mesure,
+        evaluation.note_jugement,
+        JSON.stringify(evaluation.hors_grille),
       ],
     )
     const resultat = await client.query('select public.appliquer_resultat($1) as resultat', [
