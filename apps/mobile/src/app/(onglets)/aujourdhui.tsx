@@ -10,6 +10,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { jourDuSujet, useSujet } from '@/services/arene'
 import { useDrapeaux } from '@/services/configuration'
 import { useEtapeDuJour } from '@/services/parcours'
 import { usePoints, useSerie } from '@/services/progres'
@@ -39,6 +40,7 @@ export default function Aujourdhui() {
   const router = useRouter()
   const drapeaux = useDrapeaux()
   const areneActive = drapeaux.data?.arene === true
+  const sujet = useSujet(areneActive)
   const serie = useSerie()
   const points = usePoints()
   const ateliers = useAteliers()
@@ -48,7 +50,10 @@ export default function Aujourdhui() {
   const prenom = profil.data?.prenom?.trim()
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
+    <ScrollView
+      style={{ backgroundColor: theme.fond }}
+      contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
+    >
       <EnteteEcran
         surtitre={dateDuJour()}
         titre={
@@ -115,10 +120,34 @@ export default function Aujourdhui() {
         </Pressable>
 
         {areneActive ? (
-          <CartePlaceholder
-            titre={t('aujourdhui.sujetSemaine')}
-            phrase={t('aujourdhui.placeholderSujet')}
-          />
+          // The subject of the week, not a placeholder. This card said « En construction » while
+          // the Arena tab, two taps away, showed the real question: the home screen was telling
+          // people a live feature was not built.
+          sujet.data ? (
+            <Pressable accessibilityRole="button" onPress={() => router.push('/(onglets)/arene')}>
+              <Carte teinte="sombre" style={styles.section}>
+                <View style={styles.ligne}>
+                  <Text style={[typographie.etiquette, { color: theme.voix, flex: 1 }]}>
+                    {t('aujourdhui.sujetSemaine').toUpperCase()}
+                  </Text>
+                  <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+                    {t('arene.jour', {
+                      jour: jourDuSujet(sujet.data),
+                      total: 7,
+                    })}
+                  </Text>
+                </View>
+                <Text style={[typographie.titreCarte, { color: theme.heroTexte }]}>
+                  {sujet.data.texte}
+                </Text>
+              </Carte>
+            </Pressable>
+          ) : (
+            <CartePlaceholder
+              titre={t('aujourdhui.sujetSemaine')}
+              phrase={t('aujourdhui.aucunSujet')}
+            />
+          )
         ) : (
           <Carte teinte="douce">
             <Text style={[typographie.titreCarte, { color: theme.texte }]}>
@@ -278,5 +307,7 @@ const styles = StyleSheet.create({
     borderRadius: rayons.l,
     minWidth: 56,
   },
-  ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  // A section title that wraps must not drag its action down with it: « Avec Rebecca, ce mois-ci »
+  // beside « Tout voir » is one line on a large phone and two on a small one.
+  ligne: { flexDirection: 'row', alignItems: 'flex-start', gap: espaces.s },
 })

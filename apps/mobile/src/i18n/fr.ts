@@ -374,6 +374,7 @@ export const fr = {
     placeholderConseil: 'Le conseil du jour arrivera avec le retour de Bulle.',
     placeholderPoints: 'Tes points apparaîtront ici après ta première prise.',
     placeholderSujet: "Le sujet de la semaine arrivera avec l'Arène.",
+    aucunSujet: 'Le prochain sujet arrive bientôt.',
     placeholderRebecca: 'Les ateliers de Rebecca apparaîtront ici quand elle en ouvrira un.',
     atelierEnDirect: 'Atelier collectif · en direct',
     atelierEnSalle: 'Atelier · {{lieu}}',

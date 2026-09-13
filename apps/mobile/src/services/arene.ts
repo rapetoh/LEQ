@@ -188,7 +188,7 @@ function useRequete<T>(
   })
 }
 
-export const useSujet = () => useRequete(CLE_SUJET, chargerSujet)
+export const useSujet = (actif = true) => useRequete(CLE_SUJET, chargerSujet, actif)
 export const useClassement = () => useRequete(CLE_CLASSEMENT, () => chargerClassement())
 export const useDernierSujetClos = () => useRequete(CLE_DERNIER_CLOS, chargerDernierSujetClos)
 
