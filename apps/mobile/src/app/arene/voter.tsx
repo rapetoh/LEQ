@@ -18,6 +18,7 @@ import {
   type PaireAVoter,
 } from '@/services/arene'
 import { useConfiguration } from '@/services/configuration'
+import { compter } from '@/services/usage'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { supabase } from '@/services/supabase'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -100,6 +101,7 @@ export default function Voter() {
     lecteur.arreter()
     try {
       await voter(gagnante, perdante)
+      compter('arene_vote')
       setGagnes((courants) => courants + points)
       invaliderArene(clientRequetes)
       await suivante(numero + 1)

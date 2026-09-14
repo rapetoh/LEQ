@@ -7,6 +7,7 @@ import { CielEtoile } from '@/components/CielEtoile'
 import { Bouton } from '@/components/ui/Bouton'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -51,7 +52,10 @@ export default function Bienvenue() {
       <View style={styles.actions}>
         <Bouton
           libelle={t('accueil.bienvenue.commencer')}
-          onPress={() => router.push('/accueil/decouverte')}
+          onPress={() => {
+            compter('accueil_commence')
+            router.push('/accueil/decouverte')
+          }}
         />
         <Bouton
           libelle={t('accueil.bienvenue.dejaUnCompte')}

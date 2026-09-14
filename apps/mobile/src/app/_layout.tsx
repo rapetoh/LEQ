@@ -18,6 +18,7 @@ import { rafraichirJeton, routePourCible, surNotificationTouchee } from '@/servi
 import { definirExpirationFileJours, demarrerFile, routePourRetour } from '@/services/prises'
 import { synchroniserFuseau } from '@/services/fuseau'
 import { FournisseurSession, useSession } from '@/services/supabase'
+import { useIdentiteUsage } from '@/services/usage'
 import { FournisseurTheme, useTheme } from '@/theme/ThemeProvider'
 
 // Keep the native splash until fonts and the session bootstrap are done.
@@ -58,6 +59,7 @@ export default function RacineLayout() {
 function Coquille({ policesPretes }: { policesPretes: boolean }) {
   const { pret: sessionPrete, session } = useSession()
   const theme = useTheme()
+  useIdentiteUsage()
 
   useEffect(() => {
     if (policesPretes && sessionPrete) void SplashScreen.hideAsync()

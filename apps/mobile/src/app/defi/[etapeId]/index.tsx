@@ -1,4 +1,5 @@
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router'
+import { useEffect } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -9,6 +10,7 @@ import { Carte } from '@/components/ui/Carte'
 import { t } from '@/i18n/fr'
 import { useBrief, useEtapeDuJour, type Brief as DonneesBrief } from '@/services/parcours'
 import { minutesDe, positionDefi, surtitreFormat } from '@/services/rythme'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -22,6 +24,11 @@ export default function Brief() {
   const brief = useBrief(etapeId)
   const jour = useEtapeDuJour()
   const router = useRouter()
+
+  const etapeOuverte = brief.data?.etape.id ?? null
+  useEffect(() => {
+    if (etapeOuverte) compter('defi_ouvert', { etape_id: etapeOuverte })
+  }, [etapeOuverte])
 
   if (brief.isPending) return <EcranChargement />
   if (brief.isError) {

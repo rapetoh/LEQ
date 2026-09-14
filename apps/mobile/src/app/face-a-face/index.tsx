@@ -21,6 +21,7 @@ import {
   useTheses,
   type These,
 } from '@/services/debat'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -84,6 +85,7 @@ export default function PreparerDebat() {
         ton: ton ?? null,
       })
       invaliderDebats(clientRequetes)
+      compter('debat_ouvert', { ton: ton ?? 'defaut', these_personnelle: ecrireVraiment })
       router.replace(`/face-a-face/${debat.id}`)
     } catch (erreur) {
       // A refusal used to be one orange line at the bottom of a long page, where it was missed.

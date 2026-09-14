@@ -21,6 +21,7 @@ import {
 } from '@/services/progres'
 import { nomFormule, useFormules } from '@/services/formules'
 import { ilYA } from '@/services/rythme'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -40,6 +41,7 @@ export default function Recompenses() {
     mutationFn: echangerRecompense,
     onSuccess: () => {
       setMessage(t('recompenses.fait'))
+      compter('recompense_echangee')
       invaliderProgres(clientRequetes)
     },
     onError: (erreur: Error) => {

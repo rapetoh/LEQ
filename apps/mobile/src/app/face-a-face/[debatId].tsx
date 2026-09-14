@@ -13,6 +13,7 @@ import { t } from '@/i18n/fr'
 import { AudioDebat } from '@/services/debatAudio'
 import { ClientDebat, invaliderDebats, type MessageSortant } from '@/services/debat'
 import { supabase } from '@/services/supabase'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -151,7 +152,9 @@ export default function FaceAFace() {
   }, [debatId, surMessage])
 
   useEffect(() => {
-    if (phase === 'termine') invaliderDebats(clientRequetes)
+    if (phase !== 'termine') return
+    invaliderDebats(clientRequetes)
+    compter('debat_termine')
   }, [phase, clientRequetes])
 
   // The app keeps the microphone in the background (the audio session says so), so leaving the

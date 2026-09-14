@@ -10,6 +10,7 @@ import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { creerDuel, invaliderArene, messageRefus } from '@/services/arene'
+import { compter } from '@/services/usage'
 import { lienInvitationDuel } from '@leq/domaine'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
@@ -37,6 +38,7 @@ export default function NouveauDuel() {
     try {
       const duel = await creerDuel(sujet.trim())
       setLien(lienInvitationDuel(BASE_LIEN, duel.jeton))
+      compter('duel_cree')
       invaliderArene(clientRequetes)
     } catch (erreur) {
       setMessage(messageRefus(erreur))

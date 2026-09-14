@@ -16,6 +16,7 @@ import { t } from '@/i18n/fr'
 import { enregistrement } from '@/services/enregistrement'
 import { demanderMicro } from '@/services/micro'
 import { file, horodatageLocal } from '@/services/prises'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -133,6 +134,7 @@ export function EcranPrise(props: ProprietesPrise) {
       const prise = await enregistrement.arreter()
       await file.terminer(id, prise)
       setPhase('terminee')
+      compter('prise_enregistree', { type, duree_s: Math.round(prise.duree_s) })
       void file.envoyerEnAttente()
       onTerminee(id)
     } catch (erreur) {
