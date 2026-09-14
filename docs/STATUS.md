@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-13, after the three sign-in doors, PostHog and the Arena publish gesture were wired (section below). Update this file in the same commit as any change of state.
+Last updated: 2026-09-13, after build 16 reached TestFlight from this Mac with the three sign-in doors, PostHog and the Arena publish gesture (section below). Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -714,12 +714,12 @@ been tried on a phone yet.
   Google sign-in on a device, an e-mail arriving through Gmail, an event arriving in PostHog, the
   publish gesture against production. All four need a phone build, and the phone build needs the
   account below.
-- **The phone build.** The Expo free plan's iOS builds are used up until 1 October. Xcode 26.6
-  builds the app on this Mac (docs/RUNBOOK.md), but a TestFlight upload needs a distribution
-  certificate and an App Store Connect login, and this Mac has neither: no Apple account in Xcode,
-  no App Store Connect API key, only a development certificate. Roch signs into Xcode once
-  (Settings > Accounts, the Apple Developer account) or creates an App Store Connect API key, and
-  the archive and upload run from the command line from then on.
+- **Build 16 is in TestFlight**, archived and uploaded from this Mac on 2026-09-13 with the
+  released Xcode's build tools and Roch's Apple account, signed in through the Xcode 27 beta's
+  window because macOS 27 beta refuses to open the released Xcode's own (docs/RUNBOOK.md, "Build
+  the mobile app"). It carries the three doors, PostHog, the publish gesture and the Google
+  client ids. The Google consent screen went to production the same evening, so Google sign-in
+  is open to anyone, and the two legal URLs it required point at the public pages on Fly.
 
 ## Next
 
@@ -727,10 +727,8 @@ Phases 0 to 8 are built, deployed and covered. What is left is not more code: it
 inputs that were never ours to invent, and the accounts that gate the release.
 
 1. **Roch, and only Roch.** Each of these unblocks work that is already written and waiting:
-   - an Apple account in Xcode, or an App Store Connect API key: build 16 goes to TestFlight from
-     this Mac, and the three sign-in doors, PostHog and the publish gesture get tried on a phone;
-   - the Google consent screen published, or the testers' addresses listed on it, so Google
-     sign-in works for someone other than the project's owner;
+   - a walkthrough of build 16 on his phone: the three sign-in doors, an e-mail through Gmail, an
+     event in PostHog, an Arena take published;
    - a Sentry account and its DSN: crash reporting, the last unticked item of Phase 9 plumbing;
    - the RevenueCat account: `abonnements` gets its writer and E1 gets its offers;
    - a lawyer reads the chapter 2 statement now published in `apps/web`;

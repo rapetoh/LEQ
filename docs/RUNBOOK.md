@@ -394,18 +394,18 @@ npx eas-cli submit --platform ios
 
 The free EAS plan includes 15 iOS and 15 Android builds a month; they were used up on 2026-09-12 and come back on 1 October 2026 (`eas billing:subscribe starter` lifts the limit sooner). Builds are started by hand, never from CI. Profiles live in `apps/mobile/eas.json`; `appVersionSource: remote` means EAS numbers the builds itself (15 was the last), so a local build sets `ios.buildNumber` in `app.json` above that.
 
-Or this Mac, which has Xcode 26.6 with a released SDK (the plan's worry about a beta SDK was wrong, see "Running the app on this Mac"). What it needs and does not have on 2026-09-13: an Apple account signed into Xcode (Settings > Accounts, the Apple Developer Program account), or an App Store Connect API key (`.p8`, key id, issuer id). With one of them, from `apps/mobile`:
+Or this Mac, which is how build 16 reached TestFlight on 2026-09-13. Two facts about this machine: macOS 27 beta refuses to open the window of the released Xcode 26.6 ("isn't supported in this version of macOS") but runs its build tools, and Xcode keeps Apple accounts in the user's keychain, shared by every Xcode installed. So the account is signed in once through the window of the Xcode 27 beta that sits next to it (Settings > Apple Accounts > Sign In), and the 26.6 tools use it. Then, from `apps/mobile`:
 
 ```bash
 npx expo prebuild --platform ios                      # after any change to app.json or a config plugin
 xcodebuild -workspace ios/LEQ.xcworkspace -scheme LEQ -configuration Release \
-  -destination 'generic/platform=iOS' -archivePath build/LEQ.xcarchive archive \
-  -allowProvisioningUpdates DEVELOPMENT_TEAM=47WU47J52M CURRENT_PROJECT_VERSION=16
-xcodebuild -exportArchive -archivePath build/LEQ.xcarchive -exportPath build/export \
-  -exportOptionsPlist build/export.plist -allowProvisioningUpdates    # method app-store-connect, destination upload
+  -destination 'generic/platform=iOS' -archivePath ios/build/LEQ.xcarchive archive \
+  -allowProvisioningUpdates DEVELOPMENT_TEAM=47WU47J52M CODE_SIGN_STYLE=Automatic
+xcodebuild -exportArchive -archivePath ios/build/LEQ.xcarchive -exportPath ios/build/export \
+  -exportOptionsPlist exportOptions.plist -allowProvisioningUpdates
 ```
 
-`-allowProvisioningUpdates` lets Xcode create the distribution certificate and profile on first use; with an API key, add `-authenticationKeyPath`, `-authenticationKeyID` and `-authenticationKeyIssuerID` to both commands. Metro inlines `apps/mobile/.env` at archive time, so a local build carries the Google client ids and the PostHog key without any EAS environment variable.
+`exportOptions.plist` (committed) says `app-store-connect`, destination `upload`, automatic signing. `-allowProvisioningUpdates` let Xcode create the distribution certificate and the App Store profile on the first run. The archive takes about ten minutes, the upload one; the build number comes from `ios.buildNumber` in `app.json` and must exceed the last one on App Store Connect. The export prints "Upload Symbols Failed" warnings for the prebuilt React, Hermes and ffmpeg frameworks, which ship without dSYMs; that only affects crash symbolication inside those frameworks. Metro inlines `apps/mobile/.env` at archive time, so a local build carries the Google client ids and the PostHog key without any EAS environment variable. With an App Store Connect API key instead of a signed-in account, add `-authenticationKeyPath`, `-authenticationKeyID` and `-authenticationKeyIssuerID` to both commands.
 
 Development builds for a device without Xcode on the tester's side: `npx eas-cli build --platform ios --profile development`, install through the link EAS prints.
 
