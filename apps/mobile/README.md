@@ -35,6 +35,11 @@ Store builds go through EAS cloud, never this Mac (macOS beta, see docs/RUNBOOK.
 
 - `src/services/notifications.ts`: push permission and token registration (`jetons_push`), tap handling; `src/app/reglages.tsx`: G3 with the voice statement, export request, account deletion, notification switches, night mode.
 
+## Sign-in and usage (2026-09-13)
+
+- `src/services/identite.ts`: Sign in with Apple (`expo-apple-authentication`, a hashed nonce) and Google (`@react-native-google-signin/google-signin`), both native sheets, both ending in `supabase.auth.signInWithIdToken`. The Google client ids come from `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`; without the web id the Google button is not rendered.
+- `src/services/usage.ts`: PostHog. A closed list of product events (`compter`), the person identified by their Supabase id from the root layout (`useIdentiteUsage`), nothing about the voice ever sent. Without `EXPO_PUBLIC_POSTHOG_KEY` every call is a no-op, which is the state of a test and of a fresh checkout.
+
 ## Not here yet
 
-Apple and Google sign-in (credentials awaited), the daily reminder as a local notification (Phase 5), everything past flow A. The `CLAUDE.md` and `AGENTS.md` files come from the Expo template and document SDK 57 conventions; the LEQ rules are in `docs/`.
+RevenueCat and the offers screen's real prices (account awaited), crash reporting. The `CLAUDE.md` and `AGENTS.md` files come from the Expo template and document SDK 57 conventions; the LEQ rules are in `docs/`.

@@ -42,7 +42,6 @@ export default function Aujourdhui() {
   const drapeaux = useDrapeaux()
   const areneActive = drapeaux.data?.arene === true
   const sujet = useSujet(areneActive)
-  const formules = useFormules()
   const serie = useSerie()
   const points = usePoints()
   const ateliers = useAteliers()

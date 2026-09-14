@@ -147,7 +147,10 @@ export const fr = {
     codeEnvoye: 'Un code à six chiffres est parti vers {{email}}.',
     plusTard: "Plus tard, je veux d'abord essayer",
     resteIci: 'Ton profil reste sur ce téléphone en attendant',
-    bientot: "Apple et Google arrivent dans une prochaine version. L'e-mail est déjà disponible.",
+    fournisseurIndisponible:
+      "Cette connexion n'est pas disponible sur ce téléphone. Utilise ton e-mail.",
+    fournisseurEchec:
+      "La connexion avec {{fournisseur}} n'a pas abouti. Réessaie ou utilise ton e-mail.",
     erreurEmail: "Cette adresse e-mail n'est pas valide.",
     erreurCode: "Ce code ne correspond pas. Vérifie l'e-mail, ou demande un nouveau code.",
     erreurReseau: "On n'a pas pu envoyer le code. Vérifie ta connexion, puis réessaie.",
@@ -354,6 +357,14 @@ export const fr = {
     introuvable: 'On ne retrouve pas ce retour. Ta prochaine prise en générera un nouveau.',
     tropTot: "Ton retour n'est pas encore prêt. Il arrive à la fin de l'analyse.",
     suivreAnalyse: "Suivre l'analyse",
+    // An Arena or duel take stays private until the person publishes it (chapter 11).
+    titreArene: 'Ton passage est prêt.',
+    corpsArene: "Publie-le dans l'Arène ou garde-le pour toi.",
+    publierArene: "Publier dans l'Arène",
+    garderPourMoi: 'Garder pour moi',
+    titreDuel: 'Ta réponse est prête.',
+    corpsDuel: 'Envoie-la. Le verdict arrive quand vous avez parlé tou·te·s les deux.',
+    envoyerDuel: 'Envoyer ma réponse',
   },
   aujourdhui: {
     salutation: 'Salut, {{prenom}}',

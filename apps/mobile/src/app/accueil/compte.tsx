@@ -9,17 +9,25 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
+import {
+  ErreurIdentite,
+  fournisseurDisponible,
+  seConnecterAvec,
+  type Fournisseur,
+} from '@/services/identite'
 import { supabase } from '@/services/supabase'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
 // A7 · Garder son profil. The account comes after the gift, never before. Refusing keeps
-// everything on the phone. E-mail works today; Apple and Google arrive with their
-// credentials (docs/OPEN-INPUTS.md).
+// everything on the phone. Three doors: Apple and Google through the system sheet, e-mail
+// through a six-digit code.
 
 type Etape = 'choix' | 'email' | 'code' | 'prenom'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const NOMS: Record<Fournisseur, string> = { apple: 'Apple', google: 'Google' }
 
 export default function Compte() {
   const params = useLocalSearchParams<{ mode?: string }>()
@@ -34,6 +42,7 @@ export default function Compte() {
   const [prenom, setPrenom] = useState('')
   const [erreur, setErreur] = useState<string | null>(null)
   const [enCours, setEnCours] = useState(false)
+  const [fournisseurEnCours, setFournisseurEnCours] = useState<Fournisseur | null>(null)
 
   const terminer = () => {
     marquerAccueilTermine()
@@ -72,7 +81,48 @@ export default function Compte() {
       setErreur(t('compte.erreurCode'))
       return
     }
+    compter('compte_connexion', { methode: 'email' })
     setEtape('prenom')
+  }
+
+  // Apple and Google: the system sheet, a token, a session. The first name comes with it when
+  // the provider gives one, and the screen only asks for it when it did not.
+  const continuerAvec = async (fournisseur: Fournisseur) => {
+    setErreur(null)
+    setFournisseurEnCours(fournisseur)
+    try {
+      const identite = await seConnecterAvec(fournisseur)
+      compter('compte_connexion', { methode: fournisseur })
+      const { data } = await supabase.auth.getSession()
+      const id = data.session?.user.id
+      if (id) {
+        const { data: profil } = await supabase
+          .from('profils')
+          .select('prenom')
+          .eq('id', id)
+          .maybeSingle()
+        const dejaLa = (profil as { prenom?: string | null } | null)?.prenom?.trim()
+        if (dejaLa) {
+          terminer()
+          return
+        }
+        if (identite.prenom) {
+          await supabase.from('profils').update({ prenom: identite.prenom }).eq('id', id)
+          terminer()
+          return
+        }
+      }
+      setEtape('prenom')
+    } catch (erreur) {
+      if (erreur instanceof ErreurIdentite && erreur.raison === 'annule') return
+      setErreur(
+        erreur instanceof ErreurIdentite && erreur.raison === 'indisponible'
+          ? t('compte.fournisseurIndisponible')
+          : t('compte.fournisseurEchec', { fournisseur: NOMS[fournisseur] }),
+      )
+    } finally {
+      setFournisseurEnCours(null)
+    }
   }
 
   const enregistrerPrenom = async () => {
@@ -116,22 +166,29 @@ export default function Compte() {
 
       {etape === 'choix' ? (
         <View style={styles.bloc}>
+          {fournisseurDisponible('apple') ? (
+            <Bouton
+              libelle={t('compte.apple')}
+              variante="secondaire"
+              chargement={fournisseurEnCours === 'apple'}
+              desactive={fournisseurEnCours !== null}
+              onPress={() => void continuerAvec('apple')}
+            />
+          ) : null}
+          {fournisseurDisponible('google') ? (
+            <Bouton
+              libelle={t('compte.google')}
+              variante="secondaire"
+              chargement={fournisseurEnCours === 'google'}
+              desactive={fournisseurEnCours !== null}
+              onPress={() => void continuerAvec('google')}
+            />
+          ) : null}
           <Bouton
-            libelle={t('compte.apple')}
-            variante="secondaire"
-            desactive
-            onPress={() => undefined}
+            libelle={t('compte.email')}
+            desactive={fournisseurEnCours !== null}
+            onPress={() => setEtape('email')}
           />
-          <Bouton
-            libelle={t('compte.google')}
-            variante="secondaire"
-            desactive
-            onPress={() => undefined}
-          />
-          <Bouton libelle={t('compte.email')} onPress={() => setEtape('email')} />
-          <Text style={[typographie.petit, styles.note, { color: theme.texteTertiaire }]}>
-            {t('compte.bientot')}
-          </Text>
         </View>
       ) : null}
 

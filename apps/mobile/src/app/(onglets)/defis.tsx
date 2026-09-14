@@ -36,7 +36,10 @@ export default function Defis() {
   const actes = carte.data ? [...carte.data].sort((a, b) => b.ordre - a.ordre) : []
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
+    <ScrollView
+      style={{ backgroundColor: theme.fond }}
+      contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
+    >
       <EnteteEcran
         titre={t('carte.titre')}
         droite={

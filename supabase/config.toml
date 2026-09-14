@@ -22,8 +22,8 @@ major_version = 17
 enabled = false
 port = 54329
 pool_mode = "transaction"
-default_pool_size = 20
-max_client_conn = 100
+default_pool_size = 15
+max_client_conn = 200
 
 [db.seed]
 enabled = true
@@ -49,8 +49,10 @@ file_size_limit = "50MiB"
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://127.0.0.1:3000", "leq://auth"]
+# The hosted site, where the public pages and the duel invitation live. `config push` writes this
+# to the project, so it must be the real one and not the template's local address.
+site_url = "https://leq-serveur.fly.dev"
+additional_redirect_urls = ["https://127.0.0.1:3000", "http://127.0.0.1:3000", "leq://auth"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -77,6 +79,33 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
 max_frequency = "1s"
+
+# The code e-mails leave from LEQ's own address, hundreds a day, instead of Supabase's shared
+# sender and its few per hour for the whole project. The app password lives in .env only.
+[auth.email.smtp]
+enabled = true
+host = "smtp.gmail.com"
+port = 587
+user = "join.leq@gmail.com"
+pass = "env(SMTP_PASS)"
+admin_email = "join.leq@gmail.com"
+sender_name = "LEQ"
+
+# Sign in with Apple, native: the bundle id is the whole configuration, no secret is involved.
+[auth.external.apple]
+enabled = true
+client_id = "com.leqapp.mobile"
+secret = ""
+
+# Sign in with Google, native on iOS and OAuth on the web. Two client ids, web first: they are
+# public by design and ship inside the app. The secret is the web client's and lives in .env.
+# `skip_nonce_check`: the iOS SDK does not hand the app the nonce it used, so the token cannot be
+# checked against one; Supabase documents this switch for exactly that case.
+[auth.external.google]
+enabled = true
+client_id = "857353590307-uhltrjds3ksv3rrbi2jncf9v8j71i2f3.apps.googleusercontent.com,857353590307-o4m8tts8r2a2g6h6ti9nu65g88b3031j.apps.googleusercontent.com"
+secret = "env(GOOGLE_WEB_CLIENT_SECRET)"
+skip_nonce_check = true
 
 [auth.rate_limit]
 # Anonymous sign-ins per hour per IP.

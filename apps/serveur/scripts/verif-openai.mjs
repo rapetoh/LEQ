@@ -47,8 +47,16 @@ const aiff = join(dossier, 'p.aiff')
 const m4a = join(dossier, 'p.m4a')
 const pcm = join(dossier, 'p.pcm')
 execFileSync('say', ['-v', 'Thomas', '-o', aiff, PHRASE], { stdio: 'pipe' })
-execFileSync('ffmpeg', ['-loglevel', 'error', '-i', aiff, '-ac', '1', '-ar', '22050', '-b:a', '32k', m4a], { stdio: 'pipe' })
-execFileSync('ffmpeg', ['-loglevel', 'error', '-i', aiff, '-ac', '1', '-ar', '16000', '-f', 's16le', pcm], { stdio: 'pipe' })
+execFileSync(
+  'ffmpeg',
+  ['-loglevel', 'error', '-i', aiff, '-ac', '1', '-ar', '22050', '-b:a', '32k', m4a],
+  { stdio: 'pipe' },
+)
+execFileSync(
+  'ffmpeg',
+  ['-loglevel', 'error', '-i', aiff, '-ac', '1', '-ar', '16000', '-f', 's16le', pcm],
+  { stdio: 'pipe' },
+)
 
 try {
   // 1. Whisper, on a recorded take: the words with their times.
@@ -58,10 +66,21 @@ try {
     typeMime: 'audio/mp4',
     langue: 'fr',
   })
-  verifier(transcription.texte.length > 20, 'Whisper transcrit la prise', `${Date.now() - t0} ms · « ${transcription.texte.slice(0, 70)} »`)
-  verifier(transcription.mots.length > 10, 'avec un temps pour chaque mot', `${transcription.mots.length} mots`)
+  verifier(
+    transcription.texte.length > 20,
+    'Whisper transcrit la prise',
+    `${Date.now() - t0} ms · « ${transcription.texte.slice(0, 70)} »`,
+  )
+  verifier(
+    transcription.mots.length > 10,
+    'avec un temps pour chaque mot',
+    `${transcription.mots.length} mots`,
+  )
   verifier(/vérité/i.test(transcription.texte), 'et le texte est bien celui qui a été dit')
-  verifier(transcription.mots.every((m) => m.fin_s >= m.debut_s), 'et les temps se tiennent')
+  verifier(
+    transcription.mots.every((m) => m.fin_s >= m.debut_s),
+    'et les temps se tiennent',
+  )
 
   // 2. The realtime session, fed the same speech as 16 kHz PCM, the way the phone sends it.
   const flux = new TranscripteurFluxOpenAI(config)
@@ -94,8 +113,12 @@ try {
     }
     envoyer()
   })
-  verifier(fin.texte.length > 20, 'la session temps réel rend le tour', `${Date.now() - t1} ms · « ${fin.texte.slice(0, 70)} »`)
-  verifier(/vérité/i.test(fin.texte), 'et c\'est bien ce qui a été dit')
+  verifier(
+    fin.texte.length > 20,
+    'la session temps réel rend le tour',
+    `${Date.now() - t1} ms · « ${fin.texte.slice(0, 70)} »`,
+  )
+  verifier(/vérité/i.test(fin.texte), "et c'est bien ce qui a été dit")
 
   // 3. Rétor answers what was just said, in French, briefly.
   const adversaire = new AdversaireOpenAI(config)
@@ -105,7 +128,11 @@ try {
     ton: 'ferme',
     tours: [{ locuteur: 'utilisateur', texte: transcription.texte }],
   })
-  verifier(reponse.length > 10 && reponse.split(/\s+/).length <= 60, 'Rétor répond court', `${Date.now() - t2} ms · « ${reponse} »`)
+  verifier(
+    reponse.length > 10 && reponse.split(/\s+/).length <= 60,
+    'Rétor répond court',
+    `${Date.now() - t2} ms · « ${reponse} »`,
+  )
   verifier(!/[—–]/.test(reponse), 'sans tiret cadratin')
 
   const debrief = await adversaire.debriefer({
@@ -114,17 +141,30 @@ try {
     tours: [
       { locuteur: 'utilisateur', texte: transcription.texte },
       { locuteur: 'retor', texte: reponse },
-      { locuteur: 'utilisateur', texte: "Rendre service, c'est justement dire ce que l'autre ne veut pas entendre." },
+      {
+        locuteur: 'utilisateur',
+        texte: "Rendre service, c'est justement dire ce que l'autre ne veut pas entendre.",
+      },
     ],
   })
-  verifier(debrief.moments.length >= 1 && debrief.axe.length > 10, 'et écrit un débrief', `${debrief.moments.length} moment(s) · axe : « ${debrief.axe.slice(0, 80)} »`)
+  verifier(
+    debrief.moments.length >= 1 && debrief.axe.length > 10,
+    'et écrit un débrief',
+    `${debrief.moments.length} moment(s) · axe : « ${debrief.axe.slice(0, 80)} »`,
+  )
   verifier(debrief.provisoire === false, 'qui est un vrai débrief')
 
   // 4. The judge, against two invented axes with their two anchors.
   const juge = new JugeOpenAI(config)
   const critere = (cle, nom) => ({
-    id: cle, grille_id: 'g', cle, nom, definition: '', ordre: 0, source: 'jugement',
-    exemple_cinq: 'Une idée annoncée, un exemple, une conclusion qui reprend l\'idée.',
+    id: cle,
+    grille_id: 'g',
+    cle,
+    nom,
+    definition: '',
+    ordre: 0,
+    source: 'jugement',
+    exemple_cinq: "Une idée annoncée, un exemple, une conclusion qui reprend l'idée.",
     exemple_deux: 'Plusieurs idées commencées, aucune finie.',
     regle: { version: 1, score_max: 5, elements: [] },
   })
@@ -132,15 +172,23 @@ try {
   const jugement = await juge.juger({
     transcription,
     mesures: {},
-    criteres: [critere('structure', 'La structure du propos'), critere('conviction', 'La conviction')],
+    criteres: [
+      critere('structure', 'La structure du propos'),
+      critere('conviction', 'La conviction'),
+    ],
     criteresCouverts: ['Le débit', 'Les mots béquilles', 'La structure du propos', 'La conviction'],
   })
   verifier(
-    typeof jugement.sous_notes.structure?.score === 'number' && typeof jugement.sous_notes.conviction?.score === 'number',
+    typeof jugement.sous_notes.structure?.score === 'number' &&
+      typeof jugement.sous_notes.conviction?.score === 'number',
     'le juge note les deux axes',
     `${Date.now() - t3} ms · structure ${jugement.sous_notes.structure?.score}/5 · conviction ${jugement.sous_notes.conviction?.score}/5`,
   )
-  verifier(Array.isArray(jugement.hors_grille), 'et dit ce qui tombe hors grille', jugement.hors_grille.map((o) => `${o.sujet} : ${o.remarque}`).join(' | ') || 'rien')
+  verifier(
+    Array.isArray(jugement.hors_grille),
+    'et dit ce qui tombe hors grille',
+    jugement.hors_grille.map((o) => `${o.sujet} : ${o.remarque}`).join(' | ') || 'rien',
+  )
 
   // 5. The voice: the first chunk has to come fast, and it has to be even-length PCM.
   const voix = new VoixOpenAI(config)
@@ -150,10 +198,14 @@ try {
   for await (const morceau of voix.dire(reponse)) {
     if (premier === null) premier = Date.now() - t4
     total += morceau.length
-    verifier(morceau.length % 2 === 0, 'chaque morceau de voix est un nombre entier d\'échantillons')
+    verifier(morceau.length % 2 === 0, "chaque morceau de voix est un nombre entier d'échantillons")
     if (total > 200_000) break
   }
-  verifier(premier !== null && premier < 4000, 'la voix commence vite', `${premier} ms jusqu\'au premier morceau`)
+  verifier(
+    premier !== null && premier < 4000,
+    'la voix commence vite',
+    `${premier} ms jusqu\'au premier morceau`,
+  )
   verifier(total > 20_000, 'et elle a du contenu', `${total} octets de PCM 24 kHz`)
 } catch (erreur) {
   verifier(false, 'les quatre adaptateurs répondent', erreur.message)

@@ -15,7 +15,9 @@
         "CFBundleDevelopmentRegion": "fr",
         "CFBundleLocalizations": ["fr", "fr"],
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true,
+      "buildNumber": "16"
     },
     "android": {
       "package": "com.leqapp.mobile",
@@ -60,6 +62,13 @@
         "expo-notifications",
         {
           "color": "#001636"
+        }
+      ],
+      "expo-localization",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.857353590307-o4m8tts8r2a2g6h6ti9nu65g88b3031j"
         }
       ]
     ],

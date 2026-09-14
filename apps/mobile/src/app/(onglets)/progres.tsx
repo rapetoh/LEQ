@@ -53,7 +53,10 @@ function Progression({ resume }: { resume: ResumeProgres }) {
   const memePrise = premiere?.enregistre_le === derniere?.enregistre_le
 
   return (
-    <ScrollView style={{ backgroundColor: theme.fond }} contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}>
+    <ScrollView
+      style={{ backgroundColor: theme.fond }}
+      contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
+    >
       <EnteteEcran surtitre={t('progres.surtitre')} titre={t('progres.titre')} />
       <View style={styles.sections}>
         <Carte style={styles.bloc}>

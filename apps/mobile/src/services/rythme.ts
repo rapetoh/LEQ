@@ -6,7 +6,6 @@ import {
   SousNotesSchema,
   type EtapeDuJour,
   type FormatDefi,
-  type Formule,
   type ResultatTentative,
 } from '@leq/domaine'
 
