@@ -295,7 +295,7 @@ Written before the work started. Cahier chapter 10, plan Phase 8. Everything shi
 4. Admin
    - [x] The thesis bank (`/theses`): create, edit, order, tone, provisional and active, with a badge on the theses the app would offer right now. Checked in a real browser with the network stubbed: the menu entry, the three theses, the badges, no console error
 5. Verification
-   - [x] The measured cost and the per-turn latency of one real session, measured against production on 2026-09-13 (section « Le coût d'un face-à-face, mesuré »): about $0.02 a minute of speech, $0.11 for five minutes, and a median of 3.2 s from the end of speech to Rétor's text, above the two seconds of chapter 9
+   - [x] The measured cost and the per-turn latency of one real session, measured against production on 2026-09-13 (section « Le coût d'un face-à-face, mesuré »): $0.019 to $0.022 a minute of speech over four runs, $0.09 to $0.11 for five minutes, and a median of 2.5 to 3.2 s from the end of speech to Rétor's text, above the two seconds of chapter 9
 
 ## Phase 9 checklist (release)
 
@@ -738,6 +738,12 @@ been tried on a phone yet.
   Google sign-in on a device, an e-mail arriving through Gmail, an event arriving in PostHog, the
   publish gesture against production. All four need a phone build, and the phone build needs the
   account below.
+- **Build 17 is archived and waits for a credential.** Its upload was refused two hours after
+  build 16's went through: the Apple account signed into Xcode had gone from the build tools'
+  view, and the distribution certificate Apple created for build 16 is a cloud-managed one that
+  lives behind that account. An App Store Connect API key would not evaporate; it is asked of
+  Roch in docs/OPEN-INPUTS.md. Build 17 carries the act objective on the map and the two act
+  screens; everything else on the phone is in build 16 already.
 - **Build 16 is in TestFlight**, archived and uploaded from this Mac on 2026-09-13 with the
   released Xcode's build tools and Roch's Apple account, signed in through the Xcode 27 beta's
   window because macOS 27 beta refuses to open the released Xcode's own (docs/RUNBOOK.md, "Build
@@ -782,9 +788,14 @@ silence detection; neither is done, and the number is recorded as it stands.
 **The bug the measurement found.** The row said 6.9 s of speech for 232 s sent. The speaking time
 started a clock on the server at the first transcript of a turn, and this provider transcribes
 once the person has stopped, so every turn counted about a second and the cap of a session never
-came: a free account's three minutes were unlimited. The time now comes from the provider's own
-voice detection (its speech boundaries, in milliseconds of audio), with the audio received as the
-fallback for a provider that cannot say; a conductor test pins it. Server v23.
+came: a free account's three minutes were unlimited. The second run, on v23, counted the first
+turn and nothing after it: the provider's voice detection announces a start once and, after a
+turn committed by the button, stays in "speaking" and announces neither a stop nor a new start
+(a probe on the raw events showed one `speech_started` at 0 ms over two committed turns). The
+time now comes from those boundaries when the detection gives them, and from the audio received
+otherwise; a conductor test pins the count. The fourth run, on v24, ended on its own at 181.7 s
+of speech against a cap of 180, counted to the tenth of a second, and cost $0.056 for those
+three minutes.
 
 ## Next
 

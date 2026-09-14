@@ -180,7 +180,14 @@ try {
       const finParole = Date.now()
       socket.send(JSON.stringify({ type: 'fin_tour' }))
       const transcrit = await attendre((m) => m.type === 'transcription' && !m.partiel, depuis)
-      termine = recus.slice(depuis).find((m) => m.type === 'termine') ?? null
+      // At the cap the server writes the turn and ends the session instead of answering: the
+      // next frame is either Rétor's text or the end, and the end can arrive a moment after
+      // the transcript.
+      const suite = await attendre(
+        (m) => m.type === 'reponse_texte' || m.type === 'termine',
+        depuis,
+      )
+      termine = suite.type === 'termine' ? suite : null
       if (termine) {
         lignes.push({
           tour: i + 1,
@@ -190,7 +197,7 @@ try {
         })
         break
       }
-      const texte = await attendre((m) => m.type === 'reponse_texte', depuis)
+      const texte = suite
       const premierAudio = await attendre(
         (m) => m.type === 'reponse_audio' && m.donnees.length > 0,
         depuis,
