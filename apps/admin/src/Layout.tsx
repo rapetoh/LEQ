@@ -13,6 +13,7 @@ const LIENS = [
     fin: false,
   },
   { vers: '/drapeaux', libelle: fr.navigation.drapeaux, icone: 'drapeaux' as NomIcone, fin: false },
+  { vers: '/formules', libelle: fr.navigation.formules, icone: 'formules' as NomIcone, fin: false },
   { vers: '/defis', libelle: fr.navigation.defis, icone: 'defis' as NomIcone, fin: false },
   {
     vers: '/exercices',

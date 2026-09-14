@@ -648,10 +648,14 @@ Closed so far, from the seventeen items:
    dit qui a parlé, combien de voix et combien de votants.
 8. **Un défi se duplique** dans l'acte de son choix, avec une clé à lui. Une copie et pas une ligne
    partagée : le quiz du vendredi change de contenu chaque semaine, donc chaque copie s'édite seule.
+9. **Les formules se règlent dans l'espace** (2026-09-13): a page lists the tiers as rows and edits
+   what each one gives (steps a day, debates a month, speaking time, community, store product,
+   active). Creating one writes its key from its name; the free tier cannot be switched off,
+   since everybody starts on it. The three onboarding screens and the six-listen Arena shipped
+   on 2026-09-12 and 13.
 
-Still open: the three onboarding screens, the Bulle glitch, the padding on « avec Rebecca ce
-mois-ci », l'Arène à six écoutes, l'arc long du parcours, le contenu des formules réglable, le
-défi hebdomadaire récurrent, and the revenue dashboard.
+Still open: the Bulle glitch, the padding on « avec Rebecca ce mois-ci », l'arc long du parcours,
+le défi hebdomadaire récurrent, and the revenue dashboard.
 
 ## Les vrais fournisseurs sont branchés (2026-09-13)
 

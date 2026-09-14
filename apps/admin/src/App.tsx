@@ -6,6 +6,7 @@ import { Layout } from './Layout'
 import { Accueil } from './pages/Accueil'
 import { Configuration } from './pages/configuration/Configuration'
 import { Drapeaux } from './pages/Drapeaux'
+import { Formules } from './pages/Formules'
 import { Defis } from './pages/banques/Defis'
 import { EditionDefi } from './pages/banques/EditionDefi'
 import { Echanges } from './pages/banques/Echanges'
@@ -37,6 +38,7 @@ export function App() {
         <Route index element={<Accueil />} />
         <Route path="configuration" element={<Configuration />} />
         <Route path="drapeaux" element={<Drapeaux />} />
+        <Route path="formules" element={<Formules />} />
         <Route path="defis" element={<Defis />} />
         <Route path="defis/nouveau" element={<EditionDefi />} />
         <Route path="defis/:id" element={<EditionDefi />} />

@@ -23,6 +23,7 @@ export type NomIcone =
   | 'moderation'
   | 'utilisateurs'
   | 'exports'
+  | 'formules'
 
 const CHEMINS: Record<NomIcone, React.ReactNode> = {
   // A dashboard: the panels of what is going on.
@@ -135,6 +136,13 @@ const CHEMINS: Record<NomIcone, React.ReactNode> = {
       <path d="M14 3.5H7.5A1.5 1.5 0 0 0 6 5v14a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 19v-8" />
       <path d="M13.5 3.5V10H18" />
       <path d="M12 13.5v5M9.6 16.2 12 18.6l2.4-2.4" />
+    </>
+  ),
+  // A tag: what a tier is worth.
+  formules: (
+    <>
+      <path d="M3.5 12.5V5a1.5 1.5 0 0 1 1.5-1.5h7.5l8 8-8.5 8.5-8.5-8.5z" />
+      <circle cx="8" cy="8" r="1.4" />
     </>
   ),
 }

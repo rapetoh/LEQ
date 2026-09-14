@@ -38,6 +38,7 @@ export const fr = {
     moderation: 'Modération',
     utilisateurs: 'Utilisateurs',
     exports: 'Demandes de données',
+    formules: 'Formules',
     seDeconnecter: 'Se déconnecter',
   },
 
@@ -331,6 +332,46 @@ export const fr = {
     erreurDoublon: 'Un exercice porte déjà cette clé.',
   },
 
+  formules: {
+    titre: 'Les formules',
+    intro:
+      'Ce que chaque formule donne. Une formule de plus est une ligne de plus. Les prix se règlent dans App Store Connect et Play Console.',
+    creer: 'Créer une formule',
+    nouvelle: 'Nouvelle formule',
+    modifierTitre: 'Modifier la formule',
+    vide: 'Aucune formule pour le moment. Crée la première.',
+    erreurChargement: 'Impossible de charger les formules.',
+    modifier: 'Modifier',
+    etapes: (n: number) => (n === 1 ? '1 étape par jour' : `${n} étapes par jour`),
+    etapesSansLimite: 'étapes sans limite',
+    debats: (n: number) => (n === 1 ? '1 face-à-face par mois' : `${n} face-à-face par mois`),
+    debatsAucun: 'sans face-à-face',
+    duree: (s: number) => `${Math.round(s / 60)} min de parole`,
+    communaute: 'communauté',
+    creee: 'Formule créée.',
+    enregistree: 'Formule enregistrée.',
+    erreur: 'Enregistrement impossible.',
+    erreurDoublon: 'Une formule porte déjà cette clé.',
+    champs: {
+      nom: 'Nom',
+      cleAide: 'Écrite à partir du nom. Tu peux la changer ici. Elle ne bouge plus ensuite.',
+      ordre: 'Ordre',
+      etapes: 'Étapes par jour',
+      etapesAide: 'Mets 0 pour ne pas limiter.',
+      debats: 'Face-à-face par mois',
+      debatsAide: "Mets 0 si la formule n'en donne aucun.",
+      duree: 'Temps de parole par face-à-face',
+      dureeAide: 'En secondes. Seule la parole de la personne compte.',
+      produit: 'Produit dans les stores',
+      produitAide:
+        "L'identifiant du produit dans App Store Connect et Play Console. Laisse vide pour une formule qui ne se vend pas.",
+      communaute: 'Communauté',
+      communauteAide: 'Coché, la formule ouvre la communauté.',
+      actifAide:
+        'Une formule inactive ne donne plus ses droits : la personne retombe sur la formule gratuite.',
+      actifParDefaut: 'La formule gratuite reste active : tout le monde commence par elle.',
+    },
+  },
   recompenses: {
     titre: 'Les récompenses',
     intro:
