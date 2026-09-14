@@ -10,6 +10,7 @@
 import type { IssueDebat } from '@leq/domaine'
 
 import type { Logger } from '../log.js'
+import { CompteurConsommation, type ConsommationDebat } from './consommation.js'
 import type { Adversaire, TranscripteurFlux, Voix, FluxTranscription } from './fournisseurs.js'
 import {
   MESSAGES_ERREUR_DEBAT,
@@ -55,7 +56,12 @@ export interface DepotDebat {
     dureeS: number | null,
     session: string | null,
   ): Promise<void>
-  cloturer(debatId: string, issue: IssueDebat, session: string | null): Promise<void>
+  cloturer(
+    debatId: string,
+    issue: IssueDebat,
+    session: string | null,
+    consommation: ConsommationDebat | null,
+  ): Promise<void>
   /** Reopens a session our own cut closed, when the person comes back inside the window. */
   reprendre(debatId: string): Promise<DebatOuvert | null>
   /** Queues the debrief, which reads the written transcript (chapter 10). */
@@ -110,6 +116,8 @@ export class Conduite {
   /** Set when another connection took the debate over. This one then touches nothing more. */
   private cede = false
   private traitement: Promise<void> = Promise.resolve()
+  /** What the providers consumed for this session, written with the close. */
+  private readonly consommation = new CompteurConsommation()
 
   private readonly delais: DelaisConduite
 
@@ -239,6 +247,7 @@ export class Conduite {
           partiel: !segment.definitif,
         })
       },
+      surConsommation: (partie) => this.consommation.transcription(partie),
       surFinDeTour: (texte) => {
         // A turn where nothing was ever heard costs nothing.
         const dureeS = this.debutParole === null ? 0 : (Date.now() - this.debutParole) / 1000
@@ -257,6 +266,7 @@ export class Conduite {
         these: this.debat.these_texte,
         ton: this.debat.ton_adversaire,
         tours: this.tours,
+        surConsommation: (partie) => this.consommation.texte(partie),
       }),
       this.delais.adversaireMs,
       'reponse de Retor',
@@ -269,7 +279,7 @@ export class Conduite {
   private async direAVoixHaute(numero: number, texte: string): Promise<void> {
     try {
       for await (const morceau of parMorceau(
-        this.deps.voix.dire(texte),
+        this.deps.voix.dire(texte, (partie) => this.consommation.voix(partie)),
         this.delais.morceauVoixMs,
         'voix',
       )) {
@@ -318,7 +328,7 @@ export class Conduite {
     this.flux = null
     if (!debatId) return this.canal.fermer()
     try {
-      await this.deps.depot.cloturer(debatId, issue, this.session)
+      await this.deps.depot.cloturer(debatId, issue, this.session, this.consommation.lire())
       if (issue === 'terminee') await this.deps.depot.demanderDebrief(debatId)
     } catch (erreur) {
       this.deps.log.error({ err: erreur, debat_id: debatId }, 'debat: cloture impossible')

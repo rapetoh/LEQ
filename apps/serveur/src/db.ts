@@ -954,8 +954,29 @@ export async function cloturerDebat(
   debatId: string,
   issue: string,
   session: string | null,
+  consommation: unknown = null,
 ): Promise<void> {
-  await ex.query('select public.cloturer_debat($1, $2, $3)', [debatId, issue, session])
+  await ex.query('select public.cloturer_debat($1, $2, $3, $4::jsonb)', [
+    debatId,
+    issue,
+    session,
+    consommation === null ? null : JSON.stringify(consommation),
+  ])
+}
+
+/** The note's own share, added to what the session had already counted. */
+export async function ajouterConsommationDebrief(
+  ex: Executeur,
+  debatId: string,
+  debrief: unknown,
+): Promise<void> {
+  await ex.query(
+    `update public.debats
+        set consommation = coalesce(consommation, '{"version": 1}'::jsonb)
+                           || jsonb_build_object('debrief', $2::jsonb)
+      where id = $1`,
+    [debatId, JSON.stringify(debrief)],
+  )
 }
 
 /** The written transcript, for the debrief. Never the audio: there is none (chapter 2). */

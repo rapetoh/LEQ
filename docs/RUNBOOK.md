@@ -171,6 +171,15 @@ four turns in order, the outcome, the connection released, the month moved by on
 queued and written. It costs one session of the account's month and gives it back by deleting the
 row at the end.
 
+## Measuring what a face-à-face costs and how long each turn waits
+
+```
+node apps/serveur/scripts/mesurer-debat.mjs                       # the admin account of .env
+MESURE_EMAIL=... MESURE_MDP=... node apps/serveur/scripts/mesurer-debat.mjs
+```
+
+Reads the root `.env` and `apps/mobile/.env`, opens a session as that account, speaks nine turns of about a hundred words each with the Mac's French voice, in real time, until the session's cap, then reads `debats.consommation`, the count the server wrote at the close (seconds of speech in, tokens through Rétor, characters and seconds of voice out, the debrief's tokens once the worker has written it). It prints, per turn, the wait from the end of speech to the final transcript, to Rétor's text, to his first sound and to his last, then the totals and their price at the OpenAI rates written in the script with the date they were read. The voice's audio tokens are the one figure OpenAI does not return and does not publish a ratio for, so that line is a range between two of their own figures, and the higher bound is the one to price on. The session is deleted at the end, so the month is given back. Takes about eight minutes and one session of the account's month.
+
 ## Running the app on this Mac, without EAS
 
 EAS is for store binaries and nothing else. Building, installing and driving the app needs only

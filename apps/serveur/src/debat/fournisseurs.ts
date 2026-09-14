@@ -8,6 +8,11 @@
  * supplier. Swapping any of them is a config change, never a rewrite.
  */
 import type { Logger } from '../log.js'
+import type {
+  ConsommationTexte,
+  ConsommationTranscription,
+  ConsommationVoix,
+} from './consommation.js'
 
 // --------------------------------------------------------------------------------------------
 // Streaming transcription
@@ -36,6 +41,8 @@ export interface OptionsFlux {
   surSegment: (segment: SegmentTranscrit) => void
   /** The person stopped talking: here is everything they said, final. */
   surFinDeTour: (texte: string) => void
+  /** What the provider consumed, reported as it goes; the session adds it up. */
+  surConsommation?: (partie: ConsommationTranscription) => void
 }
 
 export interface TranscripteurFlux {
@@ -52,6 +59,8 @@ export interface ContexteAdversaire {
   ton: string
   /** The debate so far, oldest first. */
   tours: ReadonlyArray<{ locuteur: 'utilisateur' | 'retor'; texte: string }>
+  /** What the model consumed for this answer, once per call. */
+  surConsommation?: (partie: ConsommationTexte) => void
 }
 
 /**
@@ -95,7 +104,10 @@ export interface Voix {
    * Says a sentence. Chunked, because the app must start playing before the whole answer is
    * synthesised: that is most of the two-second budget.
    */
-  dire(texte: string): AsyncIterable<Uint8Array>
+  dire(
+    texte: string,
+    surConsommation?: (partie: ConsommationVoix) => void,
+  ): AsyncIterable<Uint8Array>
 }
 
 // --------------------------------------------------------------------------------------------
@@ -124,6 +136,7 @@ export class TranscripteurFluxStub implements TranscripteurFlux {
       terminer: async () => {
         if (ferme) return
         options.surSegment({ texte: texte(), definitif: true })
+        options.surConsommation?.({ audio_entree_s: morceaux / 10 })
         options.surFinDeTour(texte())
       },
       fermer: () => {
@@ -140,6 +153,7 @@ export class AdversaireStub implements Adversaire {
 
   async repondre(contexte: ContexteAdversaire): Promise<string> {
     const tour = contexte.tours.filter((t) => t.locuteur === 'utilisateur').length
+    contexte.surConsommation?.({ jetons_entree: 0, jetons_caches: 0, jetons_sortie: 0, appels: 1 })
     return `Contre-argument ${tour} sur « ${contexte.these} », ton ${contexte.ton}.`
   }
 
@@ -158,8 +172,12 @@ export class AdversaireStub implements Adversaire {
 export class VoixStub implements Voix {
   readonly nom = 'stub'
 
-  async *dire(texte: string): AsyncIterable<Uint8Array> {
+  async *dire(
+    texte: string,
+    surConsommation?: (partie: ConsommationVoix) => void,
+  ): AsyncIterable<Uint8Array> {
     const morceaux = Math.max(1, Math.ceil(texte.length / 40))
     for (let i = 0; i < morceaux; i += 1) yield new Uint8Array(0)
+    surConsommation?.({ caracteres: texte.length, audio_s: 0, appels: 1 })
   }
 }

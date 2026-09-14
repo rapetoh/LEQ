@@ -173,7 +173,15 @@ grant select on debat2 to authenticated;
 select is((select origine_these from debat2), 'personnelle', 'a thesis of one''s own is allowed, and named as such');
 select is((select ton_adversaire from debat2), 'academique', 'the chosen tone applies');
 reset role; select tests_leq.deconnecter();
-select lives_ok($$ select public.cloturer_debat((select id from debat2), 'terminee') $$, 'the session goes to the end');
+select lives_ok($$ select public.cloturer_debat((select id from debat2), 'terminee', null,
+  '{"version": 1, "transcription": {"audio_entree_s": 212.5}, "retor": {"jetons_entree": 4100, "jetons_caches": 0, "jetons_sortie": 380, "appels": 6}, "voix": {"caracteres": 1500, "audio_s": 88.2, "appels": 6}}'::jsonb) $$,
+  'the session goes to the end, and the server hands over what it consumed');
+select is((select (consommation -> 'transcription' ->> 'audio_entree_s')::numeric from public.debats where id = (select id from debat2)),
+  212.5, 'the row keeps the seconds of speech the transcriber was given');
+select is((select (consommation -> 'retor' ->> 'appels')::integer from public.debats where id = (select id from debat2)),
+  6, 'and the number of times Retor was asked');
+select is((select consommation from public.debats where id = (select id from debat)), null,
+  'a session closed without a count keeps none: nothing is invented');
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select is(((public.quota_debats()) ->> 'utilises')::integer, 1, 'that one is counted');
 select is(((public.quota_debats()) ->> 'restants')::integer, 7, 'seven left');

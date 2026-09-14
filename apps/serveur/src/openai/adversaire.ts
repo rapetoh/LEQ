@@ -3,6 +3,7 @@
 // The cahier is firm on one point: the answer must really answer what was just said. So the
 // whole transcript goes in every time, oldest turn first, and the model is told to take the last
 // thing the person said and push back on that, in a tone Rebecca chose from four.
+import { lireUsageChat } from '../debat/consommation.js'
 import type { Adversaire, ContexteAdversaire, Debrief } from '../debat/fournisseurs.js'
 import {
   appelerJson,
@@ -28,6 +29,7 @@ const TONS: Record<string, string> = {
 
 interface ReponseChat {
   choices?: Array<{ message?: { content?: string | null } }>
+  usage?: unknown
 }
 
 export class AdversaireOpenAI implements Adversaire {
@@ -56,6 +58,7 @@ ${REGLES_ECRITURE}`
       { model: MODELE, messages, temperature: 0.8, max_tokens: 120 },
       30_000,
     )
+    contexte.surConsommation?.(lireUsageChat(lu.usage))
     let texte = redresserApostrophes(lu.choices?.[0]?.message?.content?.trim() ?? '')
     if (texte === '') throw new Error('Rétor a répondu vide')
     if (contientContraste(texte)) {
@@ -74,6 +77,7 @@ ${REGLES_ECRITURE}`
         },
         20_000,
       )
+      contexte.surConsommation?.(lireUsageChat(relu.usage))
       const corrige = redresserApostrophes(relu.choices?.[0]?.message?.content?.trim() ?? '')
       if (corrige !== '') texte = corrige
     }
@@ -118,6 +122,7 @@ ${REGLES_ECRITURE}`
       },
       45_000,
     )
+    contexte.surConsommation?.(lireUsageChat(lu.usage))
     const brut = lu.choices?.[0]?.message?.content ?? '{}'
     const lu2 = JSON.parse(brut) as { moments?: unknown; axe?: unknown }
     const moments = Array.isArray(lu2.moments)

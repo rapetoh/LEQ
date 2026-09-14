@@ -6,11 +6,13 @@
 import { z } from 'zod'
 
 import {
+  ajouterConsommationDebrief,
   debriefDejaEcrit,
   enregistrerDebrief,
   lireTranscriptionDebat,
   type Executeur,
 } from '../db.js'
+import { ajouterTexte, type ConsommationTexte } from '../debat/consommation.js'
 import type { Adversaire } from '../debat/fournisseurs.js'
 import type { HandlerJob } from './types.js'
 
@@ -48,12 +50,20 @@ export function creerHandlerDebrieferDebat(deps: DependancesDebrief): HandlerJob
       return
     }
 
+    const consommation: ConsommationTexte = {
+      jetons_entree: 0,
+      jetons_caches: 0,
+      jetons_sortie: 0,
+      appels: 0,
+    }
     const debrief = await deps.adversaire.debriefer({
       these: debat.these,
       ton: debat.ton,
       tours: debat.tours.map((tour) => ({ locuteur: tour.locuteur, texte: tour.texte })),
+      surConsommation: (partie) => ajouterTexte(consommation, partie),
     })
     await enregistrerDebrief(deps.ex, debatId, debrief.moments, debrief.axe, debrief.provisoire)
+    if (consommation.appels > 0) await ajouterConsommationDebrief(deps.ex, debatId, consommation)
     journal.info({ moments: debrief.moments.length }, 'debriefing ecrit')
   }
 }

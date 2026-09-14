@@ -45,6 +45,14 @@ interface EvenementServeur {
   delta?: string
   transcript?: string
   error?: { message?: string }
+  /** What the provider billed for the turn, in one of the two shapes it uses. */
+  usage?: {
+    type?: string
+    seconds?: number
+    input_tokens?: number
+    output_tokens?: number
+    input_token_details?: { audio_tokens?: number; text_tokens?: number }
+  }
 }
 
 export class TranscripteurFluxOpenAI implements TranscripteurFlux {
@@ -63,6 +71,8 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
     let ouvert = false
     let ferme = false
     let courant = ''
+    /** Bytes of 16 kHz PCM sent since the last completed turn: what the person's speech weighs. */
+    let octetsDuTour = 0
     /** Resolved when the provider has flushed the turn after `terminer()`. */
     let resoudreFin: (() => void) | null = null
 
@@ -107,6 +117,8 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
         case 'conversation.item.input_audio_transcription.completed': {
           const texte = (evenement.transcript ?? courant).trim()
           courant = ''
+          options.surConsommation?.(consommationDuTour(octetsDuTour, evenement.usage))
+          octetsDuTour = 0
           options.surSegment({ texte, definitif: true })
           options.surFinDeTour(texte)
           resoudreFin?.()
@@ -133,6 +145,7 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
     })
 
     const envoyerAudio = (octets: Uint8Array) => {
+      octetsDuTour += octets.byteLength
       const a24 = vers24kHz(octets, reechantillonnage)
       if (a24.length === 0) return
       socket.send(
@@ -173,4 +186,18 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
       },
     }
   }
+}
+
+/** The seconds are ours (16 kHz, 16-bit, mono: 32 000 bytes a second); the tokens are theirs. */
+function consommationDuTour(
+  octets: number,
+  usage: EvenementServeur['usage'],
+): { audio_entree_s: number; jetons_audio?: number; jetons_texte?: number } {
+  const partie: { audio_entree_s: number; jetons_audio?: number; jetons_texte?: number } = {
+    audio_entree_s: Math.round((octets / 32_000) * 100) / 100,
+  }
+  const audio = usage?.input_token_details?.audio_tokens ?? usage?.input_tokens
+  if (typeof audio === 'number') partie.jetons_audio = audio
+  if (typeof usage?.output_tokens === 'number') partie.jetons_texte = usage.output_tokens
+  return partie
 }
