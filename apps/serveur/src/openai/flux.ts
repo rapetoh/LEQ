@@ -140,7 +140,14 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
             paroleMsDuTour += Math.max(0, envoyeMs - debutParoleMs)
             debutParoleMs = null
           }
-          const dureeS = Math.round(paroleMsDuTour / 10) / 100
+          // After a turn committed by the button, the provider's voice detection stays in
+          // "speaking" and announces no start for the next turn (seen on 2026-09-13: one
+          // `speech_started` at 0 ms, then nothing over two committed turns). A turn the
+          // detection said nothing about is counted from the audio it received.
+          const dureeS =
+            paroleMsDuTour > 0
+              ? Math.round(paroleMsDuTour / 10) / 100
+              : Math.round((octetsDuTour / 32_000) * 100) / 100
           paroleMsDuTour = 0
           options.surConsommation?.(consommationDuTour(octetsDuTour, evenement.usage))
           octetsDuTour = 0
