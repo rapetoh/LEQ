@@ -58,6 +58,8 @@ export const ModeleActeSchema = z.object({
   ordre: z.int().positive(),
   titre: z.string().min(1),
   sous_titre: z.string().nullable(),
+  /** The goal stated up front. Set, the act is a long-form arc (meeting of 12 September 2026). */
+  objectif: z.string().nullable(),
   cree_le: IsoTimestampSchema,
   modifie_le: IsoTimestampSchema,
 })

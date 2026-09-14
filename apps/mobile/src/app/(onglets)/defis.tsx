@@ -19,7 +19,7 @@ import {
   hauteurCarte,
   tracer,
 } from '@/services/carteVue'
-import { useCarte, type ActeCarte, type EtapeCarte } from '@/services/parcours'
+import { useCarte, useObjectifsActes, type ActeCarte, type EtapeCarte } from '@/services/parcours'
 import { chiffreRomain, compterReleves, destinationNoeud } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
@@ -125,6 +125,8 @@ function ActeTraverse({ acte }: { acte: ActeCarte }) {
 /** The current act: a land with the winding path and one node per step. */
 function Contree({ acte }: { acte: ActeCarte }) {
   const [largeur, setLargeur] = useState(0)
+  const objectifs = useObjectifsActes()
+  const objectif = objectifs.data?.get(acte.ordre) ?? null
   const points = disposerNoeuds(acte.etapes.length, largeur)
   const indexCourant = acte.etapes.findIndex((e) => e.statut === 'disponible')
   const finFait = indexCourant === -1 ? points.length : indexCourant + 1
@@ -166,6 +168,9 @@ function Contree({ acte }: { acte: ActeCarte }) {
         <Text style={[typographie.titreCarte, { color: couleurs.bleu }]}>
           {acte.sous_titre ?? acte.titre}
         </Text>
+        {objectif ? (
+          <Text style={[typographie.petit, { color: couleurs.bleu }]}>{objectif}</Text>
+        ) : null}
       </View>
       {largeur > 0 && points.length > 0 ? (
         <>

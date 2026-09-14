@@ -658,9 +658,18 @@ Closed so far, from the seventeen items:
     says it, and the last fifty payments one by one. The money lives in a ledger of its own,
     `paiements`, written by the RevenueCat webhook once the account exists; until then the page
     shows the subscriptions and an empty ledger, and says so.
+11. **L'arc long, en v1** (2026-09-13, item 16): an act carries a goal (`modeles_actes.objectif`,
+    written in the admin next to the title). Set, the person reads it before the first step, the
+    folded act shows it, and the closing screen reads the way from the first validated take to
+    the last: rate, fillers, score. Same engine, same grid; the steps and the final take are
+    Rebecca's content, like any act. The arcade (guardians, runners) stays a separate project.
+12. **Le défi qui revient** (item 10) is closed by duplication: the path has no calendar, one
+    step follows another, so a Friday quiz is a copy placed every seventh step, each copy with
+    its own content. A calendar-bound challenge would be a new concept, and nobody asked for it
+    once the copy existed.
 
-Still open: the Bulle glitch, the padding on « avec Rebecca ce mois-ci », l'arc long du parcours,
-and le défi hebdomadaire récurrent.
+Still open: the Bulle glitch and the padding on « avec Rebecca ce mois-ci », both design items
+that need eyes on a device.
 
 ## Les vrais fournisseurs sont branchés (2026-09-13)
 

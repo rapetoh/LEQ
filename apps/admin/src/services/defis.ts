@@ -32,7 +32,12 @@ export async function chargerModelesActes(): Promise<ModeleActe[]> {
   return z.array(ModeleActeSchema).parse(data)
 }
 
-export type ModeleActeEditable = { ordre: number; titre: string; sous_titre: string | null }
+export type ModeleActeEditable = {
+  ordre: number
+  titre: string
+  sous_titre: string | null
+  objectif: string | null
+}
 
 /** Creates or renames an act model. The order is the key: it never changes here. */
 export async function enregistrerModeleActe(acte: ModeleActeEditable): Promise<void> {

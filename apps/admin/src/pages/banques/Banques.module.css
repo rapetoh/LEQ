@@ -38,6 +38,12 @@
   text-transform: uppercase;
 }
 
+.acteObjectif {
+  color: var(--texte-2);
+  font-size: 13px;
+  font-style: italic;
+}
+
 .acteSousTitre {
   color: var(--texte-2);
   font-size: 13px;

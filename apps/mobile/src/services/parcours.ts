@@ -150,6 +150,31 @@ export async function chargerCarte(): Promise<ActeCarte[]> {
     }))
 }
 
+/** The goals of the acts that are arcs, by act order (meeting of 12 September 2026, item 16). */
+export const CLE_OBJECTIFS = ['objectifs_actes'] as const
+
+export function useObjectifsActes(): UseQueryResult<Map<number, string>> {
+  const { pret, session } = useSession()
+  return useQuery({
+    queryKey: CLE_OBJECTIFS,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('modeles_actes')
+        .select('ordre, objectif')
+        .not('objectif', 'is', null)
+      if (error) throw new Error(error.message)
+      const lignes = z
+        .array(z.object({ ordre: z.int(), objectif: z.string().nullable() }))
+        .parse(data ?? [])
+      return new Map(
+        lignes.flatMap((l) => (l.objectif && l.objectif.trim() ? [[l.ordre, l.objectif]] : [])),
+      )
+    },
+    enabled: pret && session !== null,
+    staleTime: 5 * 60_000,
+  })
+}
+
 export function useCarte(): UseQueryResult<ActeCarte[]> {
   const { pret, session } = useSession()
   return useQuery({

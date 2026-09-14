@@ -211,6 +211,11 @@ function Acte({
               {acte.sous_titre ? (
                 <span className={styles.acteSousTitre}>{acte.sous_titre}</span>
               ) : null}
+              {acte.objectif ? (
+                <span className={styles.acteObjectif}>
+                  {fr.defis.acteObjectifLigne(acte.objectif)}
+                </span>
+              ) : null}
               <span className={styles.compte}>{fr.defis.nombreDefis(defis.length)}</span>
             </div>
             <div className={styles.acteActions}>
@@ -306,6 +311,7 @@ function FormulaireActe({
 }) {
   const [titre, setTitre] = useState(acte?.titre ?? '')
   const [sousTitre, setSousTitre] = useState(acte?.sous_titre ?? '')
+  const [objectif, setObjectif] = useState(acte?.objectif ?? '')
   const valide = titre.trim() !== ''
   return (
     <form
@@ -313,7 +319,12 @@ function FormulaireActe({
       onSubmit={(e) => {
         e.preventDefault()
         if (!valide) return
-        onEnregistrer({ ordre, titre: titre.trim(), sous_titre: sousTitre.trim() || null })
+        onEnregistrer({
+          ordre,
+          titre: titre.trim(),
+          sous_titre: sousTitre.trim() || null,
+          objectif: objectif.trim() || null,
+        })
       }}
     >
       <span className={styles.acteNumero}>{fr.defis.acte(ordre)}</span>
@@ -330,6 +341,14 @@ function FormulaireActe({
         placeholder={fr.defis.acteSousTitre}
         value={sousTitre}
         onChange={(e) => setSousTitre(e.target.value)}
+      />
+      <input
+        className="champ"
+        aria-label={fr.defis.acteObjectif}
+        placeholder={fr.defis.acteObjectif}
+        title={fr.defis.acteObjectifAide}
+        value={objectif}
+        onChange={(e) => setObjectif(e.target.value)}
       />
       <button
         type="submit"

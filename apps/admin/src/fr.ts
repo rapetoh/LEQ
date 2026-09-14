@@ -263,6 +263,10 @@ export const fr = {
     erreurDuplication: "La copie n'a pas pu être créée.",
     acteTitre: "Titre de l'acte",
     acteSousTitre: 'Sous-titre',
+    acteObjectif: "Objectif de l'acte",
+    acteObjectifAide:
+      "Une phrase. Écrite, la personne la lit avant le premier défi, et l'écran de fin de l'acte compare sa première prise à la dernière.",
+    acteObjectifLigne: (objectif: string) => `Objectif\u00a0: ${objectif}`,
     acteEnregistre: 'Acte enregistré.',
     monter: (titre: string) => `Monter ${titre}`,
     descendre: (titre: string) => `Descendre ${titre}`,

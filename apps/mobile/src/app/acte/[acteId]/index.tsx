@@ -8,7 +8,7 @@ import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
-import { useCarte, type EtapeCarte } from '@/services/parcours'
+import { useCarte, useObjectifsActes, type EtapeCarte } from '@/services/parcours'
 import { chiffreRomain, ilYA } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
@@ -27,6 +27,7 @@ export default function ActeReplie() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const carte = useCarte()
+  const objectifs = useObjectifsActes()
 
   if (carte.isPending) return <EcranChargement />
   if (carte.isError) {
@@ -38,6 +39,7 @@ export default function ActeReplie() {
   }
   const faits = acte.etapes.filter((e) => e.statut === 'validee').length
   const numero = chiffreRomain(acte.ordre)
+  const objectif = objectifs.data?.get(acte.ordre) ?? null
   const etat =
     acte.statut === 'traverse'
       ? t('carte.traverseLong', { faits, total: acte.etapes.length })
@@ -58,6 +60,15 @@ export default function ActeReplie() {
       </Text>
       <Titre niveau="ecran">{t('carte.acte', { acte: numero, titre: acte.titre })}</Titre>
       <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{etat}</Text>
+
+      {objectif ? (
+        <Carte teinte="douce" style={styles.bloc}>
+          <Text style={[typographie.etiquette, { color: theme.texteTertiaire }]}>
+            {t('carte.objectif')}
+          </Text>
+          <Text style={[typographie.corpsFort, { color: theme.texte }]}>{objectif}</Text>
+        </Carte>
+      ) : null}
 
       <Carte style={styles.bloc}>
         {acte.etapes.map((etape) => (

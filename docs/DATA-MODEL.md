@@ -287,7 +287,7 @@ The path (cahier chapter 4): acts and steps, three challenge formats, per-step t
 
 The acts of the path, in order. Seeded from the mockup, editable by Rebecca.
 
-- `ordre integer pk`, `titre text not null`, `sous_titre text` (the "contrée" name shown on the map), `cree_le`, `modifie_le`.
+- `ordre integer pk`, `titre text not null`, `sous_titre text` (the "contrée" name shown on the map), `objectif text` (the goal stated up front; set, the act is a long-form arc: the app shows the goal before the first step and, on the closing screen, reads the way from the first validated take to the last: rate, fillers, score), `cree_le`, `modifie_le`.
 - RLS: authenticated read; admin write.
 
 ### defis

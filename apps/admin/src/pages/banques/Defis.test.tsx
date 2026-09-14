@@ -18,11 +18,19 @@ vi.mock('../../services/defis', () => ({
 }))
 
 const ACTES: ModeleActe[] = [
-  { ordre: 1, titre: 'Poser sa voix', sous_titre: null, cree_le: 'x', modifie_le: 'x' },
+  {
+    ordre: 1,
+    titre: 'Poser sa voix',
+    sous_titre: null,
+    objectif: null,
+    cree_le: 'x',
+    modifie_le: 'x',
+  },
   {
     ordre: 2,
     titre: 'Tenir sa ligne',
     sous_titre: 'Les crêtes du rythme',
+    objectif: null,
     cree_le: 'x',
     modifie_le: 'x',
   },
