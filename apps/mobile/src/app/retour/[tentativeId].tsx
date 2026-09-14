@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -12,6 +12,7 @@ import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
+import { invaliderArene, messageRefus, publierPrise } from '@/services/arene'
 import {
   CLE_CARTE,
   CLE_ETAPE_DU_JOUR,
@@ -20,6 +21,7 @@ import {
 } from '@/services/parcours'
 import { useCarte } from '@/services/parcours'
 import { fermeLActe } from '@/services/rythme'
+import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -65,7 +67,28 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
   const theme = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const clientRequetes = useQueryClient()
   const { evaluation, etape, resultat } = retour
+  // An Arena or duel take is published from here, and only from here: the second, deliberate
+  // gesture of chapter 11. Left unpublished, it stays private and the person records again.
+  const publique = retour.type === 'arene' || retour.type === 'duel'
+  const [publication, setPublication] = useState<{ enCours: boolean; erreur: string | null }>({
+    enCours: false,
+    erreur: null,
+  })
+  const publier = async () => {
+    setPublication({ enCours: true, erreur: null })
+    try {
+      await publierPrise(retour.id)
+      compter('arene_prise_publiee', { contexte: retour.type })
+      invaliderArene(clientRequetes)
+      router.replace(
+        retour.type === 'duel' && retour.duel_id ? `/duel/${retour.duel_id}` : '/(onglets)/arene',
+      )
+    } catch (erreur) {
+      setPublication({ enCours: false, erreur: messageRefus(erreur) })
+    }
+  }
   const carte = useCarte()
   const suivante = etape
     ? (carte.data
@@ -73,6 +96,11 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
         .find((e) => e.ordre_global === etape.ordre_global + 1) ?? null)
     : null
   const mesures = retour.mesures!
+
+  useEffect(() => {
+    compter('retour_ouvert', { type: retour.type, resultat: resultat ?? 'sans' })
+    if (resultat === 'etape_validee') compter('defi_valide')
+  }, [retour.id, retour.type, resultat])
   const sousNotes = evaluation ? Object.entries(evaluation.sous_notes) : []
   const noteVisible =
     evaluation && evaluation.note_totale !== null && evaluation.note_max !== null
@@ -84,7 +112,10 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
 
   let titre: string
   let corps: string | null = null
-  if (resultat === 'etape_validee') {
+  if (publique) {
+    titre = t(retour.type === 'duel' ? 'retour.titreDuel' : 'retour.titreArene')
+    corps = t(retour.type === 'duel' ? 'retour.corpsDuel' : 'retour.corpsArene')
+  } else if (resultat === 'etape_validee') {
     titre = t('defi.resultat.reussi')
     corps = [etape?.defi.titre, noteVisible].filter(Boolean).join(' · ')
   } else if (resultat === 'etape_echouee') {
@@ -96,7 +127,9 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
   }
 
   const actions: { libelle: string; cible: string; variante?: 'secondaire' | 'texte' }[] = []
-  if (resultat === 'etape_validee' && etape) {
+  if (publique) {
+    // The buttons below are the publish gesture, not a route.
+  } else if (resultat === 'etape_validee' && etape) {
     if (fermeLActe(retour)) {
       actions.push({ libelle: t('commun.continuer'), cible: `/acte/${etape.acte_id}/traverse` })
     } else if (suivante) {
@@ -226,14 +259,34 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
       ) : null}
 
       <View style={styles.actions}>
-        {actions.map((action) => (
-          <Bouton
-            key={action.libelle}
-            libelle={action.libelle}
-            variante={action.variante ?? 'principal'}
-            onPress={() => router.replace(action.cible)}
-          />
-        ))}
+        {publique ? (
+          <>
+            {publication.erreur ? (
+              <Text style={[typographie.corps, { color: theme.accent }]}>{publication.erreur}</Text>
+            ) : null}
+            <Bouton
+              libelle={t(retour.type === 'duel' ? 'retour.envoyerDuel' : 'retour.publierArene')}
+              chargement={publication.enCours}
+              onPress={() => void publier()}
+            />
+            {retour.type === 'arene' ? (
+              <Bouton
+                libelle={t('retour.garderPourMoi')}
+                variante="texte"
+                onPress={() => router.replace('/(onglets)/arene')}
+              />
+            ) : null}
+          </>
+        ) : (
+          actions.map((action) => (
+            <Bouton
+              key={action.libelle}
+              libelle={action.libelle}
+              variante={action.variante ?? 'principal'}
+              onPress={() => router.replace(action.cible)}
+            />
+          ))
+        )}
       </View>
     </ScrollView>
   )

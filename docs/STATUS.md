@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-10, after Roch's first TestFlight walkthrough (build 3): icon and splash, mockup tab bar, map of acts, account entry, recorder fallback; build 4 submitted. Update this file in the same commit as any change of state.
+Last updated: 2026-09-13, after the three sign-in doors, PostHog and the Arena publish gesture were wired (section below). Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -10,14 +10,14 @@ How to read it: one line per phase, then the checklist of the phase in progress,
 | ----- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | 0     | Foundations                                                 | Built, green, schema live and verified, server deployed on Fly and verified; device checks remain    |
 | 1     | Socle: flow A end to end with a stub transcriber            | Built (slices 1 to 6), server loop verified; the device walkthrough (slice 7) waits for Roch         |
-| 2     | STT bench, then debate cost spike                           | Harness written, corpus empty, keys awaited                                                          |
+| 2     | STT bench, then debate cost spike                           | Closed by ADR-011: OpenAI for both modes, harness kept; the debate cost is still to be measured      |
 | 3     | Measurement engine, grid engine, feedback, calibration tool | Engine and grid rules exist and are tested; wording and calibration tool not started                 |
 | 4     | Path machinery, three formats, entitlements, RevenueCat     | Built and reviewed (seven fixes applied, migrations 0005 and 0007); RevenueCat waits for the account |
 | 5     | Streak, points, shop, bridge to Rebecca                     | Slices 1 to 3 built (database, mobile, admin); simulator boot and Roch's tap-through remain          |
 | 6     | Admin space, complete                                       | In progress since 2026-09-06 (checklist below); offers content and moderation queue wait             |
-| 7     | Arena and duels, shipped off, public web                    | In progress since 2026-09-11 (checklist below)                                                       |
-| 8     | Face-à-face                                                 | Not started                                                                                          |
-| 9     | Release                                                     | Not started                                                                                          |
+| 7     | Arena and duels, shipped off, public web                    | Built, verified against production; the phone's publish gesture was missing until 2026-09-13         |
+| 8     | Face-à-face                                                 | Built, verified against the deployed server with the real providers (2026-09-12 and 13)              |
+| 9     | Release                                                     | In progress: TestFlight builds 1 to 15, sign-in and PostHog done; Sentry, RevenueCat, stores remain  |
 
 A phase ends when its acceptance list is green and this file says so.
 
@@ -680,18 +680,57 @@ compare later; `TRANSCRIPTEUR=stub` puts any of the four back on its stub.
 sentence; `verif-face-a-face.mjs` now speaks two real sentences into the production socket instead
 of silence. Both green.
 
+## Sign-in, PostHog and the publish gesture (2026-09-13)
+
+Roch asked for a phone that signs in and a PostHog that counts. Both are in the code; neither has
+been tried on a phone yet.
+
+- **Three doors on A7.** The e-mail code was already there; its e-mails now leave through Gmail
+  (`join.leq@gmail.com`, an app password in `SMTP_PASS`) instead of Supabase's rate-limited
+  sender. Sign in with Apple and Google sign-in are native sheets
+  (`apps/mobile/src/services/identite.ts`): a hashed nonce for Apple, the web client id as the
+  token audience for Google, then `signInWithIdToken`. The first name the provider gives fills
+  the profile; when it gives none, the screen asks. `supabase/config.toml` now declares the SMTP
+  server and both providers (Apple with the bundle id, Google with `skip_nonce_check`, which the
+  Google SDK's tokens need), and `config push` reports no difference with the hosted project.
+  `app.json` carries `usesAppleSignIn` and the Google plugin with the iOS URL scheme; prebuild
+  writes the entitlement and the scheme. The Google consent screen is still in Testing on Google's
+  side, so only listed testers can pass it.
+- **PostHog** (`apps/mobile/src/services/usage.ts`): a closed list of eleven events (the first
+  screen passed, a sign-in and its method, a brief opened, a take recorded with its type and
+  length, a feedback opened, a step validated, an Arena take published, a vote, a duel created, a
+  debate opened and finished, a reward exchanged), the person identified by their Supabase id from
+  the root layout, forgotten on sign-out. Nothing about the voice leaves the phone. Without the
+  key every call is a no-op, so tests and fresh checkouts stay silent.
+- **The gap found on the way.** No screen on the phone called `publier_prise`. An Arena or duel
+  take was recorded and analysed, then stayed private forever: the Arena tab kept asking the person
+  to speak, and a duel started on the phone could never close. The web invitation had the call,
+  the phone did not. The feedback screen now ends an Arena take with « Publier dans l'Arène » and
+  « Garder pour moi », and a duel take with « Envoyer ma réponse »; the refusals of `publier_prise`
+  are shown in the words the Arena already had. `Retour` carries `duel_id` so the duel take goes
+  back to its duel.
+- **Verified:** `npm run check` (every workspace, 46 mobile tests, strings), prettier, a prebuild
+  of the iOS project with the entitlement and the scheme in place. **Not verified:** an Apple or
+  Google sign-in on a device, an e-mail arriving through Gmail, an event arriving in PostHog, the
+  publish gesture against production. All four need a phone build, and the phone build needs the
+  account below.
+- **The phone build.** The Expo free plan's iOS builds are used up until 1 October. Xcode 26.6
+  builds the app on this Mac (docs/RUNBOOK.md), but a TestFlight upload needs a distribution
+  certificate and an App Store Connect login, and this Mac has neither: no Apple account in Xcode,
+  no App Store Connect API key, only a development certificate. Roch signs into Xcode once
+  (Settings > Accounts, the Apple Developer account) or creates an App Store Connect API key, and
+  the archive and upload run from the command line from then on.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
 inputs that were never ours to invent, and the accounts that gate the release.
 
 1. **Roch, and only Roch.** Each of these unblocks work that is already written and waiting:
-   - the Anthropic key: Rétor answers for real, the debriefing is written, the wording of a
-     feedback stops being placeholder text. Until then the face-à-face runs on stubs and says so
-     on screen;
-   - the STT keys (Deepgram, Gladia, OpenAI, AssemblyAI, trial credits are enough): the bench in
-     `packages/moteur/bench` runs, ADR-011 names a provider, and the debate cost spike can finally
-     be measured instead of guessed;
+   - an Apple account in Xcode, or an App Store Connect API key: build 16 goes to TestFlight from
+     this Mac, and the three sign-in doors, PostHog and the publish gesture get tried on a phone;
+   - the Google consent screen published, or the testers' addresses listed on it, so Google
+     sign-in works for someone other than the project's owner;
    - a Sentry account and its DSN: crash reporting, the last unticked item of Phase 9 plumbing;
    - the RevenueCat account: `abonnements` gets its writer and E1 gets its offers;
    - a lawyer reads the chapter 2 statement now published in `apps/web`;

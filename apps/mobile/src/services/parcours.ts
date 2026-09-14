@@ -234,6 +234,8 @@ export function useBrief(etapeId: string | null): UseQueryResult<Brief | null> {
 export interface Retour {
   id: string
   type: string
+  /** The duel this take answers, when it is a duel take. */
+  duel_id: string | null
   statut: StatutTentative
   resultat: ResultatTentative | null
   enregistre_le: string
@@ -256,6 +258,7 @@ export const cleRetour = (tentativeId: string) => ['retour', tentativeId] as con
 type LigneRetour = {
   id: string
   type: string
+  duel_id: string | null
   statut: StatutTentative
   resultat: ResultatTentative | null
   enregistre_le: string
@@ -295,7 +298,7 @@ export async function chargerRetour(tentativeId: string): Promise<Retour | null>
   const { data, error } = await supabase
     .from('tentatives')
     .select(
-      'id, type, statut, resultat, enregistre_le, analyses(mesures), evaluations(grille_id, note_totale, seuil_reussite, sous_notes, points_forts, axes_travail), etapes!tentatives_etape_id_fkey(*, defis(*), actes(*))',
+      'id, type, duel_id, statut, resultat, enregistre_le, analyses(mesures), evaluations(grille_id, note_totale, seuil_reussite, sous_notes, points_forts, axes_travail), etapes!tentatives_etape_id_fkey(*, defis(*), actes(*))',
     )
     .eq('id', tentativeId)
     .maybeSingle()
@@ -333,6 +336,7 @@ export async function chargerRetour(tentativeId: string): Promise<Retour | null>
   return {
     id: ligne.id,
     type: ligne.type,
+    duel_id: ligne.duel_id ?? null,
     statut: ligne.statut,
     resultat: ligne.resultat,
     enregistre_le: ligne.enregistre_le,
