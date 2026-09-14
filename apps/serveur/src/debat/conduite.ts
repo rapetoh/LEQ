@@ -103,12 +103,14 @@ export class Conduite {
   private debat: DebatOuvert | null = null
   private tours: TourPublie[] = []
   /**
-   * When audio actually started arriving for the current turn, not when the turn became
-   * possible. The cap is the person's speaking time: charging them for reading the thesis, for
-   * thinking, or for listening to Rétor would end a three-minute session after forty seconds of
-   * speech.
+   * Bytes of audio received for the current turn. The cap is the person's speaking time, and
+   * the provider's voice detection says how much of the turn was speech; when a provider
+   * cannot say, the audio received stands in for it. Neither is measured with a clock on the
+   * server: the first transcript of a turn used to start it, and with a provider that
+   * transcribes only once the person has stopped, a session counted seven seconds for four
+   * minutes of speech and its cap never came.
    */
-  private debutParole: number | null = null
+  private octetsDuTour = 0
   /** Set while a turn is being flushed, so two `fin_tour` frames cannot flush it twice. */
   private finDeTourEnCours = false
   /** The identifier this connection writes with, from the moment it claimed the debate. */
@@ -162,7 +164,9 @@ export class Conduite {
         return this.ouvrir(message.jeton, message.debat_id)
       case 'audio': {
         if (this.etat.phase !== 'ecoute' || !this.flux) return
-        this.flux.ecrire(decoderBase64(message.donnees))
+        const octets = decoderBase64(message.donnees)
+        this.octetsDuTour += octets.byteLength
+        this.flux.ecrire(octets)
         return
       }
       case 'fin_tour': {
@@ -235,12 +239,10 @@ export class Conduite {
   }
 
   private ouvrirFlux(): void {
-    this.debutParole = null
+    this.octetsDuTour = 0
     this.flux = this.deps.transcripteur.ouvrir({
       langue: 'fr',
       surSegment: (segment) => {
-        // The first segment of a turn is the first moment we know the person is speaking.
-        this.debutParole ??= Date.now()
         this.canal.envoyer({
           type: 'transcription',
           texte: segment.texte,
@@ -248,11 +250,11 @@ export class Conduite {
         })
       },
       surConsommation: (partie) => this.consommation.transcription(partie),
-      surFinDeTour: (texte) => {
-        // A turn where nothing was ever heard costs nothing.
-        const dureeS = this.debutParole === null ? 0 : (Date.now() - this.debutParole) / 1000
-        this.debutParole = null
-        this.enfiler(() => this.tourDeLUtilisateur(texte, Math.max(0, dureeS)))
+      surFinDeTour: (texte, dureeS) => {
+        // 16 kHz, 16-bit, mono: 32 000 bytes a second, when the provider gave no better count.
+        const duree = dureeS ?? this.octetsDuTour / 32_000
+        this.octetsDuTour = 0
+        this.enfiler(() => this.tourDeLUtilisateur(texte, Math.max(0, duree)))
       },
     })
   }
@@ -273,7 +275,7 @@ export class Conduite {
     )
     await this.appliquer(avancer(this.etat, { type: 'tour_retor', texte: reponse }))
     await this.direAVoixHaute(this.etat.dernierTour, reponse)
-    this.debutParole = null
+    this.octetsDuTour = 0
   }
 
   private async direAVoixHaute(numero: number, texte: string): Promise<void> {

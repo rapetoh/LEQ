@@ -295,7 +295,7 @@ Written before the work started. Cahier chapter 10, plan Phase 8. Everything shi
 4. Admin
    - [x] The thesis bank (`/theses`): create, edit, order, tone, provisional and active, with a badge on the theses the app would offer right now. Checked in a real browser with the network stubbed: the menu entry, the three theses, the badges, no console error
 5. Verification
-   - [ ] The measured cost and the per-turn latency of one real five-minute session, which chapter 9 requires before the plan containing the face-à-face can be priced. Needs the provider keys
+   - [x] The measured cost and the per-turn latency of one real session, measured against production on 2026-09-13 (section « Le coût d'un face-à-face, mesuré »): about $0.02 a minute of speech, $0.11 for five minutes, and a median of 3.2 s from the end of speech to Rétor's text, above the two seconds of chapter 9
 
 ## Phase 9 checklist (release)
 
@@ -724,6 +724,47 @@ been tried on a phone yet.
   the mobile app"). It carries the three doors, PostHog, the publish gesture and the Google
   client ids. The Google consent screen went to production the same evening, so Google sign-in
   is open to anyone, and the two legal URLs it required point at the public pages on Fly.
+
+## Le coût d'un face-à-face, mesuré (2026-09-13)
+
+One of the four inputs the plan refused to invent. The server now counts what every provider
+call consumed and keeps the total on the session's row (`debats.consommation`, migration
+`20260913100000`), and `apps/serveur/scripts/mesurer-debat.mjs` runs a whole session against
+production with the Mac's French voice, nine turns of about a hundred words, and reads the row.
+
+**The session of 2026-09-13.** Nine turns, 232 s of audio sent, Rétor answering nine times with
+35 to 44 words, 151 s of voice back, the debrief written. What it consumed, in the providers'
+units: 2 316 audio tokens transcribed; 11 996 prompt tokens through Rétor, 4 992 of them served
+from cache, 523 tokens out; 2 212 characters spoken; 1 935 tokens in and 167 out for the debrief.
+At the rates read on OpenAI's pricing page that day (gpt-4.1-mini $0.40 in, $0.10 cached, $1.60
+out per million; gpt-4o-mini-transcribe $1.25 per million audio tokens; gpt-4o-mini-tts $0.60 per
+million text tokens and $12 per million audio tokens):
+
+| Part                 | Cost             | Note                                                                                                                                                            |
+| -------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Transcription        | $0.008           | from the tokens the provider billed                                                                                                                             |
+| Rétor, nine answers  | $0.004           | the cache pays: the whole transcript goes in every turn                                                                                                         |
+| Rétor's voice, 151 s | $0.038 to $0.073 | the speech endpoint returns no usage and the page gives no seconds-to-tokens ratio: two bounds from OpenAI's own figures, the higher one is the one to price on |
+| Debrief              | $0.001           |                                                                                                                                                                 |
+| **Total**            | **$0.086**       | **$0.022 a minute of speech, $0.11 for a five-minute session, with the voice at its high bound**                                                                |
+
+The voice is three quarters of the bill. Rétor's answers average sixteen seconds of speech for
+twenty-six seconds of the person's, which is the ratio the prompt's forty-word limit produces.
+
+**What each turn waited for**, from the end of the person's speech: the final transcript at a
+median 1.6 s (max 5.0 s, one turn), Rétor's text at 3.2 s (max 5.9 s), his first sound at 3.7 s,
+his last at 6.5 s. Chapter 9 asks for under two seconds to the answer. The transcript alone eats
+1.6 s of it (700 ms of silence detection before the provider even starts), and the voice waits
+for the whole answer before it starts. The two moves that would bring it under two seconds are
+streaming Rétor's text and speaking the first sentence while the second is written, and shorter
+silence detection; neither is done, and the number is recorded as it stands.
+
+**The bug the measurement found.** The row said 6.9 s of speech for 232 s sent. The speaking time
+started a clock on the server at the first transcript of a turn, and this provider transcribes
+once the person has stopped, so every turn counted about a second and the cap of a session never
+came: a free account's three minutes were unlimited. The time now comes from the provider's own
+voice detection (its speech boundaries, in milliseconds of audio), with the audio received as the
+fallback for a provider that cannot say; a conductor test pins it. Server v23.
 
 ## Next
 

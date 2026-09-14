@@ -45,6 +45,9 @@ interface EvenementServeur {
   delta?: string
   transcript?: string
   error?: { message?: string }
+  /** Speech boundaries from the server's voice detection, in milliseconds of audio sent. */
+  audio_start_ms?: number
+  audio_end_ms?: number
   /** What the provider billed for the turn, in one of the two shapes it uses. */
   usage?: {
     type?: string
@@ -73,6 +76,11 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
     let courant = ''
     /** Bytes of 16 kHz PCM sent since the last completed turn: what the person's speech weighs. */
     let octetsDuTour = 0
+    /** Milliseconds of speech in the turn, from the voice detection's own boundaries. */
+    let paroleMsDuTour = 0
+    let debutParoleMs: number | null = null
+    /** Milliseconds of audio sent since the session opened, the clock the boundaries use. */
+    let envoyeMs = 0
     /** Resolved when the provider has flushed the turn after `terminer()`. */
     let resoudreFin: (() => void) | null = null
 
@@ -114,13 +122,30 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
           courant += evenement.delta ?? ''
           options.surSegment({ texte: courant, definitif: false })
           return
+        case 'input_audio_buffer.speech_started':
+          debutParoleMs = evenement.audio_start_ms ?? envoyeMs
+          return
+        case 'input_audio_buffer.speech_stopped':
+          if (debutParoleMs !== null) {
+            paroleMsDuTour += Math.max(0, (evenement.audio_end_ms ?? envoyeMs) - debutParoleMs)
+            debutParoleMs = null
+          }
+          return
         case 'conversation.item.input_audio_transcription.completed': {
           const texte = (evenement.transcript ?? courant).trim()
           courant = ''
+          // The person pressed the button while still speaking: the speech runs to the last
+          // byte sent.
+          if (debutParoleMs !== null) {
+            paroleMsDuTour += Math.max(0, envoyeMs - debutParoleMs)
+            debutParoleMs = null
+          }
+          const dureeS = Math.round(paroleMsDuTour / 10) / 100
+          paroleMsDuTour = 0
           options.surConsommation?.(consommationDuTour(octetsDuTour, evenement.usage))
           octetsDuTour = 0
           options.surSegment({ texte, definitif: true })
-          options.surFinDeTour(texte)
+          options.surFinDeTour(texte, dureeS)
           resoudreFin?.()
           resoudreFin = null
           return
@@ -146,6 +171,7 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
 
     const envoyerAudio = (octets: Uint8Array) => {
       octetsDuTour += octets.byteLength
+      envoyeMs += octets.byteLength / 32
       const a24 = vers24kHz(octets, reechantillonnage)
       if (a24.length === 0) return
       socket.send(
@@ -167,7 +193,7 @@ export class TranscripteurFluxOpenAI implements TranscripteurFlux {
           if (ferme || !ouvert) {
             // Nothing ever reached the provider: the turn is empty, and saying so lets the
             // conductor move on instead of waiting for a completion that will never come.
-            if (courant === '') options.surFinDeTour('')
+            if (courant === '') options.surFinDeTour('', 0)
             resoudre()
             return
           }

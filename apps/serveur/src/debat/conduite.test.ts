@@ -182,6 +182,22 @@ describe('ending a debate', () => {
     expect(clotures).toEqual([])
   })
 
+  it('counts the speech the provider heard, never the wall clock', async () => {
+    // Thirty chunks of a hundred milliseconds: three seconds of speech, whatever time the test
+    // itself takes. The first transcript of a turn used to start a clock on the server, and a
+    // provider that transcribes once the person has stopped made every turn a second long.
+    const { conduite, envoyes } = monter()
+    await conduite.recevoir(BONJOUR)
+    for (let i = 0; i < 30; i += 1) {
+      await conduite.recevoir(JSON.stringify({ type: 'audio', donnees: 'AAAA' }))
+    }
+    await conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    expect(envoyes.find((m) => m.type === 'temps')).toMatchObject({
+      secondes_parlees: 3,
+      secondes_restantes: 177,
+    })
+  })
+
   it('ends the session at the cap, without asking Rétor to answer into a closed debate', async () => {
     // The cap is already spent when the session opens, so the first turn reaches it whatever
     // the wall clock does during the test.

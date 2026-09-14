@@ -308,8 +308,10 @@ try {
   console.log(
     `débrief : ${usd(coutDebrief)}${c.debrief ? ` (${c.debrief.jetons_entree} entrés, ${c.debrief.jetons_sortie} sortis)` : ' (pas encore écrit)'}`,
   )
+  // The denominator is the audio the person sent: what a session of that length costs.
+  const envoye = t.audio_entree_s
   console.log(
-    `total : ${usd(total)} pour ${parle.toFixed(0)} s de parole, soit ${usd((total / parle) * 60)} par minute parlée, ${usd((total / parle) * 300)} pour cinq minutes`,
+    `total : ${usd(total)} pour ${envoye.toFixed(0)} s d'audio envoyé (${parle.toFixed(1)} s comptés comme parole par le serveur), soit ${usd((total / envoye) * 60)} par minute, ${usd((total / envoye) * 300)} pour cinq minutes`,
   )
   console.log(
     '\n' +

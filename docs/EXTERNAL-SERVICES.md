@@ -72,7 +72,7 @@ Prices and plan limits were read on 2026-09-06 and change; the note says where t
 - Status: live in production since 2026-09-13 (`TRANSCRIPTEUR`, `TRANSCRIPTEUR_FLUX`, `ADVERSAIRE`, `VOIX`, `JUGE` all `openai` on Fly, `OPENAI_API_KEY` in Fly secrets). `apps/serveur/scripts/verif-openai.mjs` calls the four against the real API. A spending cap is set on the OpenAI organisation (Roch, 2026-09-13).
 - Region: US. No EU processing on the API.
 - Data protection: audio of every take and of every debate turn, and transcripts, reach OpenAI. API data is not used for training under the API terms; default abuse-monitoring retention is 30 days; zero data retention is requested per organisation. Request it, and sign the DPA in the OpenAI platform settings, before real users. The privacy statement in `apps/web` must name the processor.
-- Cost: to be measured on real calls, which is the debate cost spike the plan asked for. Whisper is billed per minute of audio, the realtime session per minute of input audio, the chat models per token, the voice per character.
+- Cost, measured on 2026-09-13 against production (docs/STATUS.md, « Le coût d'un face-à-face, mesuré »): about $0.022 a minute of the person's speech, $0.11 for a five-minute session, three quarters of it Rétor's voice. Whisper for a recorded take is billed per minute ($0.006), so a ninety-second take costs under a cent to transcribe; the judge's call is a few thousand tokens of gpt-4.1-mini, well under a cent. `debats.consommation` keeps every session's usage, so these numbers are re-read from real sessions at any time.
 
 ## PostHog
 

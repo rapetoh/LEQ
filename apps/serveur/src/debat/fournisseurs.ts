@@ -39,8 +39,12 @@ export interface FluxTranscription {
 export interface OptionsFlux {
   langue: 'fr'
   surSegment: (segment: SegmentTranscrit) => void
-  /** The person stopped talking: here is everything they said, final. */
-  surFinDeTour: (texte: string) => void
+  /**
+   * The person stopped talking: here is everything they said, final, and how long they spoke,
+   * in seconds, when the provider's own voice detection knows it. The cap of a session counts
+   * speech and nothing else (chapter 10), so silence spent thinking is not in this number.
+   */
+  surFinDeTour: (texte: string, dureeS?: number) => void
   /** What the provider consumed, reported as it goes; the session adds it up. */
   surConsommation?: (partie: ConsommationTranscription) => void
 }
@@ -137,7 +141,8 @@ export class TranscripteurFluxStub implements TranscripteurFlux {
         if (ferme) return
         options.surSegment({ texte: texte(), definitif: true })
         options.surConsommation?.({ audio_entree_s: morceaux / 10 })
-        options.surFinDeTour(texte())
+        // The stub hears every chunk as speech: a hundred milliseconds each, as the phone sends.
+        options.surFinDeTour(texte(), morceaux / 10)
       },
       fermer: () => {
         ferme = true
