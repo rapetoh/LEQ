@@ -24,6 +24,7 @@ export type NomIcone =
   | 'utilisateurs'
   | 'exports'
   | 'formules'
+  | 'abonnements'
 
 const CHEMINS: Record<NomIcone, React.ReactNode> = {
   // A dashboard: the panels of what is going on.
@@ -143,6 +144,13 @@ const CHEMINS: Record<NomIcone, React.ReactNode> = {
     <>
       <path d="M3.5 12.5V5a1.5 1.5 0 0 1 1.5-1.5h7.5l8 8-8.5 8.5-8.5-8.5z" />
       <circle cx="8" cy="8" r="1.4" />
+    </>
+  ),
+  // A card: what comes in.
+  abonnements: (
+    <>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <path d="M3 10h18M7 15h4" />
     </>
   ),
 }

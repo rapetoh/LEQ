@@ -39,6 +39,7 @@ export const fr = {
     utilisateurs: 'Utilisateurs',
     exports: 'Demandes de données',
     formules: 'Formules',
+    abonnements: 'Abonnements',
     seDeconnecter: 'Se déconnecter',
   },
 
@@ -332,6 +333,48 @@ export const fr = {
     erreurDoublon: 'Un exercice porte déjà cette clé.',
   },
 
+  abonnements: {
+    titre: 'Les abonnements',
+    intro:
+      'Qui paie, quand, et combien chaque mois. Les paiements viennent des stores, par RevenueCat.',
+    erreurChargement: 'Impossible de charger les abonnements.',
+    actifs: {
+      titre: "Aujourd'hui",
+      intro: 'Les personnes sur une formule payante en ce moment.',
+      total: 'Abonnements actifs',
+    },
+    mois: {
+      titre: 'Mois par mois',
+      intro: 'Les douze derniers mois. Un remboursement compte en négatif dans le montant.',
+      vide: 'Aucun paiement sur les douze derniers mois.',
+      mois: 'Mois',
+      nouveaux: 'Nouveaux abonnés',
+      paiements: 'Paiements',
+      montant: 'Montant payé',
+      net: 'Net pour LEQ',
+      netInconnu: 'non transmis',
+      remboursements: 'Remboursements',
+    },
+    derniers: {
+      titre: 'Les derniers paiements',
+      intro: 'Les cinquante derniers, du plus récent au plus ancien.',
+      vide: 'Aucun paiement pour le moment.',
+      date: 'Date',
+      personne: 'Personne',
+      formule: 'Formule',
+      type: 'Type',
+      magasin: 'Store',
+      montant: 'Montant',
+      sansPrenom: 'Compte supprimé',
+    },
+    types: {
+      achat: 'Achat',
+      renouvellement: 'Renouvellement',
+      remboursement: 'Remboursement',
+      essai: 'Essai',
+    },
+    magasins: { apple: 'App Store', google: 'Play Store', autre: 'Autre' },
+  },
   formules: {
     titre: 'Les formules',
     intro:

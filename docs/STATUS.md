@@ -653,9 +653,14 @@ Closed so far, from the seventeen items:
    active). Creating one writes its key from its name; the free tier cannot be switched off,
    since everybody starts on it. The three onboarding screens and the six-listen Arena shipped
    on 2026-09-12 and 13.
+10. **Les abonnements ont leur page** (2026-09-13): who is on a paid tier today, the last twelve
+    months of new subscribers, payments, refunds and amounts by currency, net when the store
+    says it, and the last fifty payments one by one. The money lives in a ledger of its own,
+    `paiements`, written by the RevenueCat webhook once the account exists; until then the page
+    shows the subscriptions and an empty ledger, and says so.
 
 Still open: the Bulle glitch, the padding on « avec Rebecca ce mois-ci », l'arc long du parcours,
-le défi hebdomadaire récurrent, and the revenue dashboard.
+and le défi hebdomadaire récurrent.
 
 ## Les vrais fournisseurs sont branchés (2026-09-13)
 

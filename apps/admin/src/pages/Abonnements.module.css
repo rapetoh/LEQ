@@ -1,0 +1,78 @@
+.section {
+  margin-top: 28px;
+}
+
+.section h2 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.sousTitre {
+  color: var(--texte-2);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.chiffre {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+}
+
+.chiffreValeur {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.chiffreLibelle {
+  color: var(--texte-2);
+  font-size: 13px;
+}
+
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tableau th,
+.tableau td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ligne);
+}
+
+.tableau th {
+  color: var(--texte-2);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tableau tr:last-child td {
+  border-bottom: 0;
+}
+
+.nombre {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.calme {
+  color: var(--texte-3);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--texte-3);
+}

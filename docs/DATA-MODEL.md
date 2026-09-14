@@ -327,6 +327,14 @@ The offer a person is on. Absence of a row means Gratuit. RevenueCat writes it i
 - `formule_de(uid) returns text`: `complet` when a row says so and `actif_jusqu_a` is null or in the future, else `gratuit`.
 - RLS: the person reads own row; service role writes.
 
+### paiements
+
+The money side, apart from the tier (ADR-009: a ledger, not a counter). One row per payment event the stores report, kept even when the account goes.
+
+- `id`, `utilisateur_id` (references profils, `on delete set null`), `formule` (references formules), `produit_store`, `magasin` (apple, google, autre), `type` (achat, renouvellement, remboursement, essai), `montant numeric(10,2)` (what the person paid, in `devise`; a refund is negative), `montant_net numeric(10,2)` (what reaches LEQ after the store's share, when the store says it), `paye_le`, `source` (revenuecat, manuel), `evenement_id` (unique: a webhook retried twice writes one row), `cree_le`.
+- RLS: the admin reads; no client writes. The RevenueCat webhook (server, once the account exists) is the writer; `source = 'manuel'` is for a row written by hand from the SQL editor.
+- `resume_abonnements()` (admin only, one round trip): who is on a paid tier today (`actifs.total`, `actifs.par_formule`), the last twelve months (`mois[]`: new paid subscribers by `abonnements.cree_le`, payments, refunds, `montants` and `net` by currency), and the last fifty payments with the first name of who paid.
+
 ### Functions
 
 - `obtenir_parcours() returns uuid` (security definer, authenticated): returns the caller's path id, building it on first call from `modeles_actes` and the active `defis` in order: the first act `en_cours`, its first step `disponible`, everything else locked or `a_venir`. An act with no défi is `a_venir` with no step.
