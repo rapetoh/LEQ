@@ -70,6 +70,7 @@ provisional stand-ins and are marked `provisoire`.
   user-facing string in French.
 - Tracking documents are updated in the same commit as the code they describe.
 - Secrets never enter git. Only `.env.example` files are committed.
-- Four inputs do not exist yet and are never invented: Rebecca's grid, the path generator rules, the
-  speech-to-text provider, the measured cost of a debate. Where code needs one, a clearly named stub
-  stands in and the workspace README says so.
+- Two inputs do not exist yet and are never invented: Rebecca's grid and the path generator rules.
+  Where code needs one, a clearly named stub stands in and the workspace README says so. The
+  speech-to-text provider (OpenAI, ADR-011) and the cost of a debate (measured on 2026-09-13,
+  docs/STATUS.md) were the other two, and are settled.
