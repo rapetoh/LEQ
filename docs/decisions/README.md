@@ -6,17 +6,19 @@ Each record has three parts. Context: what was true and what forced a choice. De
 
 Status values: Proposed, Accepted, Superseded by ADR-nnn.
 
-| ADR                                                          | Title                                                       | Status                                               | Date       |
-| ------------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------- | ---------- |
-| [ADR-001](ADR-001-stack.md)                                  | Stack: Expo, Supabase in the EU, one Node service on Fly.io | Accepted                                             | 2026-09-05 |
-| [ADR-002](ADR-002-monorepo.md)                               | Monorepo with npm workspaces                                | Accepted                                             | 2026-09-05 |
-| [ADR-003](ADR-003-french-domain-vocabulary.md)               | French domain vocabulary, English plumbing                  | Accepted                                             | 2026-09-05 |
-| [ADR-004](ADR-004-anonymous-diagnostic.md)                   | Diagnostic before account, via anonymous sign-in            | Accepted                                             | 2026-09-05 |
-| [ADR-005](ADR-005-transient-audio.md)                        | Audio is transient by construction                          | Accepted                                             | 2026-09-05 |
-| [ADR-006](ADR-006-structured-feedback-and-versioned-grid.md) | Structured feedback first, versioned grid                   | Accepted                                             | 2026-09-05 |
-| ADR-007                                                      | Audio capture stack for attempts and for the debate         | Reserved: written by the Phase 0 audio capture spike |            |
-| [ADR-008](ADR-008-praat-prosody.md)                          | Prosody extraction in Praat, everything else in TypeScript  | Accepted                                             | 2026-09-05 |
-| [ADR-009](ADR-009-ledgers-not-counters.md)                   | Ledgers, not counters                                       | Accepted                                             | 2026-09-06 |
+| ADR                                                          | Title                                                       | Status                                                 | Date       |
+| ------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------ | ---------- |
+| [ADR-001](ADR-001-stack.md)                                  | Stack: Expo, Supabase in the EU, one Node service on Fly.io | Accepted                                               | 2026-09-05 |
+| [ADR-002](ADR-002-monorepo.md)                               | Monorepo with npm workspaces                                | Accepted                                               | 2026-09-05 |
+| [ADR-003](ADR-003-french-domain-vocabulary.md)               | French domain vocabulary, English plumbing                  | Accepted                                               | 2026-09-05 |
+| [ADR-004](ADR-004-anonymous-diagnostic.md)                   | Diagnostic before account, via anonymous sign-in            | Accepted                                               | 2026-09-05 |
+| [ADR-005](ADR-005-transient-audio.md)                        | Audio is transient by construction                          | Accepted                                               | 2026-09-05 |
+| [ADR-006](ADR-006-structured-feedback-and-versioned-grid.md) | Structured feedback first, versioned grid                   | Accepted                                               | 2026-09-05 |
+| [ADR-007](ADR-007-capture-audio.md)                          | Audio capture stack for attempts and for the debate         | Proposed, confirmed on the simulator and in TestFlight | 2026-09-06 |
+| [ADR-008](ADR-008-praat-prosody.md)                          | Prosody extraction in Praat, everything else in TypeScript  | Accepted                                               | 2026-09-05 |
+| [ADR-009](ADR-009-ledgers-not-counters.md)                   | Ledgers, not counters                                       | Accepted                                               | 2026-09-06 |
+| [ADR-010](ADR-010-hebergement-pages-publiques.md)            | The public pages are served by the real-time process        | Accepted                                               | 2026-09-11 |
+| [ADR-011](ADR-011-openai-fournisseurs.md)                    | OpenAI for transcription, Rétor, the judge and the voice    | Accepted                                               | 2026-09-13 |
 
 ## Reserved numbers
 
@@ -30,8 +32,7 @@ The approved plan takes more decisions than the eight above. They are summarised
 - No hard-coded tunables (`configuration` and `drapeaux`): Phase 0, ADR with the admin editor (Phase 6).
 - Admin role via a custom access token hook: Phase 0, ADR with the admin space (Phase 6).
 - Moderation is a state: Phase 7.
-- STT behind a `Transcripteur` interface, provider chosen by the bench: Phase 2 (the bench report becomes the ADR).
-- LLM: Anthropic Claude with structured outputs, keys never on the phone: Phase 3.
+- STT behind a `Transcripteur` interface and the language model behind `Adversaire` and `Juge`: ADR-011 names OpenAI for both, keys never on the phone.
 - Payments via RevenueCat, notifications local plus Expo push: Phase 4 and Phase 6.
 - Testing strategy and CI: Phase 0, ADR when Maestro is added.
 - Strings in one typed module per app: see [docs/STRINGS.md](../STRINGS.md).
