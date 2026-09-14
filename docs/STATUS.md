@@ -668,8 +668,14 @@ Closed so far, from the seventeen items:
     its own content. A calendar-bound challenge would be a new concept, and nobody asked for it
     once the copy existed.
 
-Still open: the Bulle glitch and the padding on « avec Rebecca ce mois-ci », both design items
-that need eyes on a device.
+13. **The two design items were already closed on 2026-09-12** and the list above had not caught
+    up: Bulle's jump came from one effect restarting the float and the blink whenever the mouth
+    changed, split into two since (`109ad26`); « Avec Rebecca, ce mois-ci » beside « Tout voir »
+    wraps on a small phone, and the row now aligns at the top instead of dragging the action
+    down. Both went out in build 15.
+
+Nothing from the seventeen items is open in the code. What remains is Rebecca's eyes on a phone
+with build 16 and later, and her content.
 
 ## Les vrais fournisseurs sont branchés (2026-09-13)
 
