@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-13, after build 16 reached TestFlight from this Mac with the three sign-in doors, PostHog and the Arena publish gesture (section below). Update this file in the same commit as any change of state.
+Last updated: 2026-09-15, after build 17 reached TestFlight, the cost of a debate was measured and the last of Rebecca's seventeen items closed (sections below). Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -738,10 +738,12 @@ been tried on a phone yet.
   Google sign-in on a device, an e-mail arriving through Gmail, an event arriving in PostHog, the
   publish gesture against production. All four need a phone build, and the phone build needs the
   account below.
-- **Build 17 is archived and waits for a credential.** Its upload was refused two hours after
-  build 16's went through: the Apple account signed into Xcode had gone from the build tools'
-  view, and the distribution certificate Apple created for build 16 is a cloud-managed one that
-  lives behind that account. An App Store Connect API key would not evaporate; it is asked of
+- **Build 17 is in TestFlight** (2026-09-15). Its command-line upload was refused twice: the
+  Apple account signed into the Xcode 27 beta is visible to the beta's window and to nothing
+  else, not even the beta's own `xcodebuild`, and the distribution certificate Apple created for
+  build 16 is cloud-managed, behind that account. The archive built by the 26.6 tools was opened
+  in the beta's Organizer and uploaded from there, driven by script (docs/RUNBOOK.md). An App
+  Store Connect API key would make every next upload one command with no window; it is asked of
   Roch in docs/OPEN-INPUTS.md. Build 17 carries the act objective on the map and the two act
   screens; everything else on the phone is in build 16 already.
 - **Build 16 is in TestFlight**, archived and uploaded from this Mac on 2026-09-13 with the
