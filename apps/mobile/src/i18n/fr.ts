@@ -480,6 +480,7 @@ export const fr = {
     refusAnalyseIncomplete: "Attends la fin de l'analyse de ta prise.",
     refusAucunSujet: "Il n'y a pas de sujet en ce moment.",
     refusDejaVote: 'Tu as déjà voté sur cette paire.',
+    refusDejaPublie: 'Tu as déjà un passage sur ce sujet. Retire-le pour en publier un autre.',
     refusVoteSurSoi: 'On ne vote pas sur sa propre prise.',
     refusParleDAbord: "Parle d'abord, puis tu pourras voter.",
     refusDuelExpire: 'Ce duel a expiré.',

@@ -51,6 +51,7 @@ const MESSAGES_REFUS: Readonly<Record<RefusArene, CleTexte>> = {
   type_incompatible: 'arene.refusInconnu',
   analyse_incomplete: 'arene.refusAnalyseIncomplete',
   aucun_sujet: 'arene.refusAucunSujet',
+  deja_publie: 'arene.refusDejaPublie',
   duel_introuvable: 'arene.refusInconnu',
   deja_vote: 'arene.refusDejaVote',
   vote_sur_soi: 'arene.refusVoteSurSoi',

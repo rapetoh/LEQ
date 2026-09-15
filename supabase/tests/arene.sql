@@ -105,6 +105,14 @@ select isnt((select chemin_audio from public.prises_publiques where tentative_id
   'and the published take can actually be heard');
 select is((select public.publier_prise((select ta from prises))), (select id from public.prises_publiques where tentative_id = (select ta from prises)), 'publishing twice answers the same take');
 reset role; select tests_leq.deconnecter();
+-- One passage per person per subject: a second analysed take on the same subject is refused,
+-- with a name the app can turn into a sentence, and the ranking never holds two entries for one voice.
+create temp table seconde as select tests_leq.prise_analysee((select a from ctx), 'arene', null, 21) as t;
+grant select on seconde to authenticated;
+select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
+select throws_ok($$ select public.publier_prise((select t from seconde)) $$, 'P0001', 'deja_publie',
+  'a second take on the same subject is refused');
+reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
 select lives_ok($$ select public.publier_prise((select tb from prises)) $$, 'B publishes a take');
 reset role; select tests_leq.deconnecter();

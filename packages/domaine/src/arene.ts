@@ -158,6 +158,7 @@ export const REFUS_ARENE = [
   'type_incompatible',
   'analyse_incomplete',
   'aucun_sujet',
+  'deja_publie',
   'duel_introuvable',
   'deja_vote',
   'vote_sur_soi',
