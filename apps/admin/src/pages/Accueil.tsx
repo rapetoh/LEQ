@@ -22,7 +22,6 @@ export function Accueil() {
     <div className="page">
       <header className="page-entete">
         <h1>{fr.accueil.titre}</h1>
-        <p>{fr.accueil.intro}</p>
       </header>
 
       {tableau.isPending ? (
@@ -50,9 +49,7 @@ function Contenu({ tableau }: { tableau: Tableau }) {
     <>
       <section aria-labelledby="titre-attente" className={styles.section}>
         <h2 id="titre-attente">{fr.accueil.attente.titre}</h2>
-        <p className={styles.sousTitre}>
-          {enAttente === 0 ? fr.accueil.attente.rien : fr.accueil.attente.intro}
-        </p>
+        {enAttente === 0 ? <p className={styles.sousTitre}>{fr.accueil.attente.rien}</p> : null}
         <div className={styles.filesAttente}>
           <File
             icone="moderation"

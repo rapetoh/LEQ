@@ -108,6 +108,13 @@ export default function Recompenses() {
         </Text>
       ) : null}
 
+      {/* Said once above the list, never on each card. */}
+      {recompenses.some((r) => r.provisoire) ? (
+        <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          {t('recompenses.provisoire')}
+        </Text>
+      ) : null}
+
       {recompenses.length === 0 ? (
         <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
           {t('recompenses.vide')}
@@ -257,11 +264,6 @@ function Recompense({
           <Bouton libelle={t('recompenses.echanger')} chargement={enCours} onPress={onEchanger} />
         ) : null}
       </View>
-      {recompense.provisoire ? (
-        <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-          {t('recompenses.provisoire')}
-        </Text>
-      ) : null}
     </Carte>
   )
 }

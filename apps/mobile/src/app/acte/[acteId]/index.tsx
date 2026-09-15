@@ -76,10 +76,6 @@ export default function ActeReplie() {
         ))}
       </Carte>
 
-      <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-        {t('carte.conservation')}
-      </Text>
-
       <View style={styles.actions}>
         <Bouton libelle={t('commun.retour')} variante="secondaire" onPress={() => router.back()} />
       </View>

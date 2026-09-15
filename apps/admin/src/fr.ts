@@ -62,12 +62,12 @@ export const fr = {
 
   accueil: {
     titre: 'Accueil',
-    intro: "Ce qui t'attend, et ce qu'il reste à écrire.",
+    intro: 'Tableau de bord',
     erreurChargement: 'Impossible de charger le tableau de bord.',
 
     attente: {
       titre: 'Ce qui attend une décision',
-      intro: 'Chaque file mène à la page où tu la traites.',
+      intro: 'À traiter',
       rien: "Rien ne t'attend pour le moment.",
       moderation: 'Prises à relire',
       echanges: 'Échanges à honorer',
@@ -171,7 +171,7 @@ export const fr = {
     etats: {
       enLigne: 'En ligne',
       horsLigne: 'Hors ligne',
-      absent: 'Absent de la base',
+      absent: 'Non configuré',
     },
     basculer: (objet: string) => `Mettre ${objet} en ligne ou hors ligne`,
     confirmationTitre: (objet: string) => `Mettre ${objet} en ligne`,
@@ -264,8 +264,7 @@ export const fr = {
     acteTitre: "Titre de l'acte",
     acteSousTitre: 'Sous-titre',
     acteObjectif: "Objectif de l'acte",
-    acteObjectifAide:
-      "Une phrase. Écrite, la personne la lit avant le premier défi, et l'écran de fin de l'acte compare sa première prise à la dernière.",
+    acteObjectifAide: "Une phrase, lue avant le premier défi et rappelée à la fin de l'acte.",
     acteObjectifLigne: (objectif: string) => `Objectif\u00a0: ${objectif}`,
     acteEnregistre: 'Acte enregistré.',
     monter: (titre: string) => `Monter ${titre}`,
@@ -381,8 +380,7 @@ export const fr = {
   },
   formules: {
     titre: 'Les formules',
-    intro:
-      'Ce que chaque formule donne. Une formule de plus est une ligne de plus. Les prix se règlent dans App Store Connect et Play Console.',
+    intro: 'Les prix se règlent dans App Store Connect et Play Console.',
     creer: 'Créer une formule',
     nouvelle: 'Nouvelle formule',
     modifierTitre: 'Modifier la formule',

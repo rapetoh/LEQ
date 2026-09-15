@@ -32,6 +32,16 @@ never open on a definition (`Chaque ligne est une personne qui…`), never gloss
 influencée par la leur`), and never let internal vocabulary reach a screen (`le seed`, `la
 migration`, `le serveur`, `chapitre 7`, `docs/DATA-MODEL.md`).
 
+**Review the screen, never the string.** What a person reads is a card: a title, a subtitle
+from the database, a status line from `fr.ts`, a footnote. Four correct sentences made one
+unreadable reward card (the subtitle and the status line both said "ne s'achète pas", and
+"Récompense provisoire" sat on every card of the list). The same fact appears once per screen; a
+label about a list is said once above it; database content is read together with the strings
+around it. A change to provisional database content ships as a data migration guarded by
+`provisoire = true`, because the seed never overwrites an existing row. And nothing is done until
+it is where a person reads it: `fly deploy` for the admin and the public pages, a TestFlight
+build for the app, which has no over-the-air path.
+
 Beneath the voice, these sentence-level tells are banned too:
 
 - **Never state a fact and then negate its opposite.** "Seuls tes résultats sont conservés", never

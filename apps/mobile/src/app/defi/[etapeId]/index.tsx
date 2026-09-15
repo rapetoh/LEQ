@@ -160,9 +160,11 @@ function ContenuBrief({ brief }: { brief: DonneesBrief }) {
           <Text style={[typographie.corpsFort, { color: theme.texte }]}>
             {t('defi.retourRegardera', { focus: defi.focus })}
           </Text>
-          <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
-            {defi.format === 'texte' ? t('defi.minuterieApresLecture') : t('defi.rienDAutre')}
-          </Text>
+          {defi.format === 'texte' ? (
+            <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+              {t('defi.minuterieApresLecture')}
+            </Text>
+          ) : null}
         </Carte>
       ) : null}
 

@@ -169,6 +169,33 @@ running text inside a sentence ("Ouvre LEQ", "Installer LEQ") is text and stays 
 This was got wrong on the admin sign-in, in both browser tabs and on the mobile welcome screen,
 and fixed on 2026-09-12.
 
+## Review the screen, never the string
+
+A string is never judged alone. What the person reads is a screen: a title, a subtitle, a
+status line and a footnote, and half of them come from the database rather than from `fr.ts`.
+The reward card that failed review was four correct sentences: a database subtitle saying the
+hour with Rebecca "ne s'achète pas", a status line saying "Ne s'achète pas" under it, and
+"Récompense provisoire, en attente de Rebecca." repeated on every card of the list. Each line
+passed on its own; the screen was unreadable.
+
+So the review unit is the rendered screen, and three things are checked on it:
+
+1. **The same fact appears once.** A status line and a subtitle do not both say it; a privacy
+   promise made on the recording screen is not made again on the map.
+2. **A label about the list is said once above the list**, never once per item.
+3. **Database content is read with the strings around it.** The seed and the admin write the
+   subtitle; `fr.ts` writes the status line; the card is the union, and the union is what is
+   reviewed.
+
+Two consequences for how a change ships:
+
+- A change to provisional database content is a **data migration** guarded by
+  `provisoire = true`, never only an edit of `supabase/seed.sql`: the seed inserts with
+  `on conflict do nothing`, so the hosted rows keep the old wording and the phones show it.
+- Nothing is done until it is where a person reads it. The admin and the public pages are on
+  Fly (`fly deploy`); the app reaches a phone through a TestFlight build (`eas build`), and there
+  is no over-the-air path, so a string change is invisible until the next build.
+
 ## Review checklist
 
 Run it on every diff that touches a `fr.ts`.
@@ -177,6 +204,8 @@ Run it on every diff that touches a `fr.ts`.
 - [ ] Tutoiement, no "vous".
 - [ ] Buttons are verbs; none is a noun or an adjective ("OK", "Suivant" alone is tolerated only for a pager).
 - [ ] Each message says what happened and what comes next; no message is a decoration.
+- [ ] Reviewed on the rendered screen, with the database content next to it, not in `fr.ts` alone.
+- [ ] No fact stated twice on one screen; no per-item label repeated down a list.
 - [ ] Said out loud to the person, it sounds like speech, not like a caption or a manual entry.
 - [ ] No sentence that defines the screen's contents, glosses a control, or justifies a rule.
 - [ ] No internal vocabulary: no seed, no migration, no server, no chapter of the cahier, no doc path.

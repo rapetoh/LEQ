@@ -94,7 +94,7 @@ export const fr = {
   },
   analyse: {
     envoi: 'Envoi en cours',
-    envoiDetail: 'Ta prise est analysée, puis effacée. Seul ton retour est conservé.',
+    envoiDetail: 'Ta prise est envoyée pour analyse.',
     attenteReseau: 'En attente du réseau',
     attenteReseauDetail:
       'Ta prise est enregistrée sur ton téléphone. Elle sera envoyée dès que le réseau revient.',
@@ -169,7 +169,7 @@ export const fr = {
       export: 'Recevoir une copie de mes données',
       exportEnvoye:
         'Ta demande est envoyée. Tu recevras une copie de tes données par e-mail, sous quelques jours.',
-      exportCompteRequis: "Crée d'abord ton compte : c'est là que la copie te sera envoyée.",
+      exportCompteRequis: 'Crée ton compte pour recevoir la copie par e-mail.',
       supprimer: 'Supprimer mon compte',
       supprimerTitre: 'Supprimer ton compte ?',
       supprimerTexte:
@@ -225,8 +225,7 @@ export const fr = {
     jeMeLance: 'Je me lance',
     rebeccaDit: 'Rebecca te dit, mot pour mot :',
     retourRegardera: 'Le retour regardera : {{focus}}',
-    rienDAutre: 'Le retour ne portera que sur ce point.',
-    dernier: "Acte {{acte}} · dernier défi, il ferme l'acte",
+    dernier: "Acte {{acte}} · dernier défi de l'acte",
     texteProvisoire: 'Le texte, provisoire',
     etapeLongue: {
       preparer: 'Prépare · {{minutes}} min',
@@ -238,7 +237,7 @@ export const fr = {
     },
     verrouille: "Ce défi s'ouvre après le précédent.",
     dejaReleve: "Ce défi est déjà relevé. Le suivant t'attend sur la carte.",
-    introuvable: 'On ne retrouve pas ce défi. La carte des actes a la suite.',
+    introuvable: 'On ne retrouve pas ce défi. Retourne à la carte des actes.',
     versAujourdhui: "Retour à Aujourd'hui",
     pret: 'Je suis prêt·e',
     lireEtParler: 'Lire, puis parler',
@@ -262,9 +261,8 @@ export const fr = {
       enAttendant: 'En attendant',
       enAttendantDetail:
         'Ton retour du jour est disponible, et la carte des actes montre la suite.',
-      enAttendantArene: "En attendant, c'est ouvert",
-      enAttendantAreneDetail:
-        "Le sujet de la semaine dans l'Arène, l'écoute des autres, et tes votes.",
+      enAttendantArene: "En attendant, l'Arène est ouverte",
+      enAttendantAreneDetail: 'Le sujet de la semaine, les passages des autres, et tes votes.',
       voirArene: "Aller dans l'Arène",
       voirProgres: 'Voir mes progrès',
       voirFormules: 'Voir les formules',
@@ -338,8 +336,6 @@ export const fr = {
     acte: 'Acte {{acte}} · {{titre}}',
     detailResultat: '{{debit}} mots/min · {{bequilles}} béquilles · {{quand}}',
     note: '{{note}} / {{max}}',
-    conservation:
-      'Tes prises ne sont pas conservées. Leurs résultats restent, et tu peux suivre tes béquilles défi après défi.',
     verrouille: 'Se déverrouille après le défi précédent',
     enCoursMajuscules: 'Acte {{acte}} · en cours',
     ouvrir: 'Ouvrir',
@@ -348,7 +344,7 @@ export const fr = {
     aVenir: 'À venir',
     surtitreActe: 'Défis · la carte',
     objectif: "L'objectif de l'acte",
-    sansGrille: 'Validé, sans grille',
+    sansGrille: 'Validé',
     vide: 'La carte apparaîtra avec les défis de Rebecca.',
     introuvable: 'On ne retrouve pas cet acte.',
   },
@@ -421,7 +417,7 @@ export const fr = {
     jour: 'Jour {{jour}} sur {{total}}',
     enregistrer: 'Enregistrer mon passage · {{minutes}} min',
     conservation: 'Ta prise reste en ligne le temps du sujet, puis elle est supprimée.',
-    passageDedans: 'Ton passage est dedans',
+    passageDedans: 'Ton passage est en ligne',
     passageDetail:
       'Tu peux le réécouter ou le retirer tant que le sujet est ouvert. Une seule version est acceptée.',
     passageRetire: 'Ton passage a été retiré',
@@ -438,7 +434,7 @@ export const fr = {
     rienAComparerTitre: 'Tu as tout écouté.',
     assezEcouteTitre: 'Tu as écouté six passages',
     assezEcouteCorps:
-      "C'est assez pour aujourd'hui. Les autres passages t'attendent demain, et ton classement continue de compter les voix.",
+      'Les autres passages seront disponibles demain. Ton classement continue de compter les voix.',
     rienAComparerCorps: "De nouvelles paires apparaîtront quand d'autres auront parlé.",
     classement: 'Le classement',
     votes: '{{votes}} voix',
@@ -542,13 +538,12 @@ export const fr = {
     conservation: "Ta voix n'est pas conservée. Seul le texte du débat l'est.",
 
     // E3 · Le débat.
-    provisoire:
-      "Rétor n'est pas encore connecté. La transcription et ses réponses sont provisoires.",
+    provisoire: "Rétor n'est pas encore disponible. Ses réponses sont provisoires.",
     connexion: 'Connexion en cours',
     aToiDeParler: 'À toi de parler',
     retorRepond: 'Rétor répond',
     retorParle: 'Rétor parle',
-    microCoupe: 'Le micro a été coupé. On le récupère.',
+    microCoupe: 'Le micro a été coupé. Reconnexion en cours.',
     jaiFini: "J'ai fini de parler",
     terminer: 'Terminer le débat',
     tempsRestant: '{{temps}} de parole restante',
@@ -570,11 +565,10 @@ export const fr = {
     debriefEnCoursDetail: "Ça prend moins d'une minute.",
     debriefMoments: 'Les moments qui comptent',
     debriefAxe: 'À travailler',
-    debriefTarde:
-      "Le débrief n'est toujours pas là. Reviens plus tard, il t'attendra sur cette page.",
+    debriefTarde: "Le débrief n'est pas encore prêt. Il apparaîtra ici.",
     debriefVide: 'Le débat était trop court pour être analysé.',
     debriefProvisoire:
-      "Rétor n'est pas encore connecté. Le débrief arrivera avec les vraies réponses.",
+      "Rétor n'est pas encore disponible. Le débrief arrivera avec ses vraies réponses.",
     debriefSource: "Écrit à partir du texte du débat. Ta voix n'a pas été conservée.",
     voirDebrief: 'Voir le débrief',
 
@@ -690,14 +684,14 @@ export const fr = {
     semaine: '+{{points}} cette semaine',
     cout: '{{cout}} pts',
     echanger: 'Échanger',
-    atteint: '{{cout}} pts atteints · à toi',
+    atteint: '{{cout}} pts atteints',
     manque: 'Plus que {{manque}} pts',
     places: '{{restantes}} places ce mois-ci',
     place: '1 place ce mois-ci',
     plusDePlace: 'Plus de place ce mois-ci',
     dejaEchangee: 'Déjà échangée',
     distinction: "Ne s'achète pas",
-    provisoire: 'Récompense provisoire, en attente de Rebecca.',
+    provisoire: 'Récompenses provisoires, en attente de celles de Rebecca.',
     note: 'Les points se gagnent en parlant, sur toutes les formules, Gratuit compris.',
     confirmerTitre: 'Échanger {{cout}} points ?',
     confirmerCorps: "{{titre}}. Rebecca te contacte pour la suite, à l'adresse de ton compte.",
@@ -723,9 +717,9 @@ export const fr = {
   },
   serie: {
     proteger: 'Protéger ma série',
-    detail: 'Une récupération par mois, à activer toi-même · {{restantes}} disponible',
-    detailPlusieurs: 'Une récupération par mois, à activer toi-même · {{restantes}} disponibles',
-    detailAucune: 'Une récupération par mois, à activer toi-même · utilisée ce mois-ci',
+    detail: 'Une récupération par mois · {{restantes}} disponible',
+    detailPlusieurs: 'Une récupération par mois · {{restantes}} disponibles',
+    detailAucune: 'Une récupération par mois · utilisée ce mois-ci',
     activer: 'Activer',
     rienACouvrir: 'Rien à rattraper, ta série est intacte.',
     tropTard: "Plus d'un jour manqué, la série repart de zéro. Ton record reste de {{record}}.",
@@ -755,7 +749,7 @@ export const fr = {
     porte: "Rien de tout cela n'est nécessaire pour progresser dans l'application.",
     retour: "Retour à Aujourd'hui",
     individuel: 'Ses formations individuelles',
-    individuelCourt: 'Une heure, seule à seule',
+    individuelCourt: 'Une heure en tête-à-tête',
     individuelDetail: "Se réservent chez Rebecca, hors de l'application.",
     voirRecompenses: 'Voir mes récompenses',
     plusTard: 'Une autre fois',

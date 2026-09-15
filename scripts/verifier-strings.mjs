@@ -27,6 +27,11 @@ const SOURCES = [
   { fichier: 'apps/web/src/fr.ts', jusqua: '} as const' },
   { fichier: 'packages/domaine/src/debatProtocole.ts', depuis: 'MESSAGES_ERREUR_DEBAT' },
   { fichier: 'packages/domaine/src/notifications.ts', depuis: 'MESSAGE_RETOUR_PRET' },
+  // French a person reads that lives outside the string modules: the iOS permission
+  // prompts baked into the binary, and the e-mails Supabase sends for the login code.
+  { fichier: 'apps/mobile/app.json' },
+  { fichier: 'supabase/templates/code-connexion.html', html: true },
+  { fichier: 'supabase/templates/changement-email.html', html: true },
 ]
 
 /** Verbatim strings allowed to break a rule, each with the reason it is allowed. */
@@ -144,7 +149,19 @@ function ligneDe(source, index) {
 
 let echecs = 0
 
-for (const { fichier, jusqua, depuis } of SOURCES) {
+/** The text nodes of an HTML template, each as if it were one literal. */
+function textesHtml(source) {
+  const trouves = []
+  const motif = />([^<]+)</gu
+  for (const found of source.matchAll(motif)) {
+    // Only ASCII whitespace is collapsed: \s would also eat the no-break spaces being checked.
+    const valeur = found[1].replace(/[ \t\r\n]+/gu, ' ').trim()
+    if (valeur) trouves.push({ valeur, index: found.index })
+  }
+  return trouves
+}
+
+for (const { fichier, jusqua, depuis, html } of SOURCES) {
   const chemin = join(RACINE, fichier)
   let source
   try {
@@ -169,7 +186,7 @@ for (const { fichier, jusqua, depuis } of SOURCES) {
     if (fin !== -1) source = source.slice(0, fin)
   }
 
-  for (const { valeur, index } of litteraux(source)) {
+  for (const { valeur, index } of html ? textesHtml(source) : litteraux(source)) {
     if (EXCEPTIONS.has(valeur)) continue
     for (const regle of REGLES) {
       if (!regle.motif.test(valeur)) continue

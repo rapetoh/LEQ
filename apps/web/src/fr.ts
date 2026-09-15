@@ -35,7 +35,7 @@ export const fr = {
     refaire: 'Refaire',
     envoyer: 'Envoyer ma réponse',
     envoyerEncore: 'Envoyer encore',
-    echecAnalyse: "L'analyse n'est pas revenue. Ta prise est gardée, tu peux renvoyer.",
+    echecAnalyse: "L'analyse n'a pas abouti. Ta prise est conservée, tu peux la renvoyer.",
     tropCourte: (secondes: number) => `Parle au moins ${secondes} secondes avant de terminer.`,
     minimum: (secondes: number) => `${secondes} secondes minimum`,
 
@@ -49,7 +49,7 @@ export const fr = {
     envoi: 'Envoi en cours',
     analyse: 'Analyse en cours',
     analyseDetail: "L'analyse prend moins d'une minute. Tu peux laisser la page ouverte.",
-    attenteTitre: 'Ta réponse est partie.',
+    attenteTitre: 'Ta réponse est envoyée.',
     attenteDetail:
       'Le verdict arrive quand vous aurez parlé tou·te·s les deux, ou à la fin des 48 h.',
 
@@ -77,7 +77,7 @@ export const fr = {
     expireTitre: 'Le délai est passé.',
     expireDetail: "Les 48 h sont écoulées, ce duel s'est fermé sans verdict.",
     completTitre: "Quelqu'un a déjà répondu.",
-    completDetail: "Ce duel n'attend plus personne.",
+    completDetail: 'Ce duel est complet.',
     surSoiTitre: "C'est ton propre duel.",
     surSoiDetail: 'Ouvre LEQ pour suivre les réponses de la personne que tu as défiée.',
     erreur: "Ça n'a pas marché. L'erreur vient de chez nous.",

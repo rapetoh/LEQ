@@ -118,7 +118,7 @@ insert into public.recompenses (cle, ordre, type, titre, sous_titre, description
   ('masterclass', 1, 'contenu', 'La masterclass exclusive', 'Vidéo de Rebecca, 40 min', null, 300, null, true),
   ('reduction_pack', 2, 'reduction', '10 % sur un pack', 'Les cours de Rebecca', null, 600, null, true),
   ('place_atelier', 3, 'atelier', 'Une place d''atelier de groupe', null, 'Une journée en petit groupe, avec Rebecca.', 1200, 10, true),
-  ('heure_rebecca', 4, 'distinction', 'Une heure avec Rebecca', 'Attribuée au n°1 du mois. Elle ne s''échange pas contre des points.', null, null, null, false)
+  ('heure_rebecca', 4, 'distinction', 'Une heure avec Rebecca', 'Attribuée au n°1 du mois.', null, null, null, false)
 on conflict (cle) do nothing;
 
 -- sujets_arene (Phase 7) --------------------------------------------------------
