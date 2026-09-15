@@ -1,8 +1,11 @@
+import type { ReactNode } from 'react'
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
@@ -10,9 +13,12 @@ import {
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
-// The three button shapes of the mockup: orange pill, outline, plain text. Labels are verbs.
+// The button shapes of the mockup, which draws every tall button as a rounded rectangle of
+// radius 18 and never as a pill: the orange action with its glow, the bleu nuit one, the white
+// one with a hairline, the outline, the plain text, and the gold one of the celebration. Labels
+// are verbs. A mark (Apple, Google) sits left of the label when the button carries one.
 
-export type VarianteBouton = 'principal' | 'secondaire' | 'texte' | 'blanc' | 'or'
+export type VarianteBouton = 'principal' | 'secondaire' | 'texte' | 'blanc' | 'or' | 'nuit'
 
 type Props = {
   libelle: string
@@ -23,6 +29,8 @@ type Props = {
   desactive?: boolean
   chargement?: boolean
   accessibilityHint?: string
+  /** A mark left of the label: the Apple logo, the Google « G ». */
+  icone?: ReactNode
   style?: StyleProp<ViewStyle>
 }
 
@@ -34,6 +42,7 @@ export function Bouton({
   desactive = false,
   chargement = false,
   accessibilityHint,
+  icone,
   style,
 }: Props) {
   const theme = useTheme()
@@ -44,26 +53,34 @@ export function Bouton({
       ? theme.accentTexte
       : variante === 'blanc' || variante === 'or'
         ? couleurs.bleuNuit
-        : surFondSombre
-          ? theme.heroTexte
-          : variante === 'texte'
-            ? theme.lien
-            : theme.texte
+        : variante === 'nuit'
+          ? couleurs.blanc
+          : surFondSombre
+            ? theme.heroTexte
+            : variante === 'texte'
+              ? theme.lien
+              : theme.texte
 
   const styleVariante: ViewStyle =
     variante === 'principal'
-      ? { backgroundColor: couleurs.orange }
-      : variante === 'blanc'
-        ? { backgroundColor: couleurs.blanc }
-        : variante === 'or'
-          ? { backgroundColor: couleurs.or }
-          : variante === 'secondaire'
-            ? {
-                backgroundColor: 'transparent',
-                borderWidth: 1.5,
-                borderColor: surFondSombre ? theme.heroBordure : theme.bordure,
-              }
-            : { backgroundColor: 'transparent', minHeight: 44 }
+      ? { backgroundColor: couleurs.orange, ...styles.lueur }
+      : variante === 'nuit'
+        ? { backgroundColor: couleurs.bleuNuit }
+        : variante === 'blanc'
+          ? {
+              backgroundColor: couleurs.blanc,
+              borderWidth: 1.5,
+              borderColor: surFondSombre ? couleurs.blanc : theme.bordure,
+            }
+          : variante === 'or'
+            ? { backgroundColor: couleurs.or }
+            : variante === 'secondaire'
+              ? {
+                  backgroundColor: 'transparent',
+                  borderWidth: 1.5,
+                  borderColor: surFondSombre ? theme.heroBordure : theme.bordure,
+                }
+              : { backgroundColor: 'transparent', minHeight: 44 }
 
   return (
     <Pressable
@@ -82,6 +99,11 @@ export function Bouton({
     >
       {chargement ? (
         <ActivityIndicator color={couleurTexte} />
+      ) : icone ? (
+        <View style={styles.avecIcone}>
+          {icone}
+          <Text style={[typographie.bouton, { color: couleurTexte }]}>{libelle}</Text>
+        </View>
       ) : (
         <Text style={[typographie.bouton, { color: couleurTexte }]}>{libelle}</Text>
       )}
@@ -94,10 +116,22 @@ const styles = StyleSheet.create({
     minHeight: 56,
     paddingHorizontal: espaces.xl,
     paddingVertical: espaces.s,
-    borderRadius: rayons.pilule,
+    borderRadius: rayons.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avecIcone: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  // The mockup's orange glow: 0 10px 24px at 30 percent.
+  lueur: Platform.select({
+    ios: {
+      shadowColor: couleurs.orange,
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 10 },
+    },
+    android: { elevation: 6 },
+    default: {},
+  }) as ViewStyle,
   presse: { opacity: 0.85 },
   inactif: { opacity: 0.5 },
 })

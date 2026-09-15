@@ -57,7 +57,7 @@ export const typographie = {
   corpsFort: { fontFamily: polices.semiBold, fontSize: 16, lineHeight: 24 },
   petit: { fontFamily: polices.medium, fontSize: 13, lineHeight: 18 },
   etiquette: { fontFamily: polices.bold, fontSize: 12, lineHeight: 16, letterSpacing: 0.4 },
-  bouton: { fontFamily: polices.bold, fontSize: 16, lineHeight: 20 },
+  bouton: { fontFamily: polices.extraBold, fontSize: 16, lineHeight: 20 },
   chiffre: { fontFamily: polices.extraBold, fontSize: 32, lineHeight: 36, letterSpacing: -0.5 },
 } as const
 
