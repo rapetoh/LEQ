@@ -66,8 +66,18 @@ const REGLES = [
   {
     nom: 'slogan or filler phrase',
     motif:
-      /\b(?:juste ça|rien d'autre|pour de vrai|pas de problème|personne d'autre|et c'est tout)\b/iu,
+      /\b(?:juste ça|rien d'autre|pour de vrai|pas de problème|personne d'autre|et c'est tout|et c'est fait|et vois-le)\b/iu,
     aide: 'These are rhythm, not information. Cut the phrase.',
+  },
+  {
+    nom: 'slogan by apposition ("Un compte, un geste", "Ton adresse, un code, et…")',
+    motif: /^(?:Un|Une|Ton|Ta|Tes) [\p{L}'’-]+, (?:un|une|et) [\p{L}'’-]+[,.:]/u,
+    aide: 'A sentence with a verb, addressed to the person. "Avec un compte, ton profil est conservé", not "Un compte, un geste : …".',
+  },
+  {
+    nom: 'chat-bot opener ("Et toi, …")',
+    motif: /^Et toi,/u,
+    aide: 'The app asks for the thing: "Ton prénom". It does not make conversation.',
   },
   {
     nom: 'exclamation mark',
