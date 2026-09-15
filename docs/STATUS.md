@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-15, after build 17 reached TestFlight, the cost of a debate was measured and the last of Rebecca's seventeen items closed (sections below). Update this file in the same commit as any change of state.
+Last updated: 2026-09-15, after the plain-French pass reached the database and Fly, the Arena got its one-passage-per-subject constraint, and build 18 was archived (last section). Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -832,3 +832,33 @@ inputs that were never ours to invent, and the accounts that gate the release.
 - Phase 7: weekly rotation by job, hidden takes until spoken, pair voting, `prises_publiques`, anonymity during votes, closing deletion, moderation state, `apps/web` invitation flow, duel closure rules, automatic verdict clearly labelled.
 - Phase 8: streaming loop under 2 s per turn, per-turn persistence, resume (E3b), session ledger, debrief (E4).
 - Phase 9: store listings, privacy labels, provider DPAs, TestFlight and Play internal testing, crash reporting, backups, the sentence that defines "version one is done".
+
+## The words, on every surface a person reads (2026-09-15)
+
+Roch read the shipped French and found it machine-written. The cause was the register: the text
+described the product instead of being it. The standard is now the first rule of `CLAUDE.md` and
+the section "The voice" of `docs/STRINGS.md`, with a second rule learned on the reward card: a
+string is reviewed on the rendered screen, next to the database rows around it, never alone.
+
+What changed, and where it is now:
+
+- Every string of the app, the admin and the public pages reworded on voice; the reward list says
+  "provisoire" once above the list instead of on every card; the privacy promise left the act map;
+  duplicate lines on the défi screen and the upload state are gone. Commits `b29e016`, `610a6c7`.
+- The provisional database content had been reworded in the seed but never reached the hosted
+  rows (the seed never overwrites). `20260915000000_textes_provisoires.sql` applies the wording
+  to rows with `provisoire = true` and is pushed. Rebecca's own edits are never touched.
+- `npm run strings` (inside `npm run check`) fails the build on the mechanical tells, including
+  the definitional openers, internal vocabulary, the slogan by apposition and the chat-bot
+  opener; it also reads `app.json` and the Supabase e-mail templates, the French that lives
+  outside `fr.ts`. It is the floor; the rule in `CLAUDE.md` is the standard.
+- Fly is deployed with the reworded admin and public pages (verified in the served bundle).
+- The Arena now enforces one passage per person per subject (`20260915010000`, pushed): a
+  partial unique index plus a `deja_publie` refusal the app turns into a sentence. The Arena test
+  file covers it and passes against the hosted database.
+- Build 18 (`ios.buildNumber` 18) is archived at `apps/mobile/ios/build/LEQ.xcarchive` with the
+  new strings verified in the bundle. Its upload is blocked by "Failed to Use Accounts": no Apple
+  account is visible to the build tools and there is no App Store Connect API key on this Mac.
+  The archive is open in the Xcode-27-beta6 Organizer. Once the `.p8` key exists at the repo root,
+  `xcodebuild -exportArchive` with `-authenticationKeyPath/-authenticationKeyID/-authenticationKeyIssuerID`
+  uploads it without any window (`docs/RUNBOOK.md`, TestFlight).
