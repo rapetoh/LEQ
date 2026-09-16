@@ -265,9 +265,6 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
             <Text style={[styles.grilleEtiquette, { color: theme.lien, flex: 1 }]}>
               {t('defi.resultat.entendu')}
             </Text>
-            <Text style={[styles.grilleNom, { color: theme.texteTertiaire }]}>
-              {t('defi.resultat.grilleLibelle')}
-            </Text>
           </View>
           {sousNotes.map(([cle, sousNote]) => {
             const atteint = sousNote.max > 0 && sousNote.score / sousNote.max >= 0.8
@@ -470,7 +467,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
-  grilleNom: { fontFamily: polices.bold, fontSize: 11, lineHeight: 15 },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   marqueur: {
     width: 22,
