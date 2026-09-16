@@ -75,6 +75,11 @@ const REGLES = [
     aide: 'A sentence with a verb, addressed to the person. "Avec un compte, ton profil est conservé", not "Un compte, un geste : …".',
   },
   {
+    nom: 'title by apposition ("Ta voix, en chiffres", "Ton profil, en mouvement")',
+    motif: /^(?:Ta|Ton|Tes) [\p{L}'’-]+, en [\p{L}]+\.?$/u,
+    aide: 'Name the thing: "Tes mesures". A comma and a complement is a caption, not a title.',
+  },
+  {
     nom: 'chat-bot opener ("Et toi, …")',
     motif: /^Et toi,/u,
     aide: 'The app asks for the thing: "Ton prénom". It does not make conversation.',
