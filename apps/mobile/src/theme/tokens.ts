@@ -18,6 +18,8 @@ export const couleurs = {
   orangeClair: '#ffe0cc',
   encreClair: '#e6edf8',
   bleuDoux: '#e8effc',
+  // The pale end of the map's land gradient.
+  bleuDouxClair: '#f6f9ff',
   vertDoux: '#e8f3ec',
   // oklch(0.93 0.01 80): the neutral tile behind a grey icon.
   neutreDoux: '#ECE8E1',

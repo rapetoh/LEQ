@@ -9,6 +9,7 @@ import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
+import { Degrade } from '@/components/ui/Degrade'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import {
@@ -33,7 +34,11 @@ export default function Defis() {
   const espaceBarre = useEspaceBarreOnglets()
   const carte = useCarte()
   const releves = carte.data ? compterReleves(carte.data) : null
-  const actes = carte.data ? [...carte.data].sort((a, b) => b.ordre - a.ordre) : []
+  // Top to bottom: the mist, the land, the acts won. Only the next act shows under the mist,
+  // as the mockup draws it: a wall of locked banners is a wall, not a horizon.
+  const tries = carte.data ? [...carte.data].sort((a, b) => b.ordre - a.ordre) : []
+  const premierAVenir = [...tries].reverse().find((a) => a.statut === 'a_venir')
+  const actes = tries.filter((a) => a.statut !== 'a_venir' || a.id === premierAVenir?.id)
 
   return (
     <ScrollView
@@ -135,8 +140,9 @@ function Contree({ acte }: { acte: ActeCarte }) {
   return (
     <View
       onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}
-      style={[styles.contree, { height: hauteur, backgroundColor: couleurs.bleuDoux }]}
+      style={[styles.contree, { height: hauteur }]}
     >
+      <Degrade de={couleurs.bleuDoux} a={couleurs.bleuDouxClair} rayon={rayons.hero} id="contree" />
       <View
         style={[
           styles.rond,
@@ -228,7 +234,9 @@ function Noeud({
     router.push(destination === 'rattrapage' ? `/defi/${etape.id}/rattrapage` : `/defi/${etape.id}`)
   }
   return (
-    <View style={[styles.noeud, { left: gaucheEtiquette(x, largeur), top: y - rayon, width: 180 }]}>
+    <View
+      style={[styles.noeud, { left: gaucheEtiquette(x, largeur, 220), top: y - rayon, width: 220 }]}
+    >
       <Pressable
         accessibilityRole={destination === 'aucune' ? undefined : 'button'}
         accessibilityLabel={etape.defi.titre}
