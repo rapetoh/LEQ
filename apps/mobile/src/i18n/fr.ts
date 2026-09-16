@@ -618,6 +618,10 @@ export const fr = {
       titre: 'Tes cinq voix',
       sousTitre: 'contre le mois dernier',
       placeholder: 'Tes cinq voix arriveront avec la grille de Rebecca.',
+      hausse: '+ {{n}}',
+      baisse: '{{n}}',
+      stable: 'stable',
+      nouveau: 'nouveau',
     },
     appuis: {
       titre: 'Tes appuis de langage',

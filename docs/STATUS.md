@@ -824,8 +824,31 @@ Done so far:
   from `formules`; then, last, leaving and deleting, through one service shared with Réglages.
   A person without an account is redirected to A7.
 
+- **B1, Aujourd'hui**: the step of the day on a gradient card with the mockup's glow, its pills,
+  the act's dots and position on one line, « Je me lance » as a white bar with its arrow, the
+  tier's rhythm on a bleu nuit strip with « Enchaîner »; the greeting on one line with the streak
+  as a small pill; what to work on next (from the last feedback) beside the points; the week's
+  subject as a white card; Rebecca's month with her mark and the next workshop. No dashed
+  placeholder left: a card with nothing to show is not shown.
+- **H1, the map**: one act under the mist instead of a wall of locked banners; the land painted
+  with the mockup's gradient; wider node labels.
+- **G3, Réglages**: small section labels, one white card per section, rows of fifteen points,
+  blue switches, the privacy rule as the first row, deletion as the last red row.
+- **C1, l'Arène**: the toggle as a white pill with the chosen tab in bleu nuit; the subject on a
+  gradient hero with the gesture inside it, gold on bleu nuit.
+- **D1, Progrès**: the profile in motion on a gradient card (the last take's pace and its zone);
+  the week with flames; the month's three numbers on one card; **the voices of the grid, drawn
+  from the person's own evaluations**, each axis averaged this month against last month with its
+  movement, in place of the dashed placeholder that waited for the grid; the month's heading
+  placeholder is gone. X1's two previews are white cards.
+
+Gradients are drawn by `Degrade`, which measures its card: a percentage width on the SVG root
+painted three quarters of the first frame. Labels are uppercased by style, never in code, so a
+screen reader and a test read the string.
+
 Verified on the simulator screen by screen; the account screen was previewed with the redirect
-disabled locally, since the simulator's user is anonymous. Not in TestFlight yet by Roch's word.
+disabled locally, since the simulator's user is anonymous, and the populated Progrès needs a
+phone with takes. Not in TestFlight yet by Roch's word.
 
 ## Next
 
