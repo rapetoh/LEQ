@@ -144,9 +144,7 @@ for (const app of APPLICATIONS) {
       const alias = new Map()
       for (const a of source.matchAll(/\bconst\s+(\w+)\s*=\s*fr\.([\w.]+)/g)) alias.set(a[1], a[2])
       const motifAlias =
-        alias.size > 0
-          ? new RegExp(`\\b(${[...alias.keys()].join('|')})\\.([\\w.]+)`, 'g')
-          : null
+        alias.size > 0 ? new RegExp(`\\b(${[...alias.keys()].join('|')})\\.([\\w.]+)`, 'g') : null
       const vues = new Set()
       const lignes = []
       const trouvees = [...source.matchAll(app.motif)].map((m) => ({
