@@ -192,7 +192,7 @@ export default function Aujourdhui() {
             </Text>
             <Text
               style={[styles.rebeccaSousTitre, { color: theme.texteSecondaire }]}
-              numberOfLines={prochainAtelier ? 1 : 2}
+              {...(prochainAtelier ? { numberOfLines: 1 } : {})}
             >
               {prochainAtelier
                 ? [
