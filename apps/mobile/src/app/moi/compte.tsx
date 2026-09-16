@@ -338,9 +338,7 @@ function Section({ titre, children }: { titre: string; children: React.ReactNode
   const theme = useTheme()
   return (
     <View style={styles.section}>
-      <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>
-        {titre.toUpperCase()}
-      </Text>
+      <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>{titre}</Text>
       {children}
     </View>
   )
@@ -359,7 +357,13 @@ const styles = StyleSheet.create({
   titre: { fontFamily: polices.extraBold, fontSize: 17, lineHeight: 22, letterSpacing: -0.2 },
   entete: { alignItems: 'center', gap: espaces.s },
   section: { gap: 10 },
-  etiquette: { fontFamily: polices.bold, fontSize: 11, lineHeight: 14, letterSpacing: 1.1 },
+  etiquette: {
+    textTransform: 'uppercase',
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.1,
+  },
   carte: { paddingVertical: 6, paddingHorizontal: espaces.l, gap: 0 },
   champLigne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s, paddingVertical: 6 },
   champ: {

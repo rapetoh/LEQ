@@ -13,6 +13,10 @@ export const couleurs = {
   fondChaud: '#F6F3EF',
   fondCarte: '#FFFFFF',
   orangeDoux: '#FFF3E2',
+  // The far end of the hero card's gradient, and the two light inks the mockup sets on it.
+  orangeSombre: '#e04e00',
+  orangeClair: '#ffe0cc',
+  encreClair: '#e6edf8',
   bleuDoux: '#e8effc',
   vertDoux: '#e8f3ec',
   // oklch(0.93 0.01 80): the neutral tile behind a grey icon.
@@ -29,6 +33,7 @@ export const rayons = {
   xl: 18,
   xxl: 20,
   xxxl: 22,
+  hero: 24,
   pilule: 100,
 } as const
 

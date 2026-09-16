@@ -78,7 +78,7 @@ export default function Moi() {
         <Carte style={styles.voix}>
           <View style={styles.voixEntete}>
             <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>
-              {t('moi.identite.titre').toUpperCase()}
+              {t('moi.identite.titre')}
             </Text>
             <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
               {t('moi.identite.derniere', { quand: ilYA(derniere.data.enregistre_le) })}
@@ -217,9 +217,7 @@ function Mesure({ valeur, libelle }: { valeur: string; libelle: string }) {
   return (
     <View style={styles.mesure}>
       <Text style={[styles.mesureValeur, { color: theme.texte }]}>{valeur}</Text>
-      <Text style={[styles.tuileLibelle, { color: theme.texteSecondaire }]}>
-        {libelle.toUpperCase()}
-      </Text>
+      <Text style={[styles.tuileLibelle, { color: theme.texteSecondaire }]}>{libelle}</Text>
     </View>
   )
 }
@@ -234,9 +232,7 @@ function Tuile({ valeur, libelle, couleur }: { valeur: string; libelle: string; 
   return (
     <Carte style={styles.tuile}>
       <Text style={[styles.tuileValeur, { color: couleur }]}>{valeur}</Text>
-      <Text style={[styles.tuileLibelle, { color: theme.texteSecondaire }]}>
-        {libelle.toUpperCase()}
-      </Text>
+      <Text style={[styles.tuileLibelle, { color: theme.texteSecondaire }]}>{libelle}</Text>
     </Carte>
   )
 }
@@ -292,7 +288,13 @@ const styles = StyleSheet.create({
   sousNom: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18 },
   voix: { gap: espaces.m, padding: espaces.l },
   voixEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  etiquette: { fontFamily: polices.bold, fontSize: 11, lineHeight: 14, letterSpacing: 1.1 },
+  etiquette: {
+    textTransform: 'uppercase',
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.1,
+  },
   mesures: { flexDirection: 'row', alignItems: 'center' },
   mesure: { flex: 1, alignItems: 'center', gap: 4 },
   mesureValeur: {
@@ -315,6 +317,7 @@ const styles = StyleSheet.create({
   },
   tuileValeur: { fontFamily: polices.extraBold, fontSize: 22, lineHeight: 26, letterSpacing: -0.4 },
   tuileLibelle: {
+    textTransform: 'uppercase',
     fontFamily: polices.bold,
     fontSize: 10.5,
     lineHeight: 14,

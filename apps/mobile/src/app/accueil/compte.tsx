@@ -12,10 +12,10 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 
 import { Bulle } from '@/components/Bulle'
 import { Bouton } from '@/components/ui/Bouton'
+import { Degrade } from '@/components/ui/Degrade'
 import { LogoApple, LogoGoogle } from '@/components/ui/Logos'
 import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
@@ -369,18 +369,10 @@ export default function Compte() {
 function CarteProfil({ etiquette, valeur }: { etiquette: string; valeur: string }) {
   return (
     <View style={styles.carteProfil}>
-      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-        <Defs>
-          <LinearGradient id="nuit" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={couleurs.bleu} />
-            <Stop offset="1" stopColor={couleurs.bleuNuit} />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" rx={rayons.xxl} fill="url(#nuit)" />
-      </Svg>
+      <Degrade de={couleurs.bleu} a={couleurs.bleuNuit} rayon={rayons.xxl} id="nuit" />
       <Bulle taille="petite" calme visage="sourit" />
       <View>
-        <Text style={styles.carteEtiquette}>{etiquette.toUpperCase()}</Text>
+        <Text style={styles.carteEtiquette}>{etiquette}</Text>
         <Text style={styles.carteValeur}>{valeur}</Text>
       </View>
     </View>
@@ -443,6 +435,7 @@ const styles = StyleSheet.create({
     }),
   },
   carteEtiquette: {
+    textTransform: 'uppercase',
     fontFamily: polices.bold,
     fontSize: 11,
     lineHeight: 14,
