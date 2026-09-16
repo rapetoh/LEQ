@@ -60,6 +60,12 @@ const REGLES = [
     aide: 'Nobody reading this screen knows what a seed, a server or a chapter of the cahier is. Say what the person sees or does.',
   },
   {
+    nom: 'a supplier we pay, or our own word for the analysis, shown to a person',
+    // App Store Connect and Play Console stay: Rebecca signs in to those herself.
+    motif: /\b(?:RevenueCat|Supabase|OpenAI|Anthropic|PostHog|Sentry|Fly\.io|le modèle)\b/u,
+    aide: 'Rebecca and the person never chose our suppliers and do not know them by name. The application calls its own judgement "l\'analyse"; say that, or name the store the person actually uses.',
+  },
+  {
     nom: 'contrastive pair ("X, pas Y" / "X, jamais Y")',
     motif: /,\s(?:pas|jamais|non pas)\s/u,
     aide: 'State the fact and stop. "Seuls tes résultats sont conservés", not "on garde tes résultats, jamais l\'audio".',

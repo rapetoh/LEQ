@@ -339,7 +339,7 @@ export const fr = {
   abonnements: {
     titre: 'Les abonnements',
     intro:
-      'Qui paie, quand, et combien chaque mois. Les paiements viennent des stores, par RevenueCat.',
+      "Qui paie, quand, et combien chaque mois. Les paiements passent par l'App Store et Google Play.",
     erreurChargement: 'Impossible de charger les abonnements.',
     actifs: {
       titre: "Aujourd'hui",
@@ -520,12 +520,12 @@ export const fr = {
       scoreMaxAide: 'La somme des notes maximales des critères fait la note totale de la grille.',
       source: 'Comment cet axe est noté',
       sourceAide:
-        "Mesuré\u00a0: la machine le calcule sur l'enregistrement. Jugé\u00a0: le modèle le note contre tes deux exemples.",
+        "Mesuré\u00a0: calculé sur l'enregistrement. Jugé\u00a0: l'analyse le note contre tes deux exemples.",
       sourceMesure: "Mesuré sur l'enregistrement",
       sourceJugement: 'Jugé contre tes exemples',
       exemples: 'Tes deux exemples',
       exemplesAide:
-        "Ils tiennent la note en place d'une prise à l'autre. Sans eux, le modèle note contre sa propre idée d'un bon orateur.",
+        "Ils tiennent la note en place d'une prise à l'autre. Sans eux, l'analyse note contre sa propre idée d'un bon orateur.",
       exempleCinq: 'Une prestation qui vaut cinq sur cet axe',
       exempleDeux: 'Une prestation qui vaut deux sur cet axe',
       definition: 'Définition',
