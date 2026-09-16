@@ -14,6 +14,9 @@ export const couleurs = {
   fondCarte: '#FFFFFF',
   orangeDoux: '#FFF3E2',
   bleuDoux: '#e8effc',
+  vertDoux: '#e8f3ec',
+  // oklch(0.93 0.01 80): the neutral tile behind a grey icon.
+  neutreDoux: '#ECE8E1',
   vert: '#2c7a4b',
   rouge: '#c2410c',
   blanc: '#FFFFFF',

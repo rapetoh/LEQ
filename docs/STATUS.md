@@ -799,6 +799,34 @@ otherwise; a conductor test pins the count. The fourth run, on v24, ended on its
 of speech against a cap of 180, counted to the tenth of a second, and cost $0.056 for those
 three minutes.
 
+## La passe de design, écran par écran (started 2026-09-15)
+
+Roch put the account screen next to the Claude Design mockup and the screen lost; he wants every
+screen at the mockup's level or above, and he will not list the gaps himself. The mockup bundle
+is split into fifty standalone pages and rendered to images with headless Chrome
+(`scratchpad/maquette`, rebuilt from `Brainstorming/App LEQ (1).html` on demand), and each app
+screen is put next to its image on the simulator.
+
+Done so far:
+
+- **Every button** is a rounded rectangle of radius 18 with the orange glow on the action, as the
+  mockup draws all thirty-two of its tall buttons; it never draws a pill. A `nuit` variant and a
+  mark slot carry the sign-in buttons.
+- **A7, the account screen**: the profile in a bleu nuit card, a centered title, Apple in bleu nuit
+  with its mark, Google in white with the G, e-mail as a text link.
+- **G1, Moi**: the identity card at the top is the door to the account (a person who has none is
+  sent to create it); under it the last analysed take's measures stand in for the speaker
+  archetype Rebecca has not named yet; three white tiles with the numbers in colour; the doors
+  with an icon each; Rebecca's workshops in the blue card. The dashed « En construction » card is
+  gone from this screen.
+- **Mon compte** (`/moi/compte`, new): the first name, editable in place; how the person signed
+  in (Apple's relay address is shown as masked, not as a code); the tier and what it gives, read
+  from `formules`; then, last, leaving and deleting, through one service shared with Réglages.
+  A person without an account is redirected to A7.
+
+Verified on the simulator screen by screen; the account screen was previewed with the redirect
+disabled locally, since the simulator's user is anonymous. Not in TestFlight yet by Roch's word.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

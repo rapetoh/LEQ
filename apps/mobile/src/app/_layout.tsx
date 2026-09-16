@@ -106,6 +106,7 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
         <Stack.Screen name="accueil" />
         <Stack.Screen name="(onglets)" />
         <Stack.Screen name="reglages" />
+        <Stack.Screen name="moi/compte" />
         <Stack.Screen name="defi/[etapeId]/index" />
         <Stack.Screen name="defi/[etapeId]/prise" options={{ gestureEnabled: false }} />
         <Stack.Screen name="defi/[etapeId]/rattrapage" />
