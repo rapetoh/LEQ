@@ -9,6 +9,8 @@ import {
   type ResultatTentative,
 } from '@leq/domaine'
 
+import { t } from '@/i18n/fr'
+
 export type EtatAujourdhui =
   /** A step waits; `rattrapage` says the short exercise comes first (X5). */
   | { etat: 'defi'; rattrapage: boolean }
@@ -96,22 +98,28 @@ export function destinationNoeud(noeud: NoeudCarte): 'brief' | 'rattrapage' | 'a
   return noeud.rattrapage_propose ? 'rattrapage' : 'brief'
 }
 
-/** "il y a 3 semaines", "hier", "aujourd'hui": dates of past results, through Intl. */
+/**
+ * "il y a 3 semaines", "hier", "aujourd'hui": dates of past results. Written by hand from
+ * fr.ts: Hermes on iOS has no Intl.RelativeTimeFormat, and the constructor threw on the Moi tab
+ * of build 19 the moment a person with an analysed take opened it, which closed the app.
+ */
 export function ilYA(iso: string, maintenant: Date = new Date()): string {
   const instant = Date.parse(iso)
   if (!Number.isFinite(instant)) return ''
-  const jours = Math.round((maintenant.getTime() - instant) / 86_400_000)
-  const format = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
-  const texte =
-    Math.abs(jours) < 7
-      ? format.format(-jours, 'day')
-      : Math.abs(jours) < 30
-        ? format.format(-Math.round(jours / 7), 'week')
-        : Math.abs(jours) < 365
-          ? format.format(-Math.round(jours / 30), 'month')
-          : format.format(-Math.round(jours / 365), 'year')
-  // The app writes the straight apostrophe everywhere (docs/STRINGS.md, rule 12).
-  return texte.replace(/\u2019/g, "'")
+  const jours = Math.max(0, Math.round((maintenant.getTime() - instant) / 86_400_000))
+  if (jours === 0) return t('temps.aujourdhui')
+  if (jours === 1) return t('temps.hier')
+  if (jours < 7) return t('temps.jours', { n: jours })
+  if (jours < 30) {
+    const semaines = Math.round(jours / 7)
+    return semaines <= 1 ? t('temps.semaine') : t('temps.semaines', { n: semaines })
+  }
+  if (jours < 365) {
+    const mois = Math.round(jours / 30)
+    return mois <= 1 ? t('temps.mois') : t('temps.moisPlusieurs', { n: mois })
+  }
+  const ans = Math.round(jours / 365)
+  return ans <= 1 ? t('temps.an') : t('temps.ans', { n: ans })
 }
 
 /** Counts of the map header: validated steps over all steps of the visible acts. */

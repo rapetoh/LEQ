@@ -25,6 +25,17 @@ export const fr = {
     pret: 'Je suis prêt·e',
     bulle: 'Bulle',
   },
+  temps: {
+    aujourdhui: "aujourd'hui",
+    hier: 'hier',
+    jours: 'il y a {{n}} jours',
+    semaine: 'il y a une semaine',
+    semaines: 'il y a {{n}} semaines',
+    mois: 'il y a un mois',
+    moisPlusieurs: 'il y a {{n}} mois',
+    an: 'il y a un an',
+    ans: 'il y a {{n}} ans',
+  },
   erreurs: {
     generique: "Ça n'a pas marché. L'erreur vient de chez nous.",
     reseau: "Pas de réseau. LEQ réessaie dès qu'il revient.",

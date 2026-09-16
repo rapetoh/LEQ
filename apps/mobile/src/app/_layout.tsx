@@ -6,12 +6,14 @@ import {
   useFonts,
 } from '@expo-google-fonts/manrope'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Stack, useRouter } from 'expo-router'
+import { Stack, useRouter, type ErrorBoundaryProps } from 'expo-router'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
 import { GardeSuspension } from '@/components/GardeSuspension'
+import { t } from '@/i18n/fr'
 import { Rappels } from '@/components/Rappels'
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
 import { rafraichirJeton, routePourCible, surNotificationTouchee } from '@/services/notifications'
@@ -32,6 +34,47 @@ const clientRequetes = new QueryClient({
       refetchOnReconnect: true,
     },
   },
+})
+
+/**
+ * An error thrown while a screen renders lands here instead of closing the app. Build 19 closed
+ * on the Moi tab because a constructor Hermes does not have threw during render, and the person
+ * saw the app vanish. Plain primitives and static colours only: nothing here may depend on a
+ * provider that could itself be the thing that failed.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  console.error('écran en échec', error)
+  return (
+    <View style={stylesErreur.ecran}>
+      <Text style={stylesErreur.titre}>{t('erreurs.generique')}</Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void retry()}
+        style={({ pressed }) => [stylesErreur.bouton, pressed && { opacity: 0.8 }]}
+      >
+        <Text style={stylesErreur.boutonTexte}>{t('commun.reessayer')}</Text>
+      </Pressable>
+    </View>
+  )
+}
+
+const stylesErreur = StyleSheet.create({
+  ecran: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 20,
+    backgroundColor: '#F7F5F0',
+  },
+  titre: { fontSize: 18, textAlign: 'center', color: '#001636' },
+  bouton: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 18,
+    backgroundColor: '#001636',
+  },
+  boutonTexte: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 })
 
 export default function RacineLayout() {

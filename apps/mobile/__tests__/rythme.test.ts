@@ -165,11 +165,17 @@ describe('the map', () => {
     ).toEqual({ faits: 2, total: 4 })
   })
 
-  it('says when a result happened, in French, through Intl', () => {
+  it('says when a result happened, in French, without Intl.RelativeTimeFormat', () => {
+    // Hermes on iOS has no Intl.RelativeTimeFormat: build 19 closed on the Moi tab because of it.
     const maintenant = new Date('2026-09-06T12:00:00Z')
     expect(ilYA('2026-09-06T08:00:00Z', maintenant)).toBe("aujourd'hui")
     expect(ilYA('2026-09-05T08:00:00Z', maintenant)).toBe('hier')
+    expect(ilYA('2026-09-02T08:00:00Z', maintenant)).toBe('il y a 4 jours')
+    expect(ilYA('2026-08-30T08:00:00Z', maintenant)).toBe('il y a une semaine')
     expect(ilYA('2026-08-16T08:00:00Z', maintenant)).toBe('il y a 3 semaines')
+    expect(ilYA('2026-07-06T08:00:00Z', maintenant)).toBe('il y a 2 mois')
+    expect(ilYA('2024-09-06T08:00:00Z', maintenant)).toBe('il y a 2 ans')
+    expect(ilYA('2026-09-07T08:00:00Z', maintenant)).toBe("aujourd'hui")
     expect(ilYA('pas une date', maintenant)).toBe('')
   })
 })
