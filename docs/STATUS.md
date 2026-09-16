@@ -940,3 +940,28 @@ What changed, and where it is now:
   `xcodebuild -exportArchive -allowProvisioningUpdates` saw the account again, a day after Roch
   signed into Xcode 27.0. "Upload succeeded", no Organizer click. The API key request stands, as
   the account has already vanished from the build tools' view once. Next build number: 20.
+
+## The Moi tab closed the app, and why no test saw it (2026-09-16)
+
+Roch updated to build 19 from TestFlight, opened Moi, and the app vanished. The rebuilt tab
+prints "Dernière prise il y a…" through `ilYA`, which built an `Intl.RelativeTimeFormat`. Hermes
+on iOS implements `NumberFormat`, `DateTimeFormat` and `Collator` and nothing else, so the
+constructor threw while the screen rendered, and with no boundary above the tree the process
+closed. The same call sat on Progrès, the act map, the rewards history and Rebecca's
+announcements, waiting for the same person.
+
+Nothing caught it because Jest runs on Node, where `Intl` is complete, and the simulator walk was
+done on an account with no analysed take, which is the only state that reaches the line.
+
+- `ilYA` writes the sentence from `fr.ts` (`temps.*`), same output as before, more cases covered.
+- `apps/mobile/src/app/_layout.tsx` exports an expo-router `ErrorBoundary`: a render error now
+  shows "Ça n'a pas marché. L'erreur vient de chez nous." with Réessayer, in plain primitives and
+  static colours so it cannot depend on whatever failed, instead of closing the app.
+- Rule for every screen from now on: no `Intl` API other than `NumberFormat`, `DateTimeFormat`
+  and `Collator`, and a screen is walked with an account that has data before a build.
+
+Build 20 is archived with the fix (verified in the bundle: no `RelativeTimeFormat` left). Its
+upload is blocked the same way build 18 was: `xcodebuild -exportArchive` answers "Failed to Use
+Accounts" because no Apple account is visible to the build tools. The Organizer of a signed-in
+Xcode uploads it; the App Store Connect API key would make the command line work for good, and
+that request still stands with Roch.
