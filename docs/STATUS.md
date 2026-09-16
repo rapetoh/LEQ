@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-15, after the plain-French pass reached the database and Fly, the Arena got its one-passage-per-subject constraint, and build 18 was archived (last section). Update this file in the same commit as any change of state.
+Last updated: 2026-09-15, after the plain-French pass reached the database and Fly, the Arena got its one-passage-per-subject constraint, and build 18 reached App Store Connect (last section). Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -884,9 +884,10 @@ What changed, and where it is now:
 - The Arena now enforces one passage per person per subject (`20260915010000`, pushed): a
   partial unique index plus a `deja_publie` refusal the app turns into a sentence. The Arena test
   file covers it and passes against the hosted database.
-- Build 18 (`ios.buildNumber` 18) is archived at `apps/mobile/ios/build/LEQ.xcarchive` with the
-  new strings verified in the bundle. Its upload is blocked by "Failed to Use Accounts": no Apple
-  account is visible to the build tools and there is no App Store Connect API key on this Mac.
-  The archive is open in the Xcode-27-beta6 Organizer. Once the `.p8` key exists at the repo root,
-  `xcodebuild -exportArchive` with `-authenticationKeyPath/-authenticationKeyID/-authenticationKeyIssuerID`
-  uploads it without any window (`docs/RUNBOOK.md`, TestFlight).
+- Build 18 (`ios.buildNumber` 18) carries the new strings, verified in the archived bundle, and
+  was uploaded to App Store Connect on 2026-09-15 through the released Xcode 27.0's Organizer,
+  where Roch's account is signed in (the App Store update of the 14th replaced 26.6; the beta
+  copy is now redundant). The Organizer shows 0.1.0 (18) "Uploaded to Apple". The command line
+  still fails with "Failed to Use Accounts": an App Store Connect API key at the repo root makes
+  `xcodebuild -exportArchive` non-interactive (`docs/RUNBOOK.md`, TestFlight), and that request
+  stands. Next build number: 19, after Roch has looked at the Moi screens on the simulator.
