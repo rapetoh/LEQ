@@ -428,6 +428,34 @@ xcodebuild -exportArchive -archivePath ios/build/LEQ.xcarchive -exportPath ios/b
 
 Development builds for a device without Xcode on the tester's side: `npx eas-cli build --platform ios --profile development`, install through the link EAS prints.
 
+## Read the screens as a person sees them
+
+Every string fault Roch has caught was invisible in `fr.ts` and obvious on a screen: a footer
+repeating the body two lines up, a sentence explaining the Gratuit plan to someone who only wanted
+to know when they can speak again, a card truncating mid-word. A file review cannot see any of
+them, so a string change is reviewed on the rendered screen.
+
+It works on a locked Mac, which matters because the machine is often locked. `simctl` drives a
+simulator without the GUI session:
+
+```bash
+xcrun simctl boot <UDID>                                   # locked screen is fine
+xcrun simctl install booted <path>/LEQ.app                 # the Debug-iphonesimulator build
+xcrun simctl launch <UDID> com.leqapp.mobile
+xcrun simctl io <UDID> screenshot /tmp/ecran.png
+```
+
+Two limits, both real. There is no tap: `idb` is not installed and a `leq://` deep link raises an
+iOS confirmation the command line cannot answer, so only the screen the app opens on can be read.
+And an empty account hides most of the faults, because the strings that go wrong are the ones that
+render only when there is data. Keep a simulator whose user has an analysed take, and note its
+UDID here when one exists.
+
+To read a screen other than the opening one, Metro has to be started with
+`EXPO_PUBLIC_ECRAN_INITIAL="/(onglets)/moi"` (read in `src/app/index.tsx`, development only). It is
+inlined at bundle time, so it needs its own bundler on a free port rather than a restart of one
+another session is using.
+
 ## Continuous integration
 
 `.github/workflows/check.yml` runs on every push to `main` and on pull requests: Node from `.nvmrc`, `npm ci`, build of `@leq/domaine` and `@leq/moteur` if they declare a build script, `npm run check`, `npm run format:check`, and a separate job on Python 3.12 running `pytest apps/serveur/prosodie`. Nothing deploys from CI; deploys and EAS builds are manual.
