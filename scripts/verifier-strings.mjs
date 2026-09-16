@@ -49,6 +49,12 @@ const REGLES = [
     aide: 'LEQ never captions its own screens. Say the thing, do not announce it. "Contacte la personne, puis marque l\'échange honoré", not "Chaque ligne est une personne qui a dépensé ses points".',
   },
   {
+    nom: 'the app explaining its own plan or quota rule instead of saying what happens',
+    motif:
+      /\b(?:La|Ta|Ton) (?:formule|offre|abonnement) \p{L}+ (?:donne|permet|autorise|offre|inclut)\b/u,
+    aide: 'Say what happens to the person now: "Le suivant se débloque demain." The plan and its rhythm belong in a status line ("Formule Gratuit · un défi par jour"), never restated as prose on the same screen.',
+  },
+  {
     nom: 'internal vocabulary leaking into the interface',
     motif: /\b(?:le seed|la migration|dans la base|le serveur|chapitre \d|docs\/|DATA-MODEL)\b/iu,
     aide: 'Nobody reading this screen knows what a seed, a server or a chapter of the cahier is. Say what the person sees or does.',
