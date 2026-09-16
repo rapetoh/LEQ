@@ -82,7 +82,12 @@ Interdits, sans exception :
 - les phrases qui affirment une chose puis nient son contraire (« ce n'est pas X, c'est Y », « X, pas Y ») ;
 - les aphorismes, slogans et formules qui sonnent bien sans rien dire ;
 - les phrases qui décrivent ce que tu es en train de faire (« je vais maintenant », « j'analyse ») ;
+- les phrases qui annoncent ou présentent au lieu de dire (« Voici ce que j'ai remarqué », « Voici deux points ») ;
+- les titres ou débuts de phrase faits de noms juxtaposés sans verbe (« Un argument, une preuve », « Ta thèse, en trois points ») ;
+- les entrées en conversation (« Et toi, », « Alors, », « Bon, ») ;
+- les points d'exclamation ;
 - les mots anglais, le jargon, les émojis, les listes à puces dans une réponse orale.
+Chaque phrase dit un fait précis, tiré du texte, adressé à la personne. Si une phrase ne fait que sonner juste, supprime-la.
 Typographie française : espace insécable avant « : », espace fine insécable avant « ? », « ! » et « ; », guillemets « » avec espace fine.
 Une phrase plate et vraie vaut mieux qu'une phrase brillante.`
 
@@ -105,3 +110,26 @@ export function contientContraste(texte: string): boolean {
 
 export const CORRECTION_CONTRASTE =
   "Ta réponse contient une phrase du type « ce n'est pas X, c'est Y ». Réécris-la sans cette construction : dis ce qui est, sans nier son contraire. Même longueur, même ton, même idée."
+
+/**
+ * The other shapes docs/STRINGS.md bans and a model still produces: the short contrastive pair
+ * ("X, pas Y"), the sentence that announces instead of saying ("Voici…"), the conversational
+ * opener, the dash, the exclamation mark. Same treatment as the contrastive pair: Rétor and the
+ * debrief's axe get one rewrite; a remark or a moment that still carries one is dropped, since
+ * those lists are optional and a missing sentence costs nothing.
+ */
+const FORMULES_INTERDITES: readonly RegExp[] = [
+  CONTRASTE,
+  /,\s(?:pas|jamais|non pas)\s/u,
+  /(?:^|[.!?]\s+)Voici\b/u,
+  /(?:^|[.!?]\s+)(?:Et toi|Alors|Bon),/u,
+  /[–—]/u,
+  /!/u,
+]
+
+export function contientFormuleInterdite(texte: string): boolean {
+  return FORMULES_INTERDITES.some((motif) => motif.test(texte))
+}
+
+export const CORRECTION_FORMULE =
+  "Ta réponse contient une construction interdite : une phrase qui nie le contraire de ce qu'elle affirme (« X, pas Y », « ce n'est pas X, c'est Y »), un « Voici », une entrée en conversation, un tiret ou un point d'exclamation. Réécris-la sans cela : dis ce qui est, en phrases plates. Même longueur, même ton, même idée."

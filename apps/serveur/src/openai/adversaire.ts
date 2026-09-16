@@ -7,8 +7,8 @@ import { lireUsageChat } from '../debat/consommation.js'
 import type { Adversaire, ContexteAdversaire, Debrief } from '../debat/fournisseurs.js'
 import {
   appelerJson,
-  contientContraste,
-  CORRECTION_CONTRASTE,
+  contientFormuleInterdite,
+  CORRECTION_FORMULE,
   redresserApostrophes,
   REGLES_ECRITURE,
   type ConfigOpenAI,
@@ -61,7 +61,7 @@ ${REGLES_ECRITURE}`
     contexte.surConsommation?.(lireUsageChat(lu.usage))
     let texte = redresserApostrophes(lu.choices?.[0]?.message?.content?.trim() ?? '')
     if (texte === '') throw new Error('Rétor a répondu vide')
-    if (contientContraste(texte)) {
+    if (contientFormuleInterdite(texte)) {
       const relu = await appelerJson<ReponseChat>(
         this.config,
         '/v1/chat/completions',
@@ -72,7 +72,7 @@ ${REGLES_ECRITURE}`
           messages: [
             ...messages,
             { role: 'assistant', content: texte },
-            { role: 'user', content: CORRECTION_CONTRASTE },
+            { role: 'user', content: CORRECTION_FORMULE },
           ],
         },
         20_000,
@@ -125,12 +125,36 @@ ${REGLES_ECRITURE}`
     contexte.surConsommation?.(lireUsageChat(lu.usage))
     const brut = lu.choices?.[0]?.message?.content ?? '{}'
     const lu2 = JSON.parse(brut) as { moments?: unknown; axe?: unknown }
+    // A moment that carries a banned shape is dropped: the list is optional. The axe is the one
+    // sentence the person keeps, so it gets one rewrite, and ships as it is if that fails too.
     const moments = Array.isArray(lu2.moments)
       ? lu2.moments
           .filter((m): m is string => typeof m === 'string' && m.trim() !== '')
           .map((m) => redresserApostrophes(m.trim()))
+          .filter((m) => !contientFormuleInterdite(m))
       : []
-    const axe = typeof lu2.axe === 'string' ? redresserApostrophes(lu2.axe.trim()) : ''
+    let axe = typeof lu2.axe === 'string' ? redresserApostrophes(lu2.axe.trim()) : ''
+    if (axe !== '' && contientFormuleInterdite(axe)) {
+      const relu = await appelerJson<ReponseChat>(
+        this.config,
+        '/v1/chat/completions',
+        {
+          model: MODELE,
+          temperature: 0.3,
+          max_tokens: 120,
+          messages: [
+            { role: 'system', content: systeme },
+            { role: 'user', content: transcription },
+            { role: 'assistant', content: axe },
+            { role: 'user', content: CORRECTION_FORMULE },
+          ],
+        },
+        20_000,
+      )
+      contexte.surConsommation?.(lireUsageChat(relu.usage))
+      const corrige = redresserApostrophes(relu.choices?.[0]?.message?.content?.trim() ?? '')
+      if (corrige !== '') axe = corrige
+    }
     return { moments, axe, provisoire: false }
   }
 }

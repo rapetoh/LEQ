@@ -10,7 +10,13 @@
 import type { Mesures } from '../contrat.js'
 import type { CritereGrille } from '../db.js'
 import type { Juge, Jugement } from '../jobs/analyserTentative.js'
-import { appelerJson, redresserApostrophes, REGLES_ECRITURE, type ConfigOpenAI } from './client.js'
+import {
+  appelerJson,
+  contientFormuleInterdite,
+  redresserApostrophes,
+  REGLES_ECRITURE,
+  type ConfigOpenAI,
+} from './client.js'
 
 const MODELE = 'gpt-4.1-mini'
 
@@ -125,6 +131,9 @@ ${REGLES_ECRITURE}`
         sujet: normaliserSujet(o.sujet),
         remarque: redresserApostrophes(o.remarque.trim()),
       }))
+      // These sentences reach the feedback screen in Bulle's own card. One that carries a shape
+      // docs/STRINGS.md bans is dropped rather than shown: the list is optional, at most three.
+      .filter((o) => !contientFormuleInterdite(o.remarque))
     return { sous_notes, hors_grille }
   }
 }
