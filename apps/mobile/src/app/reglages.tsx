@@ -19,7 +19,7 @@ import { CODES_REGION, NOMS_REGION, type CodeRegion } from '@leq/domaine'
 
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
-import { Titre } from '@/components/ui/Titre'
+import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import { file } from '@/services/prises'
 import {
@@ -30,11 +30,11 @@ import {
 } from '@/services/progres'
 import { supabase, useSession } from '@/services/supabase'
 import { useContexteTheme, type ModeNuit } from '@/theme/ThemeProvider'
-import { espaces, rayons, typographie } from '@/theme/tokens'
+import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
-// G3 · Réglages et confidentialité. The rule first, in plain words: the voice is not kept.
-// Then two distinct gestures, receive a copy of one's data and delete the account. The
-// four notification switches of chapter 12 are stored now and used from Phase 5.
+// G3 · Réglages et confidentialité, laid out as the mockup draws it: small section labels, one
+// white card per section, rows of fifteen points, blue switches, and deleting the account as the
+// last red row of the first card. The rule first, in plain words: the voice is not kept.
 
 type Profil = {
   prenom: string | null
@@ -177,6 +177,7 @@ export default function Reglages() {
     detail: string | null,
     droite: React.ReactNode,
     premiere = false,
+    couleur?: string,
   ) => (
     <View
       style={[
@@ -185,9 +186,9 @@ export default function Reglages() {
       ]}
     >
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={[typographie.corpsFort, { color: theme.texte }]}>{libelle}</Text>
+        <Text style={[styles.libelle, { color: couleur ?? theme.texte }]}>{libelle}</Text>
         {detail ? (
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>{detail}</Text>
+          <Text style={[styles.detail, { color: theme.texteSecondaire }]}>{detail}</Text>
         ) : null}
       </View>
       {droite}
@@ -198,8 +199,29 @@ export default function Reglages() {
     <Switch
       value={valeur}
       onValueChange={(v) => modifier.mutate({ [cle]: v })}
-      trackColor={{ true: theme.accent }}
+      trackColor={{ true: theme.lien }}
       accessibilityLabel={String(cle)}
+    />
+  )
+
+  const lien = (libelle: string, onPress: () => void, chargement = false) => (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      disabled={chargement}
+      hitSlop={8}
+      style={({ pressed }) => [pressed && styles.presse]}
+    >
+      <Text style={[styles.lien, { color: theme.lien }]}>{libelle}</Text>
+    </Pressable>
+  )
+
+  const chevron = (couleur?: string) => (
+    <Icone
+      sf="chevron.right"
+      material="chevron-right"
+      taille={16}
+      couleur={couleur ?? theme.texteTertiaire}
     />
   )
 
@@ -210,66 +232,75 @@ export default function Reglages() {
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,
-        { paddingTop: insets.top + espaces.m, paddingBottom: insets.bottom + espaces.xxl },
+        { paddingTop: insets.top + espaces.s, paddingBottom: insets.bottom + espaces.xxl },
       ]}
     >
-      <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.retour}>
-        <Text style={[typographie.corpsFort, { color: theme.lien }]}>‹ {t('commun.retour')}</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('commun.retour')}
+        onPress={() => router.back()}
+        hitSlop={12}
+        style={[styles.retour, { backgroundColor: theme.carte }]}
+      >
+        <Icone sf="chevron.left" material="chevron-left" taille={18} couleur={theme.texte} />
       </Pressable>
-      <Titre niveau="ecran">{t('reglages.titre')}</Titre>
+      <Text style={[styles.titre, { color: theme.texte }]}>{t('reglages.titre')}</Text>
 
       <View style={styles.section}>
-        <Titre niveau="section">{t('reglages.voix.titre')}</Titre>
-        <Carte teinte="voix" style={styles.bloc}>
-          <Text style={[typographie.corpsFort, { color: theme.texte }]}>
-            {t('reglages.voix.sousTitre')}
-          </Text>
-          <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
-            {t('reglages.voix.texte')}
-          </Text>
-        </Carte>
+        <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>
+          {t('reglages.voix.titre')}
+        </Text>
         <Carte style={styles.liste}>
+          <View style={[styles.ligne, { flexDirection: 'column', alignItems: 'stretch', gap: 3 }]}>
+            <Text style={[styles.libelle, { color: theme.texte }]}>
+              {t('reglages.voix.sousTitre')}
+            </Text>
+            <Text style={[styles.detail, { color: theme.texteSecondaire }]}>
+              {t('reglages.voix.texte')}
+            </Text>
+          </View>
           {ligne(
             t('reglages.voix.publierPrenom'),
             t('reglages.voix.publierPrenomDetail'),
             p ? interrupteur('publier_sous_prenom', p.publier_sous_prenom) : null,
-            true,
           )}
-          {ligne(
-            t('reglages.voix.export'),
-            null,
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('reglages.voix.export')}
-              onPress={() => void demanderExport()}
-            >
-              <Text style={[typographie.corpsFort, { color: theme.texteTertiaire }]}>›</Text>
-            </Pressable>,
-          )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void demanderExport()}
+            style={({ pressed }) => [pressed && styles.presse]}
+          >
+            {ligne(t('reglages.voix.export'), null, chevron())}
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={supprimerCompte}
+            disabled={suppression}
+            style={({ pressed }) => [pressed && styles.presse]}
+          >
+            {ligne(
+              t('reglages.voix.supprimer'),
+              null,
+              chevron(couleurs.rouge),
+              false,
+              couleurs.rouge,
+            )}
+          </Pressable>
         </Carte>
-        <Bouton
-          libelle={t('reglages.voix.supprimer')}
-          variante="secondaire"
-          onPress={supprimerCompte}
-          chargement={suppression}
-        />
       </View>
 
       <View style={styles.section}>
-        <Titre niveau="section">{t('reglages.rituel.titre')}</Titre>
+        <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>
+          {t('reglages.rituel.titre')}
+        </Text>
         <Carte style={styles.liste}>
           {ligne(
             t('reglages.rituel.rappel'),
             p ? t('reglages.rituel.rappelHeure', { heure: heureCourte(p.heure_rappel) }) : null,
             p ? (
               <View style={styles.ligneCourte}>
-                <Bouton
-                  libelle={t('reglages.rituel.modifier')}
-                  variante="texte"
-                  onPress={() =>
-                    setHeureSaisie(heureSaisie === null ? p.heure_rappel.slice(0, 5) : null)
-                  }
-                />
+                {lien(t('reglages.rituel.modifier'), () =>
+                  setHeureSaisie(heureSaisie === null ? p.heure_rappel.slice(0, 5) : null),
+                )}
                 {interrupteur('notif_rappel', p.notif_rappel)}
               </View>
             ) : null,
@@ -321,8 +352,6 @@ export default function Reglages() {
             t('reglages.rituel.annoncesDetail'),
             p ? interrupteur('notif_annonces', p.notif_annonces) : null,
           )}
-        </Carte>
-        <Carte style={styles.liste}>
           {ligne(
             t('serie.proteger'),
             serie.data
@@ -332,18 +361,12 @@ export default function Reglages() {
                   ? t('serie.detail', { restantes: 1 })
                   : t('serie.detailPlusieurs', { restantes: serie.data.recuperation.restantes })
               : null,
-            serie.data?.recuperation.jour_a_couvrir ? (
-              <Bouton
-                libelle={t('serie.activer')}
-                variante="secondaire"
-                chargement={recuperation.isPending}
-                onPress={() => recuperation.mutate()}
-              />
-            ) : null,
-            true,
+            serie.data?.recuperation.jour_a_couvrir
+              ? lien(t('serie.activer'), () => recuperation.mutate(), recuperation.isPending)
+              : null,
           )}
           {serie.data && !serie.data.recuperation.jour_a_couvrir ? (
-            <Text style={[typographie.petit, styles.sousLigne, { color: theme.texteTertiaire }]}>
+            <Text style={[styles.detail, styles.sousLigne, { color: theme.texteTertiaire }]}>
               {serie.data.recuperation.jour_reparable && serie.data.recuperation.restantes === 0
                 ? t('serie.quotaUtilise', { record: serie.data.record })
                 : serie.data.courante > 0
@@ -352,22 +375,20 @@ export default function Reglages() {
             </Text>
           ) : null}
         </Carte>
-        <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+        <Text style={[styles.detail, { color: theme.texteTertiaire }]}>
           {t('reglages.rituel.noteRappels')}
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Titre niveau="section">{t('reglages.region.titre')}</Titre>
+        <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>
+          {t('reglages.region.titre')}
+        </Text>
         <Carte style={styles.liste}>
           {ligne(
             p?.region ? NOMS_REGION[p.region] : t('reglages.region.aucune'),
             t('reglages.region.detail'),
-            <Bouton
-              libelle={t('reglages.region.choisir')}
-              variante="texte"
-              onPress={() => setChoixRegion((v) => !v)}
-            />,
+            lien(t('reglages.region.choisir'), () => setChoixRegion((v) => !v)),
             true,
           )}
           {choixRegion
@@ -387,14 +408,14 @@ export default function Reglages() {
                 >
                   <Text
                     style={[
-                      typographie.corps,
+                      styles.libelle,
                       { color: p?.region === code ? theme.texte : theme.texteSecondaire, flex: 1 },
                     ]}
                   >
                     {NOMS_REGION[code]}
                   </Text>
                   {p?.region === code ? (
-                    <Text style={[typographie.corpsFort, { color: theme.accent }]}>✓</Text>
+                    <Icone sf="checkmark" material="check" taille={16} couleur={theme.lien} />
                   ) : null}
                 </Pressable>
               ))
@@ -403,33 +424,40 @@ export default function Reglages() {
       </View>
 
       <View style={styles.section}>
-        <Titre niveau="section">{t('reglages.confort.titre')}</Titre>
-        <Carte style={styles.bloc}>
-          <Text style={[typographie.corpsFort, { color: theme.texte }]}>
-            {t('reglages.confort.modeNuit')}
-          </Text>
-          <View style={[styles.segments, { backgroundColor: theme.carteDouce }]}>
-            {MODES.map((option) => {
-              const actif = option.valeur === mode
-              return (
-                <Pressable
-                  key={option.valeur}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: actif }}
-                  onPress={() => definirMode(option.valeur)}
-                  style={[styles.segment, actif && { backgroundColor: theme.carte }]}
-                >
-                  <Text
+        <Text style={[styles.etiquette, { color: theme.texteSecondaire }]}>
+          {t('reglages.confort.titre')}
+        </Text>
+        <Carte style={styles.liste}>
+          <View style={[styles.ligne, { flexDirection: 'column', alignItems: 'stretch', gap: 10 }]}>
+            <Text style={[styles.libelle, { color: theme.texte }]}>
+              {t('reglages.confort.modeNuit')}
+            </Text>
+            <View style={[styles.segments, { backgroundColor: theme.carteDouce }]}>
+              {MODES.map((option) => {
+                const actif = option.valeur === mode
+                return (
+                  <Pressable
+                    key={option.valeur}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: actif }}
+                    onPress={() => definirMode(option.valeur)}
                     style={[
-                      typographie.petit,
-                      { color: actif ? theme.texte : theme.texteSecondaire },
+                      styles.segment,
+                      actif && { backgroundColor: theme.sombre ? theme.carte : couleurs.bleuNuit },
                     ]}
                   >
-                    {option.libelle}
-                  </Text>
-                </Pressable>
-              )
-            })}
+                    <Text
+                      style={[
+                        styles.segmentTexte,
+                        { color: actif ? couleurs.blanc : theme.texteSecondaire },
+                      ]}
+                    >
+                      {option.libelle}
+                    </Text>
+                  </Pressable>
+                )
+              })}
+            </View>
           </View>
           {ligne(
             t('reglages.confort.animations'),
@@ -440,16 +468,15 @@ export default function Reglages() {
               value={animationsReduites || mouvementReduit}
               disabled={mouvementReduit}
               onValueChange={definirAnimationsReduites}
-              trackColor={{ true: theme.accent }}
+              trackColor={{ true: theme.lien }}
               accessibilityLabel={t('reglages.confort.animations')}
             />,
-            true,
           )}
         </Carte>
       </View>
 
       {message ? (
-        <Text style={[typographie.corps, styles.message, { color: theme.texteSecondaire }]}>
+        <Text style={[typographie.petit, styles.message, { color: theme.texteSecondaire }]}>
           {message}
         </Text>
       ) : null}
@@ -459,11 +486,34 @@ export default function Reglages() {
 
 const styles = StyleSheet.create({
   contenu: { paddingHorizontal: espaces.xl, gap: espaces.l },
-  retour: { paddingVertical: espaces.xs, alignSelf: 'flex-start' },
-  section: { gap: espaces.s },
-  bloc: { gap: espaces.xs },
-  liste: { paddingVertical: 0 },
-  ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s, paddingVertical: espaces.m },
+  presse: { opacity: 0.8 },
+  retour: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titre: {
+    fontFamily: polices.extraBold,
+    fontSize: 30,
+    lineHeight: 34,
+    letterSpacing: -0.85,
+    marginTop: -espaces.xs,
+  },
+  section: { gap: 10 },
+  etiquette: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  liste: { paddingVertical: 6, paddingHorizontal: espaces.l },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s, paddingVertical: 15 },
+  libelle: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
+  detail: { fontFamily: polices.medium, fontSize: 12.5, lineHeight: 18 },
+  lien: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18 },
   segments: { flexDirection: 'row', padding: 3, borderRadius: rayons.pilule },
   segment: {
     flex: 1,
@@ -471,8 +521,9 @@ const styles = StyleSheet.create({
     paddingVertical: espaces.xs,
     borderRadius: rayons.pilule,
   },
+  segmentTexte: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18 },
   message: { textAlign: 'center' },
-  ligneCourte: { flexDirection: 'row', alignItems: 'center', gap: espaces.xs },
+  ligneCourte: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
   champHeure: {
     flex: 1,
     borderWidth: 1,

@@ -8,6 +8,7 @@ import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
+import { Degrade } from '@/components/ui/Degrade'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import {
@@ -22,7 +23,7 @@ import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { minutesDe } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
-import { espaces, rayons, typographie } from '@/theme/tokens'
+import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
 // C1 to C4 · L'Arène. Two toggles at the top: the subject of the moment, and the duels. The
 // subject runs seven days: you speak, you listen, you vote. The others stay veiled until you
@@ -53,7 +54,13 @@ export default function Arene() {
       <EnteteEcran titre={t('arene.titre')} />
       <View style={styles.sections}>
         {onglets.length > 1 ? (
-          <View style={[styles.bascule, { backgroundColor: theme.carteDouce }]}>
+          <View
+            style={[
+              styles.bascule,
+              { backgroundColor: theme.carte },
+              !theme.sombre && styles.basculeOmbre,
+            ]}
+          >
             {onglets.map((cle) => {
               const actif = onglet === cle
               return (
@@ -62,14 +69,18 @@ export default function Arene() {
                   accessibilityRole="tab"
                   accessibilityState={{ selected: actif }}
                   onPress={() => setOnglet(cle)}
-                  style={[styles.onglet, actif && { backgroundColor: theme.carte }]}
+                  style={[
+                    styles.onglet,
+                    actif && {
+                      backgroundColor: theme.sombre ? theme.carteDouce : couleurs.bleuNuit,
+                    },
+                  ]}
                 >
                   <Text
                     numberOfLines={1}
                     style={[
-                      typographie.corpsFort,
                       styles.libelleOnglet,
-                      { color: actif ? theme.texte : theme.texteSecondaire },
+                      { color: actif ? couleurs.blanc : theme.texteSecondaire },
                     ]}
                   >
                     {cle === 'sujet'
@@ -125,66 +136,57 @@ function Sujet() {
 
   return (
     <>
-      <Carte teinte="sombre" style={styles.bloc}>
-        <View style={styles.ligne}>
-          <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix, flex: 1 }]}>
-            {t('arene.sujetSemaine')}
-          </Text>
-          <Text style={[typographie.etiquette, { color: theme.heroTexteSecondaire }]}>
-            {t('arene.jour', { jour: jourDuSujet(sujet.data, jours), total: jours })}
-          </Text>
+      <View style={styles.heroOmbre}>
+        <View style={styles.hero}>
+          <Degrade de={couleurs.bleu} a={couleurs.bleuNuit} rayon={26} id="arene" />
+          <View style={styles.ligne}>
+            <Text style={[styles.heroEtiquette, { flex: 1 }]}>{t('arene.sujetSemaine')}</Text>
+            <Text style={styles.heroEtiquette}>
+              {t('arene.jour', { jour: jourDuSujet(sujet.data, jours), total: jours })}
+            </Text>
+          </View>
+          <Text style={styles.heroTitre}>{sujet.data.texte}</Text>
+          {sujet.data.consigne ? (
+            <Text style={[styles.heroCorps, { color: couleurs.encre3 }]}>
+              {sujet.data.consigne}
+            </Text>
+          ) : null}
+          {!parle ? (
+            <>
+              <Bouton
+                variante="or"
+                libelle={t('arene.enregistrer', { minutes: minutesDe(sujet.data.duree_max_s) })}
+                onPress={() => router.push('/arene/prise')}
+              />
+              <Text style={styles.heroNote}>{t('arene.conservation')}</Text>
+            </>
+          ) : (
+            <>
+              <View style={styles.heroEtat}>
+                <Text style={[styles.libelleEtat, { color: couleurs.blanc }]}>
+                  {maPrise.data?.statut === 'publiee'
+                    ? t('arene.passageDedans')
+                    : maPrise.data?.statut === 'retiree'
+                      ? t('arene.passageRetire')
+                      : t('arene.enModeration')}
+                </Text>
+                <Text style={[styles.heroCorps, { color: couleurs.encre3 }]}>
+                  {maPrise.data?.statut === 'publiee'
+                    ? t('arene.passageDetail')
+                    : maPrise.data?.statut === 'retiree'
+                      ? t('arene.passageRetireDetail')
+                      : t('arene.enModerationDetail')}
+                </Text>
+              </View>
+              <Bouton
+                variante="or"
+                libelle={t('arene.ecouterEtVoter', { points })}
+                onPress={() => router.push('/arene/voter')}
+              />
+            </>
+          )}
         </View>
-        <Titre niveau="section" surFondSombre>
-          {sujet.data.texte}
-        </Titre>
-        {sujet.data.consigne ? (
-          <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-            {sujet.data.consigne}
-          </Text>
-        ) : null}
-      </Carte>
-
-      {!parle ? (
-        <Carte style={styles.bloc}>
-          <Bouton
-            libelle={t('arene.enregistrer', { minutes: minutesDe(sujet.data.duree_max_s) })}
-            onPress={() => router.push('/arene/prise')}
-          />
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-            {t('arene.conservation')}
-          </Text>
-        </Carte>
-      ) : (
-        <>
-          <Carte teinte="voix" style={styles.bloc}>
-            <Text style={[typographie.titreCarte, { color: theme.texte }]}>
-              {maPrise.data?.statut === 'publiee'
-                ? t('arene.passageDedans')
-                : maPrise.data?.statut === 'retiree'
-                  ? t('arene.passageRetire')
-                  : t('arene.enModeration')}
-            </Text>
-            <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
-              {maPrise.data?.statut === 'publiee'
-                ? t('arene.passageDetail')
-                : maPrise.data?.statut === 'retiree'
-                  ? t('arene.passageRetireDetail')
-                  : t('arene.enModerationDetail')}
-            </Text>
-          </Carte>
-          <Carte teinte="orange" style={styles.bloc}>
-            <Text
-              style={[typographie.etiquette, styles.majuscules, { color: theme.texteSecondaire }]}
-            >
-              {t('arene.votesOuverts')}
-            </Text>
-            <Bouton
-              libelle={t('arene.ecouterEtVoter', { points })}
-              onPress={() => router.push('/arene/voter')}
-            />
-          </Carte>
-        </>
-      )}
+      </View>
 
       {lignes.length > 0 ? (
         <View style={styles.section}>
@@ -362,15 +364,62 @@ const styles = StyleSheet.create({
   lignePadding: { paddingVertical: espaces.m },
   rang: { width: 22 },
   majuscules: { textTransform: 'uppercase', letterSpacing: 1 },
-  bascule: { flexDirection: 'row', padding: 4, borderRadius: rayons.pilule },
+  bascule: { flexDirection: 'row', padding: 5, borderRadius: rayons.pilule },
+  basculeOmbre: {
+    shadowColor: couleurs.bleuNuit,
+    shadowOpacity: 0.07,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
   onglet: {
     flex: 1,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: espaces.xs,
-    paddingVertical: espaces.xs,
     borderRadius: rayons.pilule,
   },
-  libelleOnglet: { textAlign: 'center' },
+  libelleOnglet: {
+    textAlign: 'center',
+    fontFamily: polices.extraBold,
+    fontSize: 13.5,
+    lineHeight: 18,
+  },
+  // The subject's hero card, as the mockup paints it: a gradient, the gesture inside it.
+  heroOmbre: {
+    borderRadius: 26,
+    shadowColor: couleurs.bleu,
+    shadowOpacity: 0.3,
+    shadowRadius: 17,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 8,
+  },
+  hero: { gap: 14, padding: espaces.xl, borderRadius: 26, overflow: 'hidden' },
+  heroEtiquette: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    color: couleurs.or,
+  },
+  heroTitre: {
+    fontFamily: polices.extraBold,
+    fontSize: 25,
+    lineHeight: 28.5,
+    letterSpacing: -0.65,
+    color: couleurs.blanc,
+  },
+  heroCorps: { fontFamily: polices.medium, fontSize: 14, lineHeight: 21 },
+  heroNote: {
+    fontFamily: polices.semiBold,
+    fontSize: 11.5,
+    lineHeight: 17,
+    textAlign: 'center',
+    color: couleurs.encre2,
+  },
+  heroEtat: { gap: 4 },
+  libelleEtat: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
   porte: { gap: espaces.s },
 })
