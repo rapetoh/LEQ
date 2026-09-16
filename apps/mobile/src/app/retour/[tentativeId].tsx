@@ -1,15 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Platform, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { TuilesMesures } from '@/components/TuilesMesures'
 import { Bouton } from '@/components/ui/Bouton'
-import { Carte } from '@/components/ui/Carte'
-import { Titre } from '@/components/ui/Titre'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import { invaliderArene, messageRefus, publierPrise } from '@/services/arene'
@@ -23,11 +21,14 @@ import { useCarte } from '@/services/parcours'
 import { fermeLActe } from '@/services/rythme'
 import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
-import { espaces, typographie } from '@/theme/tokens'
+import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
 // B5 · Le retour (B5b with the flags off): Bulle answers "d'après l'analyse", never as
-// Rebecca. Counts, never a note on the voice. When the take validated a step, H2 follows
-// on the same screen; when it closed an act, the next button opens H3.
+// Rebecca. Counts, never a note on the voice. Drawn as the mockup draws it: Bulle and her
+// speech card at the top (the outcome, then what the model noticed outside the grid), the
+// three tiles, the axis to work on in a bleu nuit card, what worked on a green strip, the
+// grid's lines. When the take validated a step, H2 follows on the same screen (the gold
+// medal); when it closed an act, the next button opens H3.
 
 export default function Retour() {
   const params = useLocalSearchParams<{ tentativeId?: string }>()
@@ -175,87 +176,138 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
     })
   }
 
+  const remarques = evaluation?.hors_grille ?? []
+  const axes = evaluation?.axes_travail ?? []
+  const nomDe = (cle: string) => retour.criteres[cle] ?? cle
+  const ombre = theme.sombre ? null : styles.ombre
+
   return (
     <ScrollView
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,
-        { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
+        { paddingTop: insets.top + espaces.l, paddingBottom: insets.bottom + espaces.l },
       ]}
     >
-      <View style={styles.entete}>
-        <Bulle taille="petite" />
-        <Text style={[typographie.etiquette, { color: theme.texteTertiaire, flex: 1 }]}>
-          {t('retour.surtitre')}
-        </Text>
-      </View>
       {resultat === 'etape_validee' ? (
-        <View style={[styles.medaille, { backgroundColor: theme.voix }]}>
-          <Icone sf="checkmark" material="check" taille={32} couleur={theme.texte} />
+        <View style={styles.medailleBloc}>
+          <View style={[styles.halo, { backgroundColor: theme.voixDoux }]}>
+            <View style={[styles.medaille, { backgroundColor: theme.voix }]}>
+              <Icone sf="checkmark" material="check" taille={30} couleur={couleurs.bleuNuit} />
+            </View>
+          </View>
         </View>
       ) : null}
-      <Titre niveau="ecran">{titre}</Titre>
-      {corps ? (
-        <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>{corps}</Text>
-      ) : null}
 
-      <Text style={[typographie.etiquette, styles.section, { color: theme.texteTertiaire }]}>
-        {t('retour.mesure')}
-      </Text>
+      <View style={styles.entete}>
+        <Bulle taille="petite" />
+        <View style={styles.parole}>
+          <Text style={[styles.surtitre, { color: theme.texteTertiaire }]}>
+            {t('retour.surtitre')}
+          </Text>
+          <View style={[styles.bulleCarte, { backgroundColor: theme.carte }, ombre]}>
+            <Text style={[styles.titre, { color: theme.texte }]} accessibilityRole="header">
+              {titre}
+            </Text>
+            {corps ? (
+              <Text style={[styles.corps, { color: theme.texteSecondaire }]}>{corps}</Text>
+            ) : null}
+            {remarques.map((remarque) => (
+              <Text
+                key={remarque.sujet + remarque.remarque}
+                style={[styles.corps, { color: theme.texteSecondaire }]}
+              >
+                {remarque.remarque}
+              </Text>
+            ))}
+          </View>
+        </View>
+      </View>
+
       <TuilesMesures mesures={mesures} />
 
-      {sousNotes.length > 0 ? (
-        <Carte style={styles.bloc}>
-          <View style={styles.ligne}>
-            <Text style={[typographie.titreCarte, { color: theme.texte, flex: 1 }]}>
-              {t('defi.resultat.entendu')}
+      {axes.length > 0 ? (
+        <View style={[styles.levier, { backgroundColor: theme.hero }]}>
+          <Text style={[styles.levierEtiquette, { color: theme.voix }]}>{t('retour.axes')}</Text>
+          <Text style={[styles.levierTitre, { color: theme.heroTexte }]}>
+            {nomDe(axes[0]!.critere)}
+          </Text>
+          {axes.slice(1).map((axe, index) => (
+            <Text
+              key={`${axe.critere}-${index}`}
+              style={[styles.levierCorps, { color: theme.heroTexteSecondaire }]}
+            >
+              {nomDe(axe.critere)}
             </Text>
-            <Text style={[typographie.etiquette, { color: theme.texteTertiaire }]}>
-              {t('defi.resultat.grilleLibelle')}
-            </Text>
-          </View>
-          {sousNotes.map(([cle, sousNote]) => (
-            <View key={cle} style={styles.ligne}>
-              <View
-                style={[
-                  styles.marqueur,
-                  {
-                    backgroundColor:
-                      sousNote.max > 0 && sousNote.score / sousNote.max >= 0.8
-                        ? theme.voix
-                        : theme.carteDouce,
-                  },
-                ]}
-              />
-              <Text style={[typographie.corps, { color: theme.texte, flex: 1 }]}>
-                {retour.criteres[cle] ?? cle}
-              </Text>
-              <Text style={[typographie.corpsFort, { color: theme.texte }]}>
-                {t('defi.resultat.sousNote', {
-                  score: formaterNombre(sousNote.score),
-                  max: formaterNombre(sousNote.max),
-                })}
-              </Text>
-            </View>
           ))}
-        </Carte>
+        </View>
       ) : null}
 
       {evaluation && evaluation.points_forts.length > 0 ? (
-        <Liste
-          titre={t('retour.pointsForts')}
-          points={evaluation.points_forts}
-          criteres={retour.criteres}
-          teinte="voix"
-        />
+        <View style={[styles.reussites, { backgroundColor: couleurs.vertDoux }]}>
+          <Text style={[styles.reussitesEtiquette, { color: couleurs.vert }]}>
+            {t('retour.pointsForts')}
+          </Text>
+          {evaluation.points_forts.map((point, index) => (
+            <View key={`${point.critere}-${index}`} style={styles.reussite}>
+              <View style={[styles.puce, { backgroundColor: couleurs.vert }]} />
+              <Text style={[styles.reussiteTexte, { color: couleurs.vert }]}>
+                {nomDe(point.critere)}
+              </Text>
+            </View>
+          ))}
+        </View>
       ) : null}
-      {evaluation && evaluation.axes_travail.length > 0 ? (
-        <Liste
-          titre={t('retour.axes')}
-          points={evaluation.axes_travail}
-          criteres={retour.criteres}
-          teinte="douce"
-        />
+
+      {sousNotes.length > 0 ? (
+        <View style={[styles.grille, { backgroundColor: theme.carte }, ombre]}>
+          <View style={styles.ligne}>
+            <Text style={[styles.grilleEtiquette, { color: theme.lien, flex: 1 }]}>
+              {t('defi.resultat.entendu')}
+            </Text>
+            <Text style={[styles.grilleNom, { color: theme.texteTertiaire }]}>
+              {t('defi.resultat.grilleLibelle')}
+            </Text>
+          </View>
+          {sousNotes.map(([cle, sousNote]) => {
+            const atteint = sousNote.max > 0 && sousNote.score / sousNote.max >= 0.8
+            return (
+              <View key={cle} style={styles.ligne}>
+                <View
+                  style={[
+                    styles.marqueur,
+                    { backgroundColor: atteint ? theme.voix : theme.carteDouce },
+                  ]}
+                >
+                  {atteint ? (
+                    <Icone
+                      sf="checkmark"
+                      material="check"
+                      taille={12}
+                      couleur={couleurs.bleuNuit}
+                    />
+                  ) : (
+                    <View style={[styles.tiret, { backgroundColor: theme.texteTertiaire }]} />
+                  )}
+                </View>
+                <Text style={[styles.critere, { color: theme.texteSecondaire, flex: 1 }]}>
+                  {nomDe(cle)}
+                </Text>
+                <Text
+                  style={[
+                    styles.sousNote,
+                    { color: atteint ? couleurs.rouge : theme.texteTertiaire },
+                  ]}
+                >
+                  {t('defi.resultat.sousNote', {
+                    score: formaterNombre(sousNote.score),
+                    max: formaterNombre(sousNote.max),
+                  })}
+                </Text>
+              </View>
+            )
+          })}
+        </View>
       ) : null}
 
       <View style={styles.actions}>
@@ -272,7 +324,7 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
             {retour.type === 'arene' ? (
               <Bouton
                 libelle={t('retour.garderPourMoi')}
-                variante="texte"
+                variante="blanc"
                 onPress={() => router.replace('/(onglets)/arene')}
               />
             ) : null}
@@ -289,33 +341,6 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
         )}
       </View>
     </ScrollView>
-  )
-}
-
-function Liste({
-  titre,
-  points,
-  criteres,
-  teinte,
-}: {
-  titre: string
-  points: readonly { critere: string }[]
-  criteres: Record<string, string>
-  teinte: 'voix' | 'douce'
-}) {
-  const theme = useTheme()
-  return (
-    <Carte teinte={teinte} style={styles.bloc}>
-      <Text style={[typographie.titreCarte, { color: theme.texte }]}>{titre}</Text>
-      {points.map((point, index) => (
-        <Text
-          key={`${point.critere}-${index}`}
-          style={[typographie.corps, { color: theme.texteSecondaire }]}
-        >
-          {criteres[point.critere] ?? point.critere}
-        </Text>
-      ))}
-    </Carte>
   )
 }
 
@@ -363,21 +388,99 @@ export function formaterNombre(valeur: number): string {
 }
 
 const styles = StyleSheet.create({
-  contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.m },
+  contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: 14 },
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   texteCentre: { textAlign: 'center' },
-  entete: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  // The mockup's card shadow: 0 1px 2px at seven percent.
+  ombre: Platform.select({
+    ios: {
+      shadowColor: couleurs.bleuNuit,
+      shadowOpacity: 0.07,
+      shadowRadius: 2,
+      shadowOffset: { width: 0, height: 1 },
+    },
+    android: { elevation: 1 },
+    default: {},
+  }) as ViewStyle,
+  medailleBloc: { alignItems: 'center', paddingTop: espaces.s },
+  halo: { padding: 10, borderRadius: 47 },
   medaille: {
     width: 74,
     height: 74,
     borderRadius: 37,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
   },
-  marqueur: { width: 22, height: 22, borderRadius: 11 },
-  section: { marginTop: espaces.s },
-  bloc: { gap: espaces.s },
-  ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
-  actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l, alignSelf: 'stretch' },
+  entete: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  parole: { flex: 1, gap: 6 },
+  surtitre: {
+    fontFamily: polices.extraBold,
+    fontSize: 10.5,
+    lineHeight: 14,
+    letterSpacing: 0.84,
+    textTransform: 'uppercase',
+  },
+  bulleCarte: {
+    paddingVertical: espaces.m,
+    paddingHorizontal: 18,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: rayons.xxl,
+    borderBottomRightRadius: rayons.xxl,
+    borderBottomLeftRadius: rayons.xxl,
+    gap: espaces.xs,
+  },
+  titre: { fontFamily: polices.bold, fontSize: 16.5, lineHeight: 24 },
+  corps: { fontFamily: polices.medium, fontSize: 14, lineHeight: 21 },
+  levier: { padding: espaces.l, borderRadius: rayons.xxxl, gap: espaces.s },
+  levierEtiquette: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  levierTitre: { fontFamily: polices.extraBold, fontSize: 23, lineHeight: 27, letterSpacing: -0.5 },
+  levierCorps: { fontFamily: polices.medium, fontSize: 14, lineHeight: 22 },
+  reussites: {
+    paddingVertical: espaces.s,
+    paddingHorizontal: espaces.m,
+    borderRadius: rayons.l,
+    gap: espaces.xs,
+  },
+  reussitesEtiquette: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  reussite: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  puce: { width: 8, height: 8, borderRadius: 4 },
+  reussiteTexte: { fontFamily: polices.semiBold, fontSize: 13, lineHeight: 18, flex: 1 },
+  grille: {
+    paddingVertical: espaces.m,
+    paddingHorizontal: espaces.l,
+    borderRadius: rayons.xxl,
+    gap: 10,
+  },
+  grilleEtiquette: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  grilleNom: { fontFamily: polices.bold, fontSize: 11, lineHeight: 15 },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  marqueur: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tiret: { width: 8, height: 2.5, borderRadius: 2 },
+  critere: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18 },
+  sousNote: { fontFamily: polices.extraBold, fontSize: 12.5, lineHeight: 16 },
+  actions: { marginTop: 'auto', gap: 10, paddingTop: espaces.l, alignSelf: 'stretch' },
 })

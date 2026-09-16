@@ -272,6 +272,8 @@ export interface Retour {
     sous_notes: SousNotes
     points_forts: PointRemarquable[]
     axes_travail: PointRemarquable[]
+    /** What the model noticed and no criterion covers: Bulle says it, it never enters the note. */
+    hors_grille: { sujet: string; remarque: string }[]
   } | null
   /** Names of the criteria of the grid used, by key, for the H2 list. */
   criteres: Record<string, string>
@@ -296,6 +298,7 @@ type LigneRetour = {
         sous_notes: unknown
         points_forts: unknown
         axes_travail: unknown
+        hors_grille: unknown
       }
     | {
         grille_id: string | null
@@ -304,6 +307,7 @@ type LigneRetour = {
         sous_notes: unknown
         points_forts: unknown
         axes_travail: unknown
+        hors_grille: unknown
       }[]
     | null
   etapes: unknown
@@ -318,12 +322,13 @@ function nombreOuNull(valeur: number | string | null | undefined): number | null
 const PointsSchema = z.array(
   z.object({ critere: z.string(), mesure: z.string(), valeur: z.number() }),
 )
+const HorsGrilleSchema = z.array(z.object({ sujet: z.string(), remarque: z.string().min(1) }))
 
 export async function chargerRetour(tentativeId: string): Promise<Retour | null> {
   const { data, error } = await supabase
     .from('tentatives')
     .select(
-      'id, type, duel_id, statut, resultat, enregistre_le, analyses(mesures), evaluations(grille_id, note_totale, seuil_reussite, sous_notes, points_forts, axes_travail), etapes!tentatives_etape_id_fkey(*, defis(*), actes(*))',
+      'id, type, duel_id, statut, resultat, enregistre_le, analyses(mesures), evaluations(grille_id, note_totale, seuil_reussite, sous_notes, points_forts, axes_travail, hors_grille), etapes!tentatives_etape_id_fkey(*, defis(*), actes(*))',
     )
     .eq('id', tentativeId)
     .maybeSingle()
@@ -374,6 +379,7 @@ export async function chargerRetour(tentativeId: string): Promise<Retour | null>
           sous_notes: sousNotes.success ? sousNotes.data : {},
           points_forts: PointsSchema.catch([]).parse(evaluation.points_forts),
           axes_travail: PointsSchema.catch([]).parse(evaluation.axes_travail),
+          hors_grille: HorsGrilleSchema.catch([]).parse(evaluation.hors_grille),
         }
       : null,
     criteres,

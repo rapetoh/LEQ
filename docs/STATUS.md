@@ -841,6 +841,22 @@ Done so far:
   from the person's own evaluations**, each axis averaged this month against last month with its
   movement, in place of the dashed placeholder that waited for the grid; the month's heading
   placeholder is gone. X1's two previews are white cards.
+- **B3, the brief**: the format and the points as two tinted pills, the 34 point title, the act's
+  dots and the position on one blue line, Rebecca's words on a white card beside her mark, the
+  focus of the feedback on a blue card with its ring icon, the supports of the plan as numbered
+  white tiles in a row (the long format keeps its three steps as rows), the action with its glow.
+- **B4, the recording**: two drawings, as the mockup has two. The diagnostic (A4) keeps its
+  consigne as the title, the listening line under it and the timer in its ring. Every other take
+  (a step, the Arena, a duel) shows its title small at the top, the timer alone at 56 points, the
+  gold waveform across the whole width over a faint baseline, Bulle at 26 points on the listening
+  line, and the stop circle between « Refaire » and « Terminer » in the mockup's grey.
+- **B5, the feedback**: Bulle at the top with her label and a speech card that carries the outcome
+  and, new, **what the model noticed outside the grid** (`evaluations.hors_grille`, written by the
+  judge since 2026-09-13 and never read by the app until now); the three tiles in white with blue
+  numbers and small uppercase labels; the axes to work on in a bleu nuit card, the first one as its
+  title; what worked on a green strip; the grid's lines with a gold check or a grey dash and the
+  score in orange when the line is reached; the medal of H2 in its halo. The secondary action of a
+  published take is a white button.
 
 Gradients are drawn by `Degrade`, which measures its card: a percentage width on the SVG root
 painted three quarters of the first frame. Labels are uppercased by style, never in code, so a
@@ -848,7 +864,12 @@ screen reader and a test read the string.
 
 Verified on the simulator screen by screen; the account screen was previewed with the redirect
 disabled locally, since the simulator's user is anonymous, and the populated Progrès needs a
-phone with takes. Not in TestFlight yet by Roch's word.
+phone with takes. Shipped as build 19 on 2026-09-16 at Roch's request.
+
+The simulator itself was invisible for two days: Xcode 27 has no `Simulator.app`, the device
+window is Device Hub (`docs/RUNBOOK.md`, « Looking at a screen »), and the old window died with the
+Xcode swap while the device kept running headless. My `simctl` screenshots showed the app the whole
+time; Roch saw nothing.
 
 ## Next
 

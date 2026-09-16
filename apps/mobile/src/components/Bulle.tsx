@@ -19,11 +19,16 @@ import { couleurs } from '@/theme/tokens'
 // tail at the bottom left, two blinking eyes, and a mouth that speaks (bars), smiles, or waits
 // (open). The geometry is the mockup's at 150 px wide, scaled for the three sizes it uses.
 
-export type TailleBulle = 'petite' | 'moyenne' | 'grande'
+export type TailleBulle = 'minuscule' | 'petite' | 'moyenne' | 'grande'
 export type VisageBulle = 'parle' | 'sourit' | 'attend'
 
-/** Widths taken from the mockup: B5 (52), A2 (96), A1 (150). */
-const LARGEURS: Record<TailleBulle, number> = { petite: 52, moyenne: 96, grande: 150 }
+/** Widths taken from the mockup: B4 (26, the listening line), B5 (52), A2 (96), A1 (150). */
+const LARGEURS: Record<TailleBulle, number> = {
+  minuscule: 26,
+  petite: 52,
+  moyenne: 96,
+  grande: 150,
+}
 const BASE = 150
 
 type Props = {

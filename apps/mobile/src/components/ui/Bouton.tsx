@@ -34,6 +34,8 @@ type Props = {
   style?: StyleProp<ViewStyle>
 }
 
+// A label stays on one line: a long one shrinks a little (to four fifths) rather than wrapping
+// inside a 56 point button, as the mockup never shows a two-line button.
 export function Bouton({
   libelle,
   onPress,
@@ -102,10 +104,24 @@ export function Bouton({
       ) : icone ? (
         <View style={styles.avecIcone}>
           {icone}
-          <Text style={[typographie.bouton, { color: couleurTexte }]}>{libelle}</Text>
+          <Text
+            style={[typographie.bouton, { color: couleurTexte }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {libelle}
+          </Text>
         </View>
       ) : (
-        <Text style={[typographie.bouton, { color: couleurTexte }]}>{libelle}</Text>
+        <Text
+          style={[typographie.bouton, { color: couleurTexte }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
+          {libelle}
+        </Text>
       )}
     </Pressable>
   )

@@ -11,19 +11,23 @@ import { Bulle } from '@/components/Bulle'
 import { Onde } from '@/components/Onde'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
-import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { enregistrement } from '@/services/enregistrement'
 import { demanderMicro } from '@/services/micro'
 import { file, horodatageLocal } from '@/services/prises'
 import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
-import { espaces, typographie } from '@/theme/tokens'
+import { espaces, polices, rayons, typographie } from '@/theme/tokens'
 
-// The recording screen shared by A4 (diagnostic) and B4 (a step). The room goes quiet:
-// Bulle listens without moving, nothing judges. X4 is the offline banner. The text format
-// shows its text first (the timer starts after the reading), the long format runs a
-// preparation countdown with the three supports before the take.
+// The recording screen shared by A4 (diagnostic) and B4 (a step, an Arena or duel take).
+// The room goes quiet: Bulle listens without moving, nothing judges. X4 is the offline
+// banner. The text format shows its text first (the timer starts after the reading), the
+// long format runs a preparation countdown with the three supports before the take.
+//
+// Two drawings, as the mockup has two: the diagnostic keeps its consigne as the title, the
+// listening line under it and the timer inside a ring that fills from zero to the maximum;
+// every other take shows its title small at the top, the timer alone at 56 points, the
+// waveform across the screen over a faint gold baseline, and the listening line under it.
 
 const NB_BARRES = 40
 type Phase = 'lecture' | 'preparation' | 'pret' | 'en_cours' | 'terminee' | 'erreur'
@@ -206,12 +210,23 @@ export function EcranPrise(props: ProprietesPrise) {
     setMessage(null)
   }
 
+  const anneau = type === 'diagnostic'
+  const enregistre = phase !== 'lecture' && phase !== 'preparation'
+  const ligneEcoute = (
+    <View style={styles.ecoute}>
+      <Bulle taille="minuscule" calme={phase === 'en_cours'} />
+      <Text style={[styles.ecouteTexte, { color: theme.heroTexteSecondaire }]}>
+        {phase === 'en_cours' ? (props.encouragement ?? t('prise.ecouteCalme')) : t('prise.ecoute')}
+      </Text>
+    </View>
+  )
+
   return (
     <ScrollView
       style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,
-        { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
+        { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.l },
       ]}
     >
       {horsLigne ? (
@@ -225,17 +240,39 @@ export function EcranPrise(props: ProprietesPrise) {
         </Carte>
       ) : null}
 
-      <Text style={[typographie.etiquette, { color: theme.heroTexteSecondaire }]}>
-        {props.surtitre}
-      </Text>
-      <Titre niveau="ecran" surFondSombre>
-        {props.titre}
-      </Titre>
-      {props.consigne ? (
-        <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-          {props.consigne}
-        </Text>
-      ) : null}
+      {anneau ? (
+        <View style={styles.tete}>
+          <Text style={[styles.surtitre, { color: theme.heroTexteSecondaire }]}>
+            {props.surtitre}
+          </Text>
+          <Text
+            style={[styles.titreDiagnostic, { color: theme.heroTexte }]}
+            accessibilityRole="header"
+          >
+            {props.titre}
+          </Text>
+          {props.consigne ? (
+            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+              {props.consigne}
+            </Text>
+          ) : null}
+          {enregistre ? ligneEcoute : null}
+        </View>
+      ) : (
+        <View style={styles.teteCentree}>
+          <Text
+            style={[styles.titrePetit, { color: theme.heroTexteSecondaire }]}
+            accessibilityRole="header"
+          >
+            {props.titre}
+          </Text>
+          {props.consigne ? (
+            <Text style={[styles.consignePetite, { color: theme.heroTexteSecondaire }]}>
+              {props.consigne}
+            </Text>
+          ) : null}
+        </View>
+      )}
 
       {phase === 'lecture' && props.texteALire ? (
         <Carte teinte="sombre" style={styles.texte}>
@@ -243,7 +280,7 @@ export function EcranPrise(props: ProprietesPrise) {
             {t('defi.texteChoisi')}
           </Text>
           <Text style={[typographie.titreCarte, { color: theme.heroTexte }]}>
-            « {props.texteALire} »
+            « {props.texteALire} »
           </Text>
           <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
             {t('defi.minuterieApresLecture')}
@@ -253,7 +290,7 @@ export function EcranPrise(props: ProprietesPrise) {
 
       {phase === 'preparation' ? (
         <Carte teinte="sombre" style={styles.texte}>
-          <Text style={[typographie.chiffre, { color: theme.heroTexte }]}>
+          <Text style={[styles.chronoGrand, { color: theme.heroTexte }]}>
             {formaterDuree(preparationRestante)}
           </Text>
           {(props.plan ?? []).map((appui, index) => (
@@ -271,39 +308,51 @@ export function EcranPrise(props: ProprietesPrise) {
         </Carte>
       ) : null}
 
-      {phase !== 'lecture' && phase !== 'preparation' ? (
+      {enregistre && anneau ? (
         <View style={styles.centre}>
-          <Bulle taille="petite" calme={phase === 'en_cours'} />
-          <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
-            {phase === 'en_cours'
-              ? (props.encouragement ?? t('prise.ecouteCalme'))
-              : t('prise.ecoute')}
-          </Text>
           <AnneauProgression
             progression={dureeMax > 0 ? secondes / dureeMax : 0}
             diametre={190}
-            style={styles.anneau}
+            piste={theme.heroCarte}
           >
-            <Text style={[typographie.chiffre, styles.chrono, { color: theme.heroTexte }]}>
+            <Text style={[styles.chronoAnneau, { color: theme.heroTexte }]}>
               {formaterDuree(secondes)}
             </Text>
-            <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+            <Text style={[styles.plage, { color: theme.heroTexteSecondaire }]}>
               {t('prise.plage', { min: formaterDuree(dureeMin), max: formaterDuree(dureeMax) })}
             </Text>
           </AnneauProgression>
-          <Onde niveaux={niveaux} />
-          {phase === 'en_cours' && props.plan && props.plan.length > 0 ? (
-            <View style={styles.appuisPrise}>
-              {props.plan.map((appui, index) => (
-                <Text
-                  key={appui.titre}
-                  style={[typographie.petit, { color: theme.heroTexteSecondaire }]}
-                >
-                  {index + 1}. {appui.titre}
-                </Text>
-              ))}
-            </View>
-          ) : null}
+          <View style={styles.ondeEtroite}>
+            <Onde niveaux={niveaux} hauteur={44} />
+          </View>
+        </View>
+      ) : null}
+
+      {enregistre && !anneau ? (
+        <View style={styles.centre}>
+          <View style={styles.chronoBloc}>
+            <Text style={[styles.chronoGrand, { color: theme.heroTexte }]}>
+              {formaterDuree(secondes)}
+            </Text>
+            <Text style={[styles.plage, { color: theme.heroTexteSecondaire }]}>
+              {t('prise.plage', { min: formaterDuree(dureeMin), max: formaterDuree(dureeMax) })}
+            </Text>
+          </View>
+          <Onde niveaux={niveaux} hauteur={132} ligneDeBase />
+          {ligneEcoute}
+        </View>
+      ) : null}
+
+      {enregistre && phase === 'en_cours' && props.plan && props.plan.length > 0 ? (
+        <View style={styles.appuisPrise}>
+          {props.plan.map((appui, index) => (
+            <Text
+              key={appui.titre}
+              style={[styles.appuiPrise, { color: theme.heroTexteSecondaire }]}
+            >
+              {index + 1}. {appui.titre}
+            </Text>
+          ))}
         </View>
       ) : null}
 
@@ -329,6 +378,7 @@ export function EcranPrise(props: ProprietesPrise) {
           <Bouton
             libelle={t('prise.demarrer')}
             variante="secondaire"
+            surFondSombre
             onPress={() => setPhase('pret')}
           />
         ) : null}
@@ -341,30 +391,38 @@ export function EcranPrise(props: ProprietesPrise) {
         ) : null}
         {phase === 'en_cours' ? (
           <View style={styles.commandes}>
-            <Bouton
-              libelle={t('prise.refaire')}
-              variante="texte"
-              surFondSombre
+            <Pressable
+              accessibilityRole="button"
               onPress={() => void refaire()}
-            />
+              style={({ pressed }) => [styles.commande, pressed && styles.presse]}
+            >
+              <Text style={[styles.commandeTexte, { color: theme.heroTexteSecondaire }]}>
+                {t('prise.refaire')}
+              </Text>
+            </Pressable>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('prise.terminer')}
               onPress={() => void terminer()}
               style={({ pressed }) => [
                 styles.stop,
-                { backgroundColor: theme.voix },
-                pressed && { opacity: 0.85 },
+                { backgroundColor: theme.heroCarte, borderColor: theme.heroBordure },
+                pressed && styles.presse,
               ]}
             >
-              <View style={[styles.carre, { backgroundColor: theme.hero }]} />
+              <View style={[styles.carre, { backgroundColor: theme.voix }]} />
             </Pressable>
-            <Bouton
-              libelle={t('prise.terminer')}
-              variante="texte"
-              surFondSombre
+            <Pressable
+              accessibilityRole="button"
               onPress={() => void terminer()}
-            />
+              style={({ pressed }) => [styles.commande, pressed && styles.presse]}
+            >
+              <Text
+                style={[styles.commandeTexte, styles.droite, { color: theme.heroTexteSecondaire }]}
+              >
+                {t('prise.terminer')}
+              </Text>
+            </Pressable>
           </View>
         ) : null}
         {phase !== 'en_cours' ? (
@@ -385,15 +443,68 @@ export function EcranPrise(props: ProprietesPrise) {
 const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.m },
   bandeau: { gap: espaces.xxs },
+  tete: { gap: 14 },
+  teteCentree: { gap: espaces.xs, alignItems: 'center' },
+  surtitre: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  titreDiagnostic: {
+    fontFamily: polices.extraBold,
+    fontSize: 29,
+    lineHeight: 34,
+    letterSpacing: -0.8,
+    marginTop: espaces.xs,
+  },
+  titrePetit: { fontFamily: polices.semiBold, fontSize: 12, lineHeight: 16, textAlign: 'center' },
+  consignePetite: {
+    fontFamily: polices.medium,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
   texte: { gap: espaces.s },
   appui: { gap: 2 },
-  appuisPrise: { alignSelf: 'stretch', gap: espaces.xxs, paddingTop: espaces.s },
-  centre: { alignItems: 'center', gap: espaces.s, marginTop: espaces.l },
-  anneau: { marginVertical: espaces.s },
-  chrono: { fontSize: 44, lineHeight: 50 },
-  commandes: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  stop: { width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center' },
-  carre: { width: 28, height: 28, borderRadius: 8 },
+  appuisPrise: { alignSelf: 'stretch', gap: espaces.xxs },
+  appuiPrise: { fontFamily: polices.semiBold, fontSize: 13, lineHeight: 18, textAlign: 'center' },
+  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 44 },
+  chronoBloc: { alignItems: 'center', gap: 6 },
+  chronoGrand: {
+    fontFamily: polices.bold,
+    fontSize: 56,
+    lineHeight: 64,
+    letterSpacing: -1.7,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
+  },
+  chronoAnneau: {
+    fontFamily: polices.extraBold,
+    fontSize: 40,
+    lineHeight: 46,
+    letterSpacing: -1.2,
+    fontVariant: ['tabular-nums'],
+  },
+  plage: { fontFamily: polices.semiBold, fontSize: 12, lineHeight: 16 },
+  ondeEtroite: { width: '78%' },
+  ecoute: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  ecouteTexte: { fontFamily: polices.semiBold, fontSize: 13, lineHeight: 18 },
   message: { textAlign: 'center' },
-  actions: { marginTop: 'auto', gap: espaces.s, paddingTop: espaces.l },
+  actions: { marginTop: 'auto', gap: espaces.xs, paddingTop: espaces.l },
+  commandes: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  commande: { width: 92, minHeight: 44, justifyContent: 'center' },
+  commandeTexte: { fontFamily: polices.semiBold, fontSize: 15, lineHeight: 20 },
+  droite: { textAlign: 'right' },
+  stop: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  carre: { width: 32, height: 32, borderRadius: rayons.s - 2 },
+  presse: { opacity: 0.85 },
 })

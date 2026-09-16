@@ -7,7 +7,7 @@ How to install, run, migrate, deploy and build LEQ. Written so that someone else
 | Tool                               | Why                                                                                                                                                                                  | Install                                                                                                                                                                                                                         |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Node 22 or 24                      | `.nvmrc` pins 22 and CI runs 22. The Mac has Node 25 installed directly: everything runs on it, Vitest only prints an unsupported-engine warning. Use nvm to match CI when in doubt. | `brew install nvm`, follow the shell setup it prints, then `nvm install` in the repo (reads `.nvmrc`) and `nvm use`                                                                                                             |
-| Xcode 26.x with iOS simulators     | Simulator builds of the mobile app                                                                                                                                                   | App Store, then `sudo xcode-select -s /Applications/Xcode.app`, `sudo xcodebuild -license accept`, install an iOS runtime in Xcode > Settings > Components                                                                      |
+| Xcode 27.0 with iOS simulators     | Simulator builds of the mobile app; the device window is Device Hub, see « Looking at a screen »                                                                                     | App Store, then `sudo xcode-select -s /Applications/Xcode.app`, `sudo xcodebuild -license accept`, install an iOS runtime in Xcode > Settings > Components                                                                      |
 | CocoaPods                          | Native iOS dependencies during `expo run:ios`                                                                                                                                        | `brew install cocoapods`                                                                                                                                                                                                        |
 | Homebrew                           | Everything below                                                                                                                                                                     | https://brew.sh                                                                                                                                                                                                                 |
 | ffmpeg                             | Decoding m4a to 16 kHz mono PCM in the worker and in engine tests                                                                                                                    | `brew install ffmpeg`                                                                                                                                                                                                           |
@@ -201,10 +201,20 @@ xcrun simctl openurl $SIM "leq://reglages"      # any Expo Router route
 ```
 
 A deep link raises an « Open in "LEQ"? » confirmation, which has to be tapped. There is no tap in
-`simctl`, so taps go through `cliclick` against the Simulator window. The mapping, for a window at
-`(wx, wy)` reported by System Events: a point `(x, y)` in device logical points (the screenshot is
-3x) is at `wx + 4.5 + x * 1.112`, `wy + y * 1.112`. Dragging near the bottom of the screen opens
-the React Native inspector; relaunching the app clears it.
+`simctl`, so taps go through `cliclick` against the window that shows the device. The mapping, for
+a window at `(wx, wy)` reported by System Events: a point `(x, y)` in device logical points (the
+screenshot is 3x) is at `wx + 4.5 + x * 1.112`, `wy + y * 1.112`. Dragging near the bottom of the
+screen opens the React Native inspector; relaunching the app clears it.
+
+**Since Xcode 27 there is no `Simulator.app`.** The window that shows a booted device is
+`/Applications/Xcode.app/Contents/Applications/DeviceHub.app` (« Device Hub », bundle
+`com.apple.dt.Devices`): `open -a /Applications/Xcode.app/Contents/Applications/DeviceHub.app
+--args -CurrentDeviceUDID $SIM`. `open -a Simulator` fails on this machine. A booted device keeps
+running with no window at all, so `simctl io screenshot` proves nothing about what a person sees on
+the Mac: check with `screencapture -x` of the whole screen. When Xcode was swapped on 2026-09-14 the
+old Simulator window died with the deleted bundle while the device and Metro kept running, and the
+app was invisible for two days. Device Hub's zoom buttons put the view in pan mode (« hold ⌥⌘ and
+drag »); the fit button next to them puts it back.
 
 This is how the floating tab bar covering the Progrès button was found, and it is the cheapest way
 to look at a screen before asking anyone else to.
