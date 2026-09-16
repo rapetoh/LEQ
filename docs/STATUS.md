@@ -960,8 +960,12 @@ done on an account with no analysed take, which is the only state that reaches t
 - Rule for every screen from now on: no `Intl` API other than `NumberFormat`, `DateTimeFormat`
   and `Collator`, and a screen is walked with an account that has data before a build.
 
-Build 20 is archived with the fix (verified in the bundle: no `RelativeTimeFormat` left). Its
-upload is blocked the same way build 18 was: `xcodebuild -exportArchive` answers "Failed to Use
-Accounts" because no Apple account is visible to the build tools. The Organizer of a signed-in
-Xcode uploads it; the App Store Connect API key would make the command line work for good, and
-that request still stands with Roch.
+**Build 20 is uploaded** (2026-09-16, 18:37, the Organizer shows 0.1.0 (20) "Uploaded to
+Apple"). It was re-archived at 18:21 from main at `1146a0e`, so it carries the Moi crash fix and
+everything committed after the first archive of the day: the Aujourd'hui card that no longer
+explains the plan, the Rebecca card that no longer cuts its sentence, the account steps said once,
+the feedback card naming the grid once. The command line answered "Failed to Use Accounts" three
+times that afternoon; EAS accepted the build and stopped on the free quota (reset 1 October); the
+upload went through the Organizer, driven by `cliclick` once Roch had unlocked the Mac. The App
+Store Connect API key request still stands, because every build so far has hung on whether the
+account happened to be visible. Next build number: 21.
