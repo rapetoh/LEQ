@@ -447,6 +447,14 @@ npm run ecrans              # every screen, with the strings it renders, in rend
 npm run ecrans -- compte    # only screens whose path matches
 ```
 
+It prints; it does not judge. A check that fails the build on repetition was written and thrown
+away on 2026-09-16, and the reason is worth keeping: render order inside a file is not adjacency
+on a screen. A success toast sits beside its error toast, a field label beside its own help text,
+a unit beside the sentence explaining it, and none of those pairs is ever read together, while
+they are structurally identical to the pairs that are faults. Tuned to spare them it caught
+nothing; tuned to catch them it failed on correct French. So the judgement stays with whoever
+reads the output.
+
 What to look for, in order: the same fact twice on one screen, in any two of title, subtitle,
 status line and footnote; a line that explains a rule of the product instead of saying what
 happens to the person; a shared key under two titles where number or gender stops agreeing.
