@@ -615,13 +615,12 @@ export const fr = {
       defi: 'défi relevé',
     },
     voix: {
-      titre: 'Tes cinq voix',
-      sousTitre: 'contre le mois dernier',
-      placeholder: 'Tes cinq voix arriveront avec la grille de Rebecca.',
-      hausse: '+ {{n}}',
+      titre: 'Grille de Rebecca',
+      sousTitre: 'par rapport au mois dernier',
+      hausse: '+{{n}}',
       baisse: '{{n}}',
       stable: 'stable',
-      nouveau: 'nouveau',
+      nouveau: 'premier mois',
     },
     appuis: {
       titre: 'Tes appuis de langage',
