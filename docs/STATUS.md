@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-15, after the plain-French pass reached the database and Fly, the Arena got its one-passage-per-subject constraint, and build 18 reached App Store Connect (last section). Update this file in the same commit as any change of state.
+Last updated: 2026-09-16, after the brief, the recorder and the feedback were redrawn to the mockup, the simulator window was found again (Device Hub), and build 19 was uploaded from the command line (last section). Update this file in the same commit as any change of state.
 
 How to read it: one line per phase, then the checklist of the phase in progress, then what has actually been verified on a machine versus what has only been written, then what is blocked and by whom, then the next actions in order.
 
@@ -935,3 +935,8 @@ What changed, and where it is now:
   still fails with "Failed to Use Accounts": an App Store Connect API key at the repo root makes
   `xcodebuild -exportArchive` non-interactive (`docs/RUNBOOK.md`, TestFlight), and that request
   stands. Next build number: 19, after Roch has looked at the Moi screens on the simulator.
+- **Build 19** (`ios.buildNumber` 19) carries the whole design pass (A7, G1, Mon compte, B1, H1,
+  G3, C1, D1, B3, B4, B5) and was uploaded on 2026-09-16 at 07:09 **from the command line**:
+  `xcodebuild -exportArchive -allowProvisioningUpdates` saw the account again, a day after Roch
+  signed into Xcode 27.0. "Upload succeeded", no Organizer click. The API key request stands, as
+  the account has already vanished from the build tools' view once. Next build number: 20.
