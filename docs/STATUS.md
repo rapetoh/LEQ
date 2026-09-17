@@ -975,5 +975,6 @@ the feedback card naming the grid once. The command line answered "Failed to Use
 times that afternoon; EAS accepted the build and stopped on the free quota (reset 1 October); the
 upload went through the Organizer, driven by `cliclick` once Roch had unlocked the Mac. The App
 Store Connect API key request still stands, because every build so far has hung on whether the
-account happened to be visible. **Build 21** follows the same evening with the animated launch
-(the first build whose native launch screen is background-only).
+account happened to be visible. **Build 21 is uploaded** the same evening (19:10, Organizer,
+"Uploaded to Apple") with the animated launch; it is the first build whose native launch screen
+is background-only. The command line refused the account again for it. Next build number: 22.
