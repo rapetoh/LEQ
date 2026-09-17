@@ -10,9 +10,10 @@ import { Stack, useRouter, type ErrorBoundaryProps } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { GardeSuspension } from '@/components/GardeSuspension'
+import { Lancement } from '@/components/Lancement'
 import { t } from '@/i18n/fr'
 import { Rappels } from '@/components/Rappels'
 import { FournisseurDemarrage, useConfiguration } from '@/services/configuration'
@@ -23,9 +24,11 @@ import { FournisseurSession, useSession } from '@/services/supabase'
 import { useIdentiteUsage } from '@/services/usage'
 import { FournisseurTheme, useTheme } from '@/theme/ThemeProvider'
 
-// Keep the native splash until fonts and the session bootstrap are done.
+// The native launch screen is plain bleu nuit. It stays until the launch overlay (the mark
+// writing itself, `Lancement`) has drawn its first frame on the same colour, so the handoff is
+// invisible; the overlay then covers the app until fonts and the session are ready.
 void SplashScreen.preventAutoHideAsync()
-SplashScreen.setOptions({ duration: 250, fade: true })
+SplashScreen.setOptions({ duration: 120, fade: true })
 
 const clientRequetes = new QueryClient({
   defaultOptions: {
@@ -103,10 +106,7 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
   const { pret: sessionPrete, session } = useSession()
   const theme = useTheme()
   useIdentiteUsage()
-
-  useEffect(() => {
-    if (policesPretes && sessionPrete) void SplashScreen.hideAsync()
-  }, [policesPretes, sessionPrete])
+  const [lancement, setLancement] = useState(true)
 
   // The queue of takes loads once a session exists and sends whatever waits; a push token
   // already granted is re-registered so a deleted token comes back to life.
@@ -131,8 +131,23 @@ function Coquille({ policesPretes }: { policesPretes: boolean }) {
     })
   }, [router])
 
-  if (!policesPretes) return null
+  return (
+    <View style={styles.racine}>
+      {policesPretes ? <Application theme={theme} /> : null}
+      {lancement ? (
+        <Lancement
+          pret={policesPretes && sessionPrete}
+          onPremierRendu={() => void SplashScreen.hideAsync()}
+          onFin={() => setLancement(false)}
+        />
+      ) : null}
+    </View>
+  )
+}
 
+const styles = StyleSheet.create({ racine: { flex: 1, backgroundColor: '#001636' } })
+
+function Application({ theme }: { theme: ReturnType<typeof useTheme> }) {
   return (
     <FournisseurDemarrage>
       <ReglagesFile />

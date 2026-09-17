@@ -850,6 +850,13 @@ Done so far:
   (a step, the Arena, a duel) shows its title small at the top, the timer alone at 56 points, the
   gold waveform across the whole width over a faint baseline, Bulle at 26 points on the listening
   line, and the stop circle between « Refaire » and « Terminer » in the mockup's grey.
+- **The launch** (`components/Lancement.tsx`, Roch's idea on 2026-09-16): the mark writes itself.
+  L, E and Q rise into place one after the other, then the period arrives from above as a dot and
+  strikes the end of the word; the letters take the hit and settle; the app fades in underneath.
+  The letters are the brand's own glyphs, cut out of the white mark image; the dot is drawn so it
+  can fall. Under 1.2 s, once per cold start, over the loading the app already pays, static with
+  Reduce Motion on. The native launch screen is now plain bleu nuit (build 21 onwards) so the
+  handoff to the overlay is invisible; a development build still shows the old native image first.
 - **B5, the feedback**: Bulle at the top with her label and a speech card that carries the outcome
   and, new, **what the model noticed outside the grid** (`evaluations.hors_grille`, written by the
   judge since 2026-09-13 and never read by the app until now); the three tiles in white with blue
@@ -968,4 +975,5 @@ the feedback card naming the grid once. The command line answered "Failed to Use
 times that afternoon; EAS accepted the build and stopped on the free quota (reset 1 October); the
 upload went through the Organizer, driven by `cliclick` once Roch had unlocked the Mac. The App
 Store Connect API key request still stands, because every build so far has hung on whether the
-account happened to be visible. Next build number: 21.
+account happened to be visible. **Build 21** follows the same evening with the animated launch
+(the first build whose native launch screen is background-only).
