@@ -11,13 +11,13 @@
       "bundleIdentifier": "com.leqapp.mobile",
       "supportsTablet": false,
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "LEQ a besoin du micro pour analyser ta prise de parole. Ta voix est analysée puis effacée.",
+        "NSMicrophoneUsageDescription": "Pour analyser ta prise de parole. L'enregistrement est effacé après l'analyse.",
         "CFBundleDevelopmentRegion": "fr",
         "CFBundleLocalizations": ["fr", "fr"],
         "ITSAppUsesNonExemptEncryption": false
       },
       "usesAppleSignIn": true,
-      "buildNumber": "21"
+      "buildNumber": "22"
     },
     "android": {
       "package": "com.leqapp.mobile",
@@ -47,7 +47,7 @@
         "react-native-audio-api",
         {
           "iosBackgroundMode": true,
-          "iosMicrophonePermission": "LEQ a besoin du micro pour analyser ta prise de parole. Ta voix est analysée puis effacée.",
+          "iosMicrophonePermission": "Pour analyser ta prise de parole. L'enregistrement est effacé après l'analyse.",
           "androidPermissions": [
             "android.permission.RECORD_AUDIO",
             "android.permission.FOREGROUND_SERVICE",
