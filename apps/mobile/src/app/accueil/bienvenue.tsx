@@ -8,12 +8,14 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { compter } from '@/services/usage'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
 // A1 · Bienvenue. Bleu nuit hero: Bulle greets, one promise, one button. No carousel.
 export default function Bienvenue() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
 

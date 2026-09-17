@@ -14,6 +14,7 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { type ReponsesLocales } from '@/services/accueil'
 import { ecrireJson, CLES } from '@/services/stockage'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -23,6 +24,7 @@ type Reponses = Partial<ReponsesLocales>
 
 export default function Questions() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const [index, setIndex] = useState(0)

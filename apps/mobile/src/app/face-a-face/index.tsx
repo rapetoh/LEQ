@@ -34,6 +34,7 @@ import {
 import { useActualisation } from '@/services/actualisation'
 import { useEstAnonyme, versCompte } from '@/services/compte'
 import { compter } from '@/services/usage'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -53,6 +54,7 @@ const LIBELLE_TON: Record<Ton, Parameters<typeof t>[0]> = {
 
 export default function PreparerDebat() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -283,7 +285,12 @@ export default function PreparerDebat() {
         <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
           {t('debat.conservation')}
         </Text>
-        <Bouton libelle={t('commun.retour')} variante="texte" onPress={() => router.back()} />
+        <Bouton
+          libelle={t('commun.retour')}
+          variante="texte"
+          surFondSombre
+          onPress={() => router.back()}
+        />
       </View>
     </ScrollView>
   )

@@ -962,6 +962,32 @@ enforced by the database alone, at the last tap, three screens past the door. De
 Verified: mobile 88 tests (the two component suites now mock the refresh and the anonymity
 hooks), typecheck, lint, strings and format; server 112. Strings by the other session, whose second pass caught A7's title stacking an order on the raison's order and turned the seven raisons into statements; the archive was restarted for it. Deployed: Fly release 30 (the worker's purge counts from the last take), configuration on the hosted project. **Build 25 is uploaded** (Organizer, 05:30 local, "Uploaded to Apple") with the doors, the refresh and the corrected wording; the Arena door and A7 with its raison were read on the simulator's account-less user. Next build number: 26.
 
+## Le face-à-face qui s'interrompait, et la barre d'état (2026-09-17)
+
+Roch's face-à-face ended on « Le débat est interrompu » with the microphone sentence, although
+the microphone is granted on his phone, and the screen's second button looked empty. Read from
+the code, all three certain:
+
+- **Any failure to start the phone's audio was reported as the microphone.** The debate screen
+  now says the microphone sentence only when the permission is actually refused, and otherwise
+  « Le son n'a pas pu démarrer sur ton téléphone » followed by the technical detail, so the
+  cause comes back from the person's screen. The detail line is temporary, on this screen and on
+  the recorder's; it goes once the cause is known.
+- **The likely cause, fixed**: the take player kept its audio context alive after playing (the
+  Arena tab never unmounts, so its cleanup never ran), and the debate then switched the phone's
+  audio session to play-and-record beneath a live playback context. Roch had listened to his
+  passage right before. The player now closes its context when it stops, and both the debate and
+  the recorder stop the player before claiming the session. The server side is unchanged: its
+  loop was measured end to end on 2026-09-13.
+- **Three buttons drew bleu nuit on bleu nuit**: the interrupted screen's « Commencer un autre
+  débat », the debate's « Terminer », the chooser's « Retour ». That is the « empty » button.
+- **The status bar** was black on every dark screen, hiding the clock, the battery and the
+  signal. Eleven dark screens now draw it white while they have the focus and give it back on
+  leaving (`components/BarreEtat.ts`).
+
+Not verified on a device: the simulator's user cannot open a debate (no account). Build 26
+carries it for Roch to try; his screen will name any remaining cause.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

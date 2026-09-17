@@ -9,6 +9,7 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useCarte, useObjectifsActes, type EtapeCarte } from '@/services/parcours'
 import { chiffreRomain } from '@/services/rythme'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -20,6 +21,7 @@ export default function ActeTraverse() {
   const params = useLocalSearchParams<{ acteId?: string }>()
   const acteId = typeof params.acteId === 'string' ? params.acteId : null
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const carte = useCarte()

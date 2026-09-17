@@ -10,6 +10,7 @@ import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { messageRefus, useDebat } from '@/services/debat'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -23,6 +24,7 @@ const ESSAIS_MAX = 30
 
 export default function Debrief() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { debatId = '' } = useLocalSearchParams<{ debatId: string }>()

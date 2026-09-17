@@ -11,6 +11,7 @@
  * frames are not sent. Stopping the recorder instead would flip the audio session on every
  * turn, and interrupting Rétor needs echo cancellation that is not dependable on both platforms.
  */
+import { lecteur } from './lecture'
 import {
   AudioContext,
   AudioManager,
@@ -76,6 +77,8 @@ export class AudioDebat {
 
   async demarrer(surTrame: EcouteurTrame, surInterruption: EcouteurInterruption): Promise<void> {
     if (this.ouvert) return
+    // Whatever the take player still holds goes first: one audio session, one owner at a time.
+    lecteur.arreter()
     this.abandonne = false
     this.surInterruption = surInterruption
     try {

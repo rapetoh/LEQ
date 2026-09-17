@@ -13,6 +13,7 @@ import { useActualisation } from '@/services/actualisation'
 import { urlAvatar } from '@/services/photo'
 import { messageRefus, usePodium } from '@/services/arene'
 import { HAUTEURS, maLigne, marches, reste, type Marche } from '@/services/podiumVue'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -24,6 +25,7 @@ const HAUTEUR_MARCHE = 132
 
 export default function Podium() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()

@@ -7,6 +7,7 @@ import { FournisseurTheme } from '@/theme/ThemeProvider'
 // C8 · What the podium says at the end of a week. The screen holds no arithmetic (that lives in
 // services/podiumVue and is tested there); what is checked here is what a person reads.
 
+jest.mock('@/components/BarreEtat', () => ({ useBarreEtatClaire: () => undefined }))
 jest.mock('@/services/actualisation', () => ({
   useActualisation: () => ({ enCours: false, actualiser: async () => undefined }),
 }))

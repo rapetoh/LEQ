@@ -6,6 +6,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { useReducedMotion } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { Bulle } from '@/components/Bulle'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -37,6 +38,7 @@ function etapeCourante(statut: string): number {
 
 export function EcranAnalyse({ id, suite }: { id: string | null; suite: 'profil' | 'retour' }) {
   const theme = useTheme()
+  useBarreEtatClaire()
   const { animationsReduites } = useContexteTheme()
   const mouvementReduit = useReducedMotion() || animationsReduites
   const router = useRouter()

@@ -14,6 +14,7 @@ import {
   type AudioEventSubscription,
 } from 'react-native-audio-api'
 
+import { lecteur } from './lecture'
 import { prendreSessionAudio, rendreSessionAudio, type ReclamationAudio } from './sessionAudio'
 
 // 22.05 kHz, not 16 kHz: the iOS AAC encoder refuses to open a 16 kHz file (AudioConverter
@@ -80,6 +81,8 @@ export class ServiceEnregistrement {
     surNiveau: EcouteurNiveau,
     surInterruption: EcouteurInterruption,
   ): Promise<void> {
+    // Whatever the take player still holds goes first: one audio session, one owner at a time.
+    lecteur.arreter()
     if (this.enCours) throw new ErreurEnregistrement('Un enregistrement est déjà en cours.')
     const recorder = this.obtenirRecorder()
 

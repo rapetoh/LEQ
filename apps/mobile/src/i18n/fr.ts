@@ -615,6 +615,7 @@ export const fr = {
     refusEnCours: 'Tu as déjà un débat en cours.',
     refusInconnu: "Ça n'a pas marché. Réessaie dans un instant.",
     microRefuse: "Sans micro, LEQ ne peut pas t'entendre. Autorise-le dans les réglages.",
+    audioIndisponible: "Le son n'a pas pu démarrer sur ton téléphone. Réessaie dans un instant.",
   },
   defis: {
     titre: 'Défis',

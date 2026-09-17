@@ -64,6 +64,13 @@ export class Lecteur {
       // Already stopped: nothing to do.
     }
     this.source = null
+    // The context goes with the sound. Kept alive, it stayed under the next screen's audio
+    // session: the face-à-face switched the phone to play-and-record beneath a live playback
+    // context and iOS refused, right after a person had listened to their own passage
+    // (2026-09-17). The tab that owns this player never unmounts, so nobody else closes it.
+    const contexte = this.contexte
+    this.contexte = null
+    void contexte?.close().catch(() => undefined)
   }
 
   estEnLecture(): boolean {

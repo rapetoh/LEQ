@@ -16,6 +16,7 @@ import { enregistrement } from '@/services/enregistrement'
 import { demanderMicro } from '@/services/micro'
 import { file, horodatageLocal } from '@/services/prises'
 import { compter } from '@/services/usage'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, polices, rayons, typographie } from '@/theme/tokens'
 
@@ -59,6 +60,7 @@ export type ProprietesPrise = {
 
 export function EcranPrise(props: ProprietesPrise) {
   const theme = useTheme()
+  useBarreEtatClaire()
   const insets = useSafeAreaInsets()
   const reseau = useNetworkState()
   const { type, etapeId, dureeMin, dureeMax, onTerminee, onAnnuler } = props

@@ -8,6 +8,7 @@ import { CielEtoile } from '@/components/CielEtoile'
 import { Bouton } from '@/components/ui/Bouton'
 import { Titre } from '@/components/ui/Titre'
 import { t, type CleTexte } from '@/i18n/fr'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -26,6 +27,7 @@ const ECRANS: { titre: CleTexte; corps: CleTexte; visage: VisageBulle }[] = [
 
 export default function Decouverte() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const [index, setIndex] = useState(0)

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Bulle } from '@/components/Bulle'
 import { EcranChargement } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
+import { lireEtatMicro } from '@/services/micro'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
@@ -14,6 +15,7 @@ import { AudioDebat } from '@/services/debatAudio'
 import { ClientDebat, invaliderDebats, type MessageSortant } from '@/services/debat'
 import { supabase } from '@/services/supabase'
 import { compter } from '@/services/usage'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -32,6 +34,7 @@ function formater(secondes: number): string {
 
 export default function FaceAFace() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
@@ -126,11 +129,20 @@ export default function FaceAFace() {
           },
         )
       } catch (erreurAudio) {
+        // The microphone sentence only when the microphone is the cause. Anything else (the
+        // audio session, the recorder, the context) is said as what it is, with the detail,
+        // so the person can tell us what failed instead of looking for a switch that is on.
+        const etatMicro = await lireEtatMicro().catch(() => 'indetermine' as const)
+        const detail = erreurAudio instanceof Error ? erreurAudio.message : String(erreurAudio)
         if (vivant) {
-          setErreur(t('debat.microRefuse'))
+          setErreur(
+            etatMicro === 'refuse'
+              ? t('debat.microRefuse')
+              : `${t('debat.audioIndisponible')}\n${t('prise.detail', { detail })}`,
+          )
           setPhase('interrompu')
         }
-        console.warn('debat: micro indisponible', erreurAudio)
+        console.warn('debat: audio indisponible', erreurAudio)
         return
       }
       // The screen may have been left while the microphone was opening: hand it all back.
@@ -210,6 +222,7 @@ export default function FaceAFace() {
           <Bouton
             libelle={t('debat.reprendreAutre')}
             variante="secondaire"
+            surFondSombre
             onPress={() => router.replace('/face-a-face')}
           />
         </View>
@@ -313,7 +326,7 @@ export default function FaceAFace() {
           desactive={phase !== 'ecoute'}
           onPress={finirMonTour}
         />
-        <Bouton libelle={t('debat.terminer')} variante="texte" onPress={terminer} />
+        <Bouton libelle={t('debat.terminer')} variante="texte" surFondSombre onPress={terminer} />
       </View>
     </View>
   )

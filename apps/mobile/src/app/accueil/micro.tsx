@@ -11,6 +11,7 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useDemarrage } from '@/services/configuration'
 import { demanderMicro } from '@/services/micro'
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -24,6 +25,7 @@ const PROMESSES: { texte: string; sf: NomSF; material: NomMaterial }[] = [
 
 export default function Micro() {
   const theme = useTheme()
+  useBarreEtatClaire()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { marquerAccueilTermine } = useDemarrage()
