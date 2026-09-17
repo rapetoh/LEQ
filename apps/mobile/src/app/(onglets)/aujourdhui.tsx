@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { formaterEntier } from '@/app/(onglets)/moi'
@@ -8,11 +8,14 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Degrade } from '@/components/ui/Degrade'
 import { Icone } from '@/components/ui/Icone'
+import { PorteCompte } from '@/components/PorteCompte'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
+import { useEstAnonyme } from '@/services/compte'
 import { jourDuSujet, useSujet } from '@/services/arene'
 import { useDrapeaux } from '@/services/configuration'
 import { nomFormule, useFormules } from '@/services/formules'
-import { useEtapeDuJour, useRetour } from '@/services/parcours'
+import { useEtapeDuJour, useRetour, useCarte } from '@/services/parcours'
 import { useDerniereMesure, useProfil } from '@/services/profil'
 import { usePoints, useSerie } from '@/services/progres'
 import { useAteliers } from '@/services/rebecca'
@@ -36,6 +39,7 @@ function dateDuJour(): string {
 
 export default function Aujourdhui() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const drapeaux = useDrapeaux()
@@ -57,6 +61,13 @@ export default function Aujourdhui() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,
@@ -256,6 +267,10 @@ export function CarteDuJour() {
   const theme = useTheme()
   const router = useRouter()
   const jour = useEtapeDuJour()
+  const anonyme = useEstAnonyme()
+  const carte = useCarte()
+  const compteAttendu =
+    anonyme && (carte.data ?? []).some((acte) => acte.etapes.some((e) => e.statut === 'validee'))
   const formules = useFormules()
 
   if (jour.isPending) {
@@ -358,6 +373,7 @@ export function CarteDuJour() {
             <Text style={styles.lancerTexte}>{t('aujourdhui.jeMeLance')}</Text>
             <Icone sf="arrow.right" material="arrow-forward" taille={18} couleur={couleurs.rouge} />
           </Pressable>
+          {compteAttendu ? <PorteCompte raison="parcours" surFondSombre /> : null}
           <View style={styles.bandeau}>
             <Text
               style={[styles.bandeauTexte, { color: couleurs.encreClair, flex: 1 }]}

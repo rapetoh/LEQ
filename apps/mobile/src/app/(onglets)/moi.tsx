@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
@@ -8,6 +8,7 @@ import { Bulle } from '@/components/Bulle'
 import { Carte } from '@/components/ui/Carte'
 import { Icone, type NomMaterial, type NomSF } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
 import { urlAvatar } from '@/services/photo'
 import { nomFormule, useFormules } from '@/services/formules'
 import { moisEtAnnee, useDerniereMesure, useProfil } from '@/services/profil'
@@ -23,6 +24,7 @@ import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
 export default function Moi() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const espaceBarre = useEspaceBarreOnglets()
@@ -38,6 +40,13 @@ export default function Moi() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,

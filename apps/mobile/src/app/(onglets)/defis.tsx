@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
@@ -20,6 +20,7 @@ import {
   hauteurCarte,
   tracer,
 } from '@/services/carteVue'
+import { useActualisation } from '@/services/actualisation'
 import { useCarte, useObjectifsActes, type ActeCarte, type EtapeCarte } from '@/services/parcours'
 import { chiffreRomain, compterReleves, destinationNoeud } from '@/services/rythme'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -31,6 +32,7 @@ import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
 export default function Defis() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const espaceBarre = useEspaceBarreOnglets()
   const carte = useCarte()
   const releves = carte.data ? compterReleves(carte.data) : null
@@ -42,6 +44,13 @@ export default function Defis() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
     >

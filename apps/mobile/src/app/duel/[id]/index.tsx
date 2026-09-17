@@ -1,7 +1,7 @@
 import type { Duel } from '@leq/domaine'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -10,6 +10,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
 import { useDuels, usePassagesDuel, type PassageDuel } from '@/services/arene'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { useSession } from '@/services/supabase'
@@ -23,6 +24,7 @@ export default function EcranDuel() {
   const params = useLocalSearchParams<{ id?: string }>()
   const id = typeof params.id === 'string' ? params.id : null
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { session } = useSession()
@@ -70,6 +72,13 @@ export default function EcranDuel() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,

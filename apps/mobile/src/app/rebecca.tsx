@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { CarteAtelier } from '@/components/CarteAtelier'
@@ -8,6 +8,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
 import { useBoutique } from '@/services/progres'
 import { useAteliers } from '@/services/rebecca'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -18,6 +19,7 @@ import { espaces, typographie } from '@/theme/tokens'
 
 export default function Rebecca() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const ateliers = useAteliers()
@@ -28,6 +30,13 @@ export default function Rebecca() {
     : null
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,

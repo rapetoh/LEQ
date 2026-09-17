@@ -144,6 +144,17 @@ export const fr = {
   },
   compte: {
     surtitre: 'Ton profil',
+    avecUnCompte: 'Avec un compte',
+    raisons: {
+      arene: "Crée ton compte pour parler dans l'Arène.",
+      vote: 'Crée ton compte pour écouter et voter.',
+      duel: 'Crée ton compte pour lancer un duel.',
+      boutique: 'Crée ton compte pour échanger tes points.',
+      debat: 'Crée ton compte pour le face-à-face.',
+      donnees: 'Crée ton compte pour recevoir une copie de tes données.',
+      parcours:
+        'Ton premier défi est relevé. Crée ton compte pour le garder, et ouvrir le suivant.',
+    },
     titre: 'Garde ton profil.',
     intro: 'Ta série et tes points aussi.',
     titreConnexion: 'Retrouve ton profil.',
@@ -187,7 +198,6 @@ export const fr = {
       export: 'Recevoir une copie de mes données',
       exportEnvoye:
         'Ta demande est envoyée. Tu recevras une copie de tes données par e-mail, sous quelques jours.',
-      exportCompteRequis: 'Crée ton compte pour recevoir la copie par e-mail.',
       supprimer: 'Supprimer mon compte',
       supprimerTitre: 'Supprimer ton compte ?',
       supprimerTexte:
@@ -495,7 +505,7 @@ export const fr = {
     duelCopie: 'Lien copié.',
     duelDelai: '48 h pour répondre',
     duelErreur: "Le duel n'a pas pu être créé. Réessaie dans un instant.",
-    refusCompteRequis: "Crée ton compte pour entrer dans l'Arène.",
+    refusCompteRequis: "Crée ton compte pour parler dans l'Arène.",
     refusCompteSuspendu: 'Ton compte est suspendu : tu ne peux pas publier.',
     refusAnalyseIncomplete: "Attends la fin de l'analyse de ta prise.",
     refusAucunSujet: "Il n'y a pas de sujet en ce moment.",
@@ -595,7 +605,7 @@ export const fr = {
 
     // Refus.
     refusTitre: 'Le débat ne peut pas commencer',
-    refusCompteRequis: 'Crée ton compte pour débattre.',
+    refusCompteRequis: 'Crée ton compte pour le face-à-face.',
     refusCreerCompte: 'Créer mon compte',
     refusCompteSuspendu: 'Ton compte est suspendu : tu ne peux pas débattre.',
     refusEteint: "Le face-à-face n'est pas encore ouvert.",

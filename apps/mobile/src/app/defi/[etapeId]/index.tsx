@@ -8,7 +8,8 @@ import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { EnteteDefi } from '@/components/EnteteDefi'
 import { Bouton } from '@/components/ui/Bouton'
 import { t } from '@/i18n/fr'
-import { useBrief, useEtapeDuJour, type Brief as DonneesBrief } from '@/services/parcours'
+import { useEstAnonyme, versCompte } from '@/services/compte'
+import { useBrief, useCarte, useEtapeDuJour, type Brief as DonneesBrief } from '@/services/parcours'
 import { minutesDe, positionDefi, surtitreFormat } from '@/services/rythme'
 import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -27,6 +28,12 @@ export default function Brief() {
   const brief = useBrief(etapeId)
   const jour = useEtapeDuJour()
   const router = useRouter()
+  const anonyme = useEstAnonyme()
+  const carte = useCarte()
+  // The path is felt once without an account; from the second challenge an account keeps it.
+  const unDefiReleve = (carte.data ?? []).some((acte) =>
+    acte.etapes.some((e) => e.statut === 'validee'),
+  )
 
   const etapeOuverte = brief.data?.etape.id ?? null
   useEffect(() => {
@@ -41,6 +48,7 @@ export default function Brief() {
   const { etape } = brief.data
   if (etape.statut === 'verrouillee') return <Message texte={t('defi.verrouille')} />
   if (etape.statut === 'validee') return <Message texte={t('defi.dejaReleve')} />
+  if (anonyme && unDefiReleve) return <Redirect href={versCompte('parcours')} />
 
   const rythme = jour.data?.rythme
   if (rythme && !rythme.peut_enregistrer && rythme.raison === 'limite_jour') {

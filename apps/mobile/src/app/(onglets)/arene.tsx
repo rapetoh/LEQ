@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { Avatar } from '@/components/Avatar'
+import { PorteCompte } from '@/components/PorteCompte'
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
@@ -21,6 +22,8 @@ import {
   useMaPrise,
   useSujet,
 } from '@/services/arene'
+import { useActualisation } from '@/services/actualisation'
+import { useEstAnonyme, versCompte } from '@/services/compte'
 import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { minutesDe } from '@/services/rythme'
@@ -37,6 +40,7 @@ type Onglet = 'sujet' | 'duels' | 'face'
 
 export default function Arene() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const espaceBarre = useEspaceBarreOnglets()
   const drapeaux = useDrapeaux()
   const duelsActifs = drapeaux.data?.duels === true
@@ -52,6 +56,13 @@ export default function Arene() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
     >
@@ -111,6 +122,7 @@ function Sujet() {
   const configuration = useConfiguration()
   const sujet = useSujet()
   const maPrise = useMaPrise(sujet.data?.id ?? null)
+  const anonyme = useEstAnonyme()
   // Listening to one's own passage: the same player as the votes, on the same signed URL. One
   // control plays and stops; while the take is decoding it says so and takes no second tap.
   const [ecoute, setEcoute] = useState<'inactif' | 'chargement' | 'lecture'>('inactif')
@@ -182,9 +194,13 @@ function Sujet() {
               <Bouton
                 variante="or"
                 libelle={t('arene.enregistrer', { minutes: minutesDe(sujet.data.duree_max_s) })}
-                onPress={() => router.push('/arene/prise')}
+                onPress={() => router.push(anonyme ? versCompte('arene') : '/arene/prise')}
               />
-              <Text style={styles.heroNote}>{t('arene.conservation')}</Text>
+              {anonyme ? (
+                <PorteCompte raison="arene" surFondSombre />
+              ) : (
+                <Text style={styles.heroNote}>{t('arene.conservation')}</Text>
+              )}
             </>
           ) : (
             <>
@@ -349,6 +365,7 @@ function PodiumPasse() {
 function PorteFaceAFace() {
   const theme = useTheme()
   const router = useRouter()
+  const anonyme = useEstAnonyme()
   const quota = useQuotaDebats()
   const restantes = quota.data?.restants ?? null
 
@@ -371,15 +388,17 @@ function PorteFaceAFace() {
       </Carte>
       <Bouton
         libelle={t('debat.commencer')}
-        onPress={() => router.push('/face-a-face')}
-        desactive={restantes === 0}
+        onPress={() => router.push(anonyme ? versCompte('debat') : '/face-a-face')}
+        desactive={!anonyme && restantes === 0}
       />
+      {anonyme ? <PorteCompte raison="debat" /> : null}
     </>
   )
 }
 
 function Duels() {
   const theme = useTheme()
+  const anonyme = useEstAnonyme()
   const router = useRouter()
   const clientRequetes = useQueryClient()
   const duels = useDuels()
@@ -398,7 +417,11 @@ function Duels() {
 
   return (
     <>
-      <Bouton libelle={t('arene.defier')} onPress={() => router.push('/duel/nouveau')} />
+      <Bouton
+        libelle={t('arene.defier')}
+        onPress={() => router.push(anonyme ? versCompte('duel') : '/duel/nouveau')}
+      />
+      {anonyme ? <PorteCompte raison="duel" /> : null}
       {liste.length === 0 ? (
         <CartePlaceholder phrase={t('arene.duelsAucun')} />
       ) : (

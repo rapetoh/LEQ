@@ -18,7 +18,7 @@ insert into public.configuration (cle, type, valeur, description) values
   ('quota_face_a_face_gratuit', 'nombre', '0', 'Face-à-face par mois en formule Gratuit (0 = réservé à Complet)'),
   ('quota_face_a_face_complet', 'nombre', '8', 'Face-à-face par mois en formule Complet'),
   ('plafond_annonces_par_mois', 'nombre', '2', 'Annonces de Rebecca envoyées par mois, maximum'),
-  ('purge_anonymes_heures', 'nombre', '72', 'Délai avant suppression des comptes anonymes sans compte'),
+  ('purge_anonymes_heures', 'nombre', '720', 'Heures sans aucune prise ni connexion avant suppression d''un compte anonyme (trente jours). Un compte créé n''est jamais concerné.'),
   ('expiration_file_locale_jours', 'nombre', '7', 'Délai avant suppression d''une prise jamais envoyée'),
   ('balayage_audio_heures', 'nombre', '6', 'Âge à partir duquel un audio non public est supprimé par sécurité'),
   ('recuperations_serie_par_mois', 'nombre', '1', 'Récupérations de série par mois'),

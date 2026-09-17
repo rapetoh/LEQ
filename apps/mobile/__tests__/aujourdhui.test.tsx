@@ -7,10 +7,20 @@ import { FournisseurTheme } from '@/theme/ThemeProvider'
 // The card of the day in its states, from the JSON of etape_du_jour().
 
 const mockPush = jest.fn()
+jest.mock('@/services/actualisation', () => ({
+  useActualisation: () => ({ enCours: false, actualiser: async () => undefined }),
+}))
+jest.mock('@/services/compte', () => ({
+  useEstAnonyme: () => false,
+  versCompte: (raison: string) => ({ pathname: '/accueil/compte', params: { raison } }),
+}))
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: jest.fn() }),
 }))
-jest.mock('@/services/parcours', () => ({ useEtapeDuJour: jest.fn() }))
+jest.mock('@/services/parcours', () => ({
+  useEtapeDuJour: jest.fn(),
+  useCarte: jest.fn(() => ({ data: [] })),
+}))
 jest.mock('@/services/supabase', () => ({
   supabase: {},
   useSession: () => ({ session: null, pret: true, reessayer: jest.fn() }),

@@ -881,15 +881,25 @@ export async function listerObjetsStockage(
 }
 
 /** Anonymous auth users created more than `heures` hours ago. */
+/**
+ * Anonymous users with no activity for that many hours: nothing recorded, no sign-in. The
+ * window used to run from creation, written when an account-less person could only do the
+ * diagnostic; once the path opened to them, playing three days without signing up erased
+ * everything on the fourth. It now runs from their last take (2026-09-17).
+ */
 export async function listerUtilisateursAnonymesExpires(
   ex: Executeur,
   heures: number,
 ): Promise<string[]> {
   const { rows } = await ex.query(
-    `select id from auth.users
-      where is_anonymous = true
-        and created_at < now() - make_interval(hours => $1)
-      order by created_at asc`,
+    `select u.id from auth.users u
+      where u.is_anonymous = true
+        and greatest(
+              u.created_at,
+              coalesce(u.last_sign_in_at, u.created_at),
+              coalesce((select max(t.cree_le) from public.tentatives t where t.utilisateur_id = u.id), u.created_at)
+            ) < now() - make_interval(hours => $1)
+      order by u.created_at asc`,
     [heures],
   )
   return rows.map((row) => String(row['id']))

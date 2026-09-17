@@ -2,7 +2,7 @@ import type { RecompenseBoutique } from '@leq/domaine'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { formaterEntier } from '@/app/(onglets)/moi'
@@ -12,7 +12,10 @@ import { Carte } from '@/components/ui/Carte'
 import { Icone, type NomMaterial, type NomSF } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { ImageMedia } from '@/components/ImageMedia'
+import { PorteCompte } from '@/components/PorteCompte'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
+import { useEstAnonyme, versCompte } from '@/services/compte'
 import {
   ErreurEchange,
   echangerRecompense,
@@ -30,11 +33,13 @@ import { espaces, rayons, typographie } from '@/theme/tokens'
 
 export default function Recompenses() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const formules = useFormules()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
   const boutique = useBoutique()
+  const anonyme = useEstAnonyme()
   const [message, setMessage] = useState<string | null>(null)
 
   const echange = useMutation({
@@ -61,6 +66,10 @@ export default function Recompenses() {
 
   const confirmer = (recompense: RecompenseBoutique) => {
     if (recompense.cout_points === null) return
+    if (anonyme) {
+      router.push(versCompte('boutique'))
+      return
+    }
     Alert.alert(
       t('recompenses.confirmerTitre', { cout: formaterEntier(recompense.cout_points) }),
       t('recompenses.confirmerCorps', { titre: recompense.titre }),
@@ -73,6 +82,13 @@ export default function Recompenses() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,
@@ -101,6 +117,7 @@ export default function Recompenses() {
           ) : null}
         </View>
       </Carte>
+      {anonyme ? <PorteCompte raison="boutique" /> : null}
 
       {message ? (
         <Text style={[typographie.corps, styles.message, { color: theme.texteSecondaire }]}>

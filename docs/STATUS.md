@@ -934,6 +934,34 @@ is verified by the library's contract (decoding by the context resamples to its 
 Roch on build 24; the simulator's anonymous user cannot publish to the Arena, so it cannot play
 a public take there. Strings by the other session. Deployed: Fly release 29 (09:30 UTC, the worker empties `avatars` on account deletion); migration 20260917100000 on the hosted project. **Build 24 is uploaded** (Organizer, 04:34 local, "Uploaded to Apple") with the fixed player, the ranking line and the picture; the simulator's development client was rebuilt for the two native modules. Next build number: 25.
 
+## Sans compte : la porte le dit, et la page se rafraîchit (2026-09-17)
+
+Roch, signed out, tapped « Commencer le débat » and reached the next screen: the account was
+enforced by the database alone, at the last tap, three screens past the door. Decided and built:
+
+- **What an account-less person can do**: the diagnostic, then the first daily challenge, and
+  answering a duel someone sent by link. Everything social, paid or identifying needs an
+  account: recording or voting in the Arena, launching a duel, exchanging points, the
+  face-à-face, the copy of one's data, and the path from the second challenge on. The best
+  apps let a person try before signing up, then gate at the first thing worth keeping.
+- **The door says it.** Each of those doors shows a small « Avec un compte » badge to a person
+  without an account, and opens A7 with one line saying why (`compte.raisons.*`, in the shape
+  the app already used: « Crée ton compte pour… »); A7 returns to the door once the account
+  exists. The database refusals stay as fallbacks and say the same sentence. The Arena's
+  retention note gives way to the badge for a person who has nothing to keep yet.
+- **The path gate**: the brief of any challenge sends a person without an account to A7 once
+  one challenge is validated, and the day card's « Je me lance » carries the badge.
+- **Pull to refresh** on the eleven screens whose content changes behind the person
+  (Aujourd'hui, l'Arène, the map, Progrès, Moi, the shop, both Rebecca screens, the
+  face-à-face, a duel, the podium): pulling down refetches every query mounted on the screen.
+- **The purge** of anonymous accounts ran 72 h after creation, written when such a person could
+  only do the diagnostic; it now runs after 30 days without a take or a sign-in (configuration
+  `purge_anonymes_heures` 720, the worker counts from the last take), so playing without an
+  account never silently erases progress.
+
+Verified: mobile 88 tests (the two component suites now mock the refresh and the anonymity
+hooks), typecheck, lint, strings and format; server 112. Strings by the other session.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

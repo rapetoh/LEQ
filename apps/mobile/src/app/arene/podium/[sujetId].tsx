@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -9,6 +9,7 @@ import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { Avatar } from '@/components/Avatar'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
 import { urlAvatar } from '@/services/photo'
 import { messageRefus, usePodium } from '@/services/arene'
 import { HAUTEURS, maLigne, marches, reste, type Marche } from '@/services/podiumVue'
@@ -23,6 +24,7 @@ const HAUTEUR_MARCHE = 132
 
 export default function Podium() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { sujetId } = useLocalSearchParams<{ sujetId: string }>()
@@ -42,6 +44,13 @@ export default function Podium() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={couleurs.blanc}
+        />
+      }
       style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,

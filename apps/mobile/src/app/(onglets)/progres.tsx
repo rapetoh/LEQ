@@ -1,6 +1,6 @@
 import { formaterDureeLongue, type ResumeProgres } from '@leq/domaine'
 import { useRouter } from 'expo-router'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
@@ -13,6 +13,7 @@ import { Icone } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { formaterEntier } from '@/app/(onglets)/moi'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
 import { useResumeProgres, useVoix, type Voix } from '@/services/progres'
 import {
   arrondir,
@@ -45,6 +46,7 @@ export default function Progres() {
 
 function Progression({ resume }: { resume: ResumeProgres }) {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const insets = useSafeAreaInsets()
   const espaceBarre = useEspaceBarreOnglets()
   const router = useRouter()
@@ -56,6 +58,13 @@ function Progression({ resume }: { resume: ResumeProgres }) {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={theme.lien}
+        />
+      }
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,

@@ -18,6 +18,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Degrade } from '@/components/ui/Degrade'
 import { LogoApple, LogoGoogle } from '@/components/ui/Logos'
 import { t } from '@/i18n/fr'
+import { estRaisonCompte } from '@/services/compte'
 import { useDemarrage } from '@/services/configuration'
 import {
   ErreurIdentite,
@@ -41,8 +42,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 const NOMS: Record<Fournisseur, string> = { apple: 'Apple', google: 'Google' }
 
 export default function Compte() {
-  const params = useLocalSearchParams<{ mode?: string }>()
+  const params = useLocalSearchParams<{ mode?: string; raison?: string }>()
   const connexion = params.mode === 'connexion'
+  // Sent by a door that needs an account: the intro says which, and the screen returns there.
+  const raison = estRaisonCompte(params.raison) ? params.raison : null
   const theme = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -62,7 +65,9 @@ export default function Compte() {
 
   const terminer = () => {
     marquerAccueilTermine()
-    router.replace('/(onglets)/aujourdhui')
+    // Sent by a door: back to it. Otherwise the app opens on Aujourd'hui.
+    if (raison) router.back()
+    else router.replace('/(onglets)/aujourdhui')
   }
 
   const envoyerCode = async () => {
@@ -224,7 +229,11 @@ export default function Compte() {
                   {connexion ? t('compte.titreConnexion') : t('compte.titre')}
                 </Text>
                 <Text style={[styles.sousTitre, { color: theme.texteSecondaire }]}>
-                  {connexion ? t('compte.introConnexion') : t('compte.intro')}
+                  {raison
+                    ? t(`compte.raisons.${raison}`)
+                    : connexion
+                      ? t('compte.introConnexion')
+                      : t('compte.intro')}
                 </Text>
               </View>
               {portes}

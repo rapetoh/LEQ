@@ -21,6 +21,7 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
+import { versCompte } from '@/services/compte'
 import { file } from '@/services/prises'
 import {
   ErreurRecuperation,
@@ -130,7 +131,7 @@ export default function Reglages() {
 
   const demanderExport = async () => {
     if (anonyme || !utilisateurId) {
-      setMessage(t('reglages.voix.exportCompteRequis'))
+      router.push(versCompte('donnees'))
       return
     }
     const { error } = await supabase

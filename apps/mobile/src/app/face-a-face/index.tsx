@@ -1,11 +1,21 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import {
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
+import { PorteCompte } from '@/components/PorteCompte'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
@@ -21,6 +31,8 @@ import {
   useTheses,
   type These,
 } from '@/services/debat'
+import { useActualisation } from '@/services/actualisation'
+import { useEstAnonyme, versCompte } from '@/services/compte'
 import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
@@ -41,12 +53,14 @@ const LIBELLE_TON: Record<Ton, Parameters<typeof t>[0]> = {
 
 export default function PreparerDebat() {
   const theme = useTheme()
+  const { enCours: actualisation, actualiser } = useActualisation()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
   const theses = useTheses()
   const quota = useQuotaDebats()
   const reprise = useDebatAReprendre()
+  const anonyme = useEstAnonyme()
 
   const [choisie, setChoisie] = useState<These | null>(null)
   const [personnelle, setPersonnelle] = useState('')
@@ -110,6 +124,13 @@ export default function PreparerDebat() {
 
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={actualisation}
+          onRefresh={() => void actualiser()}
+          tintColor={couleurs.blanc}
+        />
+      }
       style={{ backgroundColor: theme.hero }}
       contentContainerStyle={[
         styles.contenu,
@@ -253,9 +274,12 @@ export default function PreparerDebat() {
         <Bouton
           libelle={t('debat.commencer')}
           chargement={envoi}
-          desactive={!pret || restantes <= 0}
-          onPress={() => void commencer(aReprendre !== null)}
+          desactive={!anonyme && (!pret || restantes <= 0)}
+          onPress={() =>
+            anonyme ? router.push(versCompte('debat')) : void commencer(aReprendre !== null)
+          }
         />
+        {anonyme ? <PorteCompte raison="debat" surFondSombre /> : null}
         <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
           {t('debat.conservation')}
         </Text>
