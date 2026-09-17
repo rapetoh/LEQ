@@ -113,7 +113,7 @@ export default function PreparerDebat() {
         compteManquant
           ? [
               { text: t('commun.plusTard'), style: 'cancel' as const },
-              { text: t('debat.refusCreerCompte'), onPress: () => router.push('/accueil/compte') },
+              { text: t('debat.refusCreerCompte'), onPress: () => router.push(versCompte('debat')) },
             ]
           : [{ text: t('commun.fermer') }],
       )
