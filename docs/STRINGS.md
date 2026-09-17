@@ -27,6 +27,7 @@ Every string a person can read in LEQ is French, and it is written to one standa
 12. French typography: a no-break space (U+00A0) before ":" and a narrow no-break space (U+202F) before "?", "!" and ";"; guillemets « » with a narrow no-break space inside; a no-break space between a number and its unit or "€"; straight apostrophe as in the majority of the mockup, used consistently. `npm run strings` checks all of it.
 13. Product names are fixed: LEQ, Bulle (the mascot), Rétor (the AI opponent), l'Arène, le face-à-face, Gratuit and Complet (the two offers), la série, les points, la carte des actes.
 14. Domain words follow the cahier: une prise (a recording), un défi (the day's step), une étape, un acte, le retour (the feedback), un levier, une force, un passage (an Arena take), un duel, un débat.
+15. One word, one meaning. A word this application already uses is never given a second meaning on a screen a person reads. "L'analyse" is the measurement of a take and the grid's judgement of it, nothing else; the automatic screening of a published take is "le contrôle automatique". The collision is invisible in a diff and obvious on the screen: "Non contrôlée" on a flagged take was first written "Non analysée", which would have told Rebecca the measures had failed, on a page where that is equally plausible. Before naming a new mechanism, grep the `fr.ts` of that application for the word.
 
 ## The voice: LEQ speaks, it never describes itself
 
