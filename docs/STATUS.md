@@ -960,7 +960,7 @@ enforced by the database alone, at the last tap, three screens past the door. De
   account never silently erases progress.
 
 Verified: mobile 88 tests (the two component suites now mock the refresh and the anonymity
-hooks), typecheck, lint, strings and format; server 112. Strings by the other session, whose second pass caught A7's title stacking an order on the raison's order and turned the seven raisons into statements; the archive was restarted for it. Deployed: Fly release 30 (the worker's purge counts from the last take), configuration on the hosted project. **Build 25 is uploaded** (Organizer, 05:30 local, "Uploaded to Apple") with the doors, the refresh and the corrected wording; the Arena door and A7 with its raison were read on the simulator's account-less user. Next build number: 26.
+hooks), typecheck, lint, strings and format; server 112. Strings by the other session, whose second pass caught A7's title stacking an order on the raison's order and turned the seven raisons into statements; the archive was restarted for it. Deployed: Fly release 30 (the worker's purge counts from the last take), configuration on the hosted project. **Build 25 is uploaded** (Organizer, 05:30 local, "Uploaded to Apple") with the doors, the refresh and the corrected wording; the Arena door and A7 with its raison were read on the simulator's account-less user. Next build number: 27.
 
 ## Le face-à-face qui s'interrompait, et la barre d'état (2026-09-17)
 
@@ -985,8 +985,11 @@ the code, all three certain:
   signal. Eleven dark screens now draw it white while they have the focus and give it back on
   leaving (`components/BarreEtat.ts`).
 
-Not verified on a device: the simulator's user cannot open a debate (no account). Build 26
-carries it for Roch to try; his screen will name any remaining cause.
+Not verified on a device: the simulator's user cannot open a debate (no account). **Build 26 is
+uploaded** (Organizer, 08:36 local, "Upload completed" with the usual missing-symbol warnings)
+for Roch to try; his screen will name any remaining cause. After the archive, the peer's reading of
+the composed debate screens found the fallback alert's « Créer mon compte » pushing the account
+screen without its raison; fixed (548267d), rides in build 27. Next build number: 27.
 
 ## Next
 
