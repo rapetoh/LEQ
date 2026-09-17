@@ -991,6 +991,24 @@ for Roch to try; his screen will name any remaining cause. After the archive, th
 the composed debate screens found the fallback alert's « Créer mon compte » pushing the account
 screen without its raison; fixed (548267d), rides in build 27. Next build number: 27.
 
+## Le face-à-face refusait la session que l'écran promettait (2026-09-17, soir)
+
+Roch, build 26, Apple account: the chooser read « Il te reste 1 session ce mois-ci » and the tap
+answered « Tu as utilisé tes sessions du mois ». Read in the database, certain: his one debate of
+the day, opened at 10:04 UTC when the phone's audio never started, sat `ouverte` with no turn. An
+open row has no `issue`, so the chooser did not count it. `ouvrir_debat` closed it as `abandonnee`
+(counted), computed the quota (0 left), raised `quota_epuise`, and the exception rolled the close
+back. Every tap replayed the loop; Rebecca's account was in the same state.
+
+The rule is now the sentence a person would say: **a session is consumed once you have spoken in
+it**, open or closed, unless we cut it ourselves. `quota_debats()` counts the person's turns
+(migration 20260918000000, pushed to the hosted project, no build needed); the chooser and the
+button read the same number by construction. `face_a_face.sql` carries the regression case on the
+free plan at one session: 92 tests green against the hosted database. A rehearsal of Roch's tap
+under his identity, rolled back, opens a debate and leaves his one session intact.
+
+Still open, on his phone: whether the audio starts. Build 26 names the cause on the screen.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

@@ -173,6 +173,8 @@ grant select on debat2 to authenticated;
 select is((select origine_these from debat2), 'personnelle', 'a thesis of one''s own is allowed, and named as such');
 select is((select ton_adversaire from debat2), 'academique', 'the chosen tone applies');
 reset role; select tests_leq.deconnecter();
+select lives_ok($$ select public.enregistrer_tour((select id from debat2), 1, 'utilisateur', 'Les notes ne mesurent rien.', 20) $$,
+  'the person speaks in it');
 select lives_ok($$ select public.cloturer_debat((select id from debat2), 'terminee', null,
   '{"version": 1, "transcription": {"audio_entree_s": 212.5}, "retor": {"jetons_entree": 4100, "jetons_caches": 0, "jetons_sortie": 380, "appels": 6}, "voix": {"caracteres": 1500, "audio_s": 88.2, "appels": 6}}'::jsonb) $$,
   'the session goes to the end, and the server hands over what it consumed');
@@ -186,10 +188,12 @@ select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utili
 select is(((public.quota_debats()) ->> 'utilises')::integer, 1, 'that one is counted');
 select is(((public.quota_debats()) ->> 'restants')::integer, 7, 'seven left');
 
--- an abandoned session is counted, and stops blocking the way ------------------------------------------
+-- an abandoned session the person spoke in is counted, and stops blocking the way ----------------------
 create temp table debat3 as select * from public.ouvrir_debat((select t1 from ctx));
 grant select on debat3 to authenticated;
 reset role; select tests_leq.deconnecter();
+select lives_ok($$ select public.enregistrer_tour((select id from debat3), 1, 'utilisateur', 'Un mot, puis plus rien.', 6) $$,
+  'the person says one thing');
 update public.debats set derniere_activite_le = now() - interval '2 hours' where id = (select id from debat3);
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 create temp table debat4 as select * from public.ouvrir_debat((select t1 from ctx));
@@ -197,10 +201,12 @@ grant select on debat4 to authenticated;
 select isnt((select id from debat4), (select id from debat3), 'a stale session is not resumed, a new one starts');
 select is((select issue from public.debats where id = (select id from debat3)), 'abandonnee',
   'the stale one is closed as abandoned');
-select is(((public.quota_debats()) ->> 'utilises')::integer, 2, 'and it cost a session');
+select is(((public.quota_debats()) ->> 'utilises')::integer, 2, 'and it cost a session, since the person spoke in it');
 reset role; select tests_leq.deconnecter();
 
 -- the quota actually stops the ninth session -------------------------------------------------------------
+select lives_ok($$ select public.enregistrer_tour((select id from debat4), 1, 'utilisateur', 'Le bureau manque à personne.', 15) $$,
+  'the person speaks in the current one');
 select lives_ok($$ select public.cloturer_debat((select id from debat4), 'terminee') $$, 'close the current one');
 -- The rights live on the tier now, not on a key named after it.
 update public.formules set debats_par_mois = 3 where cle = 'complet';
@@ -303,6 +309,26 @@ select is(((public.quota_debats()) ->> 'formule'), 'atelier', 'and the person is
 reset role; select tests_leq.deconnecter();
 select is((select acces_communaute from public.formules where cle = 'atelier'), true,
   'community access is a box on a tier, never a tier of its own');
+
+-- une session où personne n'a parlé ne se paie pas, et ne bloque pas la suivante ----------------------
+-- Roch's phone, 2026-09-17: the audio never started, the session stayed open with no turn, the
+-- chooser read one session left, and every tap closed that session as abandoned, counted it, refused
+-- for quota_epuise and rolled the close back. The free plan at one session is the exact case.
+update public.formules set debats_par_mois = 1 where cle = 'gratuit';
+select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
+select is(((public.quota_debats()) ->> 'restants')::integer, 1, 'the free plan gives one session this month');
+create temp table debat8 as select * from public.ouvrir_debat(null, 'Le hasard est une excuse.');
+grant select on debat8 to authenticated;
+select is(((public.quota_debats()) ->> 'restants')::integer, 1, 'a session opened and never spoken in still shows one left');
+reset role; select tests_leq.deconnecter();
+update public.debats set derniere_activite_le = now() - interval '2 hours' where id = (select id from debat8);
+select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
+select lives_ok($$ select public.ouvrir_debat(null, 'Le hasard est une excuse, vraiment.') $$,
+  'past the window the next tap opens a new session instead of refusing the one the screen promised');
+select is((select issue from public.debats where id = (select id from debat8)), 'abandonnee', 'the stale one is closed as abandoned');
+select is(((public.quota_debats()) ->> 'utilises')::integer, 0, 'and costs nothing: nobody spoke in it');
+select is(((public.quota_debats()) ->> 'restants')::integer, 1, 'the one session is still there for the new debate');
+reset role; select tests_leq.deconnecter();
 
 select * from finish();
 rollback;
