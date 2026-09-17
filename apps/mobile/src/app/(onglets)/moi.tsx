@@ -8,6 +8,7 @@ import { Bulle } from '@/components/Bulle'
 import { Carte } from '@/components/ui/Carte'
 import { Icone, type NomMaterial, type NomSF } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
+import { urlAvatar } from '@/services/photo'
 import { nomFormule, useFormules } from '@/services/formules'
 import { moisEtAnnee, useDerniereMesure, useProfil } from '@/services/profil'
 import { usePoints, useSerie } from '@/services/progres'
@@ -51,7 +52,12 @@ export default function Moi() {
         style={({ pressed }) => [pressed && styles.presse]}
       >
         <Carte style={styles.identite}>
-          <Avatar prenom={prenom} taille={64} flamme={(serie.data?.courante ?? 0) > 0} />
+          <Avatar
+            prenom={prenom}
+            uri={urlAvatar(profil.data?.avatar_chemin)}
+            taille={64}
+            flamme={(serie.data?.courante ?? 0) > 0}
+          />
           <View style={{ flex: 1, gap: 3 }}>
             <Text style={[styles.nom, { color: theme.texte }]} numberOfLines={1}>
               {prenom ?? t('compte.surtitre')}

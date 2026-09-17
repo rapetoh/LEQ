@@ -53,6 +53,8 @@ export type ResultatTentative = z.infer<typeof ResultatTentativeSchema>
 export const BUCKET_AUDIO_TENTATIVES = 'audio-tentatives'
 /** Private bucket for Arena and duel takes (Phase 7), served by signed URL. */
 export const BUCKET_AUDIO_PUBLIC = 'audio-public'
+/** Profile pictures, public, one folder per person. */
+export const BUCKET_AVATARS = 'avatars'
 export const EXTENSION_AUDIO_TENTATIVE = 'm4a'
 
 /** Object path inside `audio-tentatives`: `{utilisateur_id}/{id}.m4a`. */

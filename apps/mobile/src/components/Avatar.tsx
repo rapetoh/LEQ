@@ -1,19 +1,23 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Image, StyleSheet, Text, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 
 import { Icone } from '@/components/ui/Icone'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, polices } from '@/theme/tokens'
 
-// The person, as a letter on warm gold, with the flame of a running streak at the corner as the
-// mockup places it (G1). No photos: the application never asks for one.
+// The person: their picture when they put one on their account, else the first letter of their
+// name on warm gold, else a neutral mark (a pseudonym in the ranking, an account with no name).
+// The flame of a running streak sits at the corner as the mockup places it (G1).
 
 export function Avatar({
   prenom,
+  uri = null,
   taille = 64,
   flamme = false,
 }: {
   prenom: string | null
+  /** The public URL of the picture; null draws the letter or the mark. */
+  uri?: string | null
   taille?: number
   flamme?: boolean
 }) {
@@ -31,7 +35,14 @@ export function Avatar({
           </Defs>
           <Rect width="100%" height="100%" fill="url(#or)" />
         </Svg>
-        {prenom ? (
+        {uri ? (
+          <Image
+            source={{ uri }}
+            style={{ width: taille, height: taille }}
+            resizeMode="cover"
+            accessible={false}
+          />
+        ) : prenom ? (
           <Text style={[styles.lettre, { fontSize: taille * 0.42, lineHeight: taille * 0.5 }]}>
             {prenom.charAt(0).toUpperCase()}
           </Text>

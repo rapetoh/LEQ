@@ -1,7 +1,7 @@
 // Listening to a public take (C6, C7): a signed URL from the private bucket, then playback
 // through the same audio library that records. Storage decides who may read (migration 0012).
 import { BUCKET_AUDIO_PUBLIC } from '@leq/domaine'
-import { AudioContext, decodeAudioData, type AudioBufferSourceNode } from 'react-native-audio-api'
+import { AudioContext, type AudioBufferSourceNode } from 'react-native-audio-api'
 
 import { supabase } from './supabase'
 
@@ -36,7 +36,11 @@ export class Lecteur {
     const mienne = ++this.generation
     const contexte = this.contexte ?? new AudioContext()
     this.contexte = contexte
-    const mémoire = await decodeAudioData(url)
+    // Decoded by the context, so the buffer comes out at the context's own rate. The takes are
+    // recorded at 16 kHz and the phone's context runs at 48 kHz; decoded on its own, a take kept
+    // its 16 kHz and the context played it three times too fast and too high, which is the
+    // cartoon voice Roch heard on his own passage (2026-09-17).
+    const mémoire = await contexte.decodeAudioData(url)
     if (mienne !== this.generation) return
     const source = contexte.createBufferSource()
     source.buffer = mémoire

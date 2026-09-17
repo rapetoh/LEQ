@@ -7,7 +7,9 @@ import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
+import { Avatar } from '@/components/Avatar'
 import { t } from '@/i18n/fr'
+import { urlAvatar } from '@/services/photo'
 import { messageRefus, usePodium } from '@/services/arene'
 import { HAUTEURS, maLigne, marches, reste, type Marche } from '@/services/podiumVue'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -143,8 +145,13 @@ export default function Podium() {
                 >
                   {ligne.rang}
                 </Text>
+                <Avatar
+                  prenom={ligne.pseudonyme ? null : ligne.nom}
+                  uri={urlAvatar(ligne.avatar)}
+                  taille={30}
+                />
                 <Text style={[typographie.corpsFort, styles.nom, { color: theme.heroTexte }]}>
-                  {ligne.moi ? t('arene.moi') : ligne.nom}
+                  {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
                 </Text>
                 <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
                   {ligne.votes === 1 ? t('arene.voteUn') : t('arene.votes', { votes: ligne.votes })}
@@ -181,7 +188,11 @@ function MarchePodium({ marche }: { marche: Marche }) {
           { color: vide ? theme.heroTexteSecondaire : theme.heroTexte },
         ]}
       >
-        {vide ? '' : marche.ligne?.moi ? t('arene.moi') : marche.ligne?.nom}
+        {vide
+          ? ''
+          : marche.ligne?.moi
+            ? t('arene.ligneToi', { nom: marche.ligne.nom })
+            : marche.ligne?.nom}
       </Text>
       <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
         {vide

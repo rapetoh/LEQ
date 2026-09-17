@@ -9,7 +9,7 @@ import { supabase, useSession } from './supabase'
 
 export const CLE_PROFIL_LECTURE = ['profil_lecture'] as const
 
-export type ProfilLecture = { prenom: string | null; cree_le: string }
+export type ProfilLecture = { prenom: string | null; avatar_chemin: string | null; cree_le: string }
 
 export function useProfil(): UseQueryResult<ProfilLecture | null> {
   const { pret, session } = useSession()
@@ -20,7 +20,7 @@ export function useProfil(): UseQueryResult<ProfilLecture | null> {
     queryFn: async (): Promise<ProfilLecture | null> => {
       const { data, error } = await supabase
         .from('profils')
-        .select('prenom, cree_le')
+        .select('prenom, avatar_chemin, cree_le')
         .eq('id', session?.user.id)
         .maybeSingle()
       if (error) throw new Error(error.message)

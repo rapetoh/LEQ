@@ -69,6 +69,12 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.857353590307-o4m8tts8r2a2g6h6ti9nu65g88b3031j"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Pour choisir ta photo de profil."
+        }
       ]
     ],
     "experiments": {

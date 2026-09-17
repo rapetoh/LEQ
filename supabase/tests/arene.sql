@@ -441,5 +441,25 @@ select is((select column_default from information_schema.columns where table_sch
   $$'publiee'::text$$, 'the default status is live');
 delete from public.prises_publiques where tentative_id = (select t from signalee);
 
+-- the picture on the ranking (2026-09-17) ------------------------------------------------------------
+-- A picture is shown exactly where the name is shown: with the opt-in of G3, or on one's own line.
+update public.profils set avatar_chemin = (select a from ctx)::text || '/1.jpg', prenom = 'Alice', publier_sous_prenom = true where id = (select a from ctx);
+update public.profils set avatar_chemin = (select b from ctx)::text || '/1.jpg', prenom = 'Bob', publier_sous_prenom = false where id = (select b from ctx);
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select is((select l ->> 'avatar' from jsonb_array_elements((public.classement_arene()) -> 'classement') l where (l ->> 'nom') = 'Alice'),
+  (select a from ctx)::text || '/1.jpg', 'an opted-in name carries its picture');
+select is((select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l where (l ->> 'nom') like 'Voix %' and l ->> 'avatar' is not null),
+  0::bigint, 'a pseudonym carries no picture');
+select is((select (l ->> 'pseudonyme')::boolean from jsonb_array_elements((public.classement_arene()) -> 'classement') l where (l ->> 'nom') = 'Alice'),
+  false, 'and says it is a real name');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select is((select l ->> 'nom' from jsonb_array_elements((public.classement_arene()) -> 'classement') l where (l ->> 'moi')::boolean),
+  'Bob', 'a person reads their own first name on their own line whatever their opt-in');
+select is((select l ->> 'avatar' from jsonb_array_elements((public.classement_arene()) -> 'classement') l where (l ->> 'moi')::boolean),
+  (select b from ctx)::text || '/1.jpg', 'and their own picture');
+reset role; select tests_leq.deconnecter();
+select is((select public from storage.buckets where id = 'avatars'), true, 'the avatars bucket is public');
+
 select * from finish();
 rollback;

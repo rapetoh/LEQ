@@ -66,6 +66,8 @@ export const ProfilSchema = z.object({
   prenom: z.string().nullable(),
   region: CodeRegionSchema.nullable(),
   fuseau_horaire: IanaTimezoneSchema.nullable(),
+  /** Path in the `avatars` bucket, `<uid>/<horodatage>.jpg`. Null without a picture. */
+  avatar_chemin: z.string().nullable().default(null),
   publier_sous_prenom: z.boolean(),
   role: RoleProfilSchema,
   suspendu_le: IsoTimestampSchema.nullable(),

@@ -906,6 +906,34 @@ review function refused to a person, both decisions queuing their notification);
 plus the screener's category mapping and the notification job; admin and mobile suites green.
 Strings by the other session, verbatim. `docs/decisions/ADR-012-arene-publiee-sur-envoi.md`. Deployed: Fly release 27 (10:49 UTC), migration on the hosted project, the served admin bundle checked for the new page. **Build 23 is uploaded** (Organizer, 03:54 local, the usual dSYM warnings) with the app side: the Arena card's three states and listening to one's own passage. Two lines rewritten by the other session after the archive (the conservation promise before recording, the moderation intro) ride in build 24. Next build number: 24.
 
+## La photo, le classement et la voix rendue juste (2026-09-17)
+
+Roch's second batch on the Arena, from listening to his own passage: it sounded like a cartoon.
+The player decoded a take on its own, so a 16 kHz recording kept its rate and the phone's 48 kHz
+context played it three times too fast and too high; every playback in the app (votes, duels,
+one's own passage) went through that line. The context now decodes, at its own rate. Then what
+he asked for around it:
+
+- **The ranking line**: a crown in gold, silver and bronze on the first three with the number
+  beside it, the person's picture, the person's own name followed by « (toi) » on their own line
+  (a person reads their own first name whatever their opt-in), and on that line a play or stop
+  control on their own passage. The hero keeps « Écouter mon passage » only for a person the
+  ranking does not list (held, withdrawn). `arene.moi` is gone; the podium says the same.
+- **A profile picture** (Mon compte): chosen in the library and cropped square by the picker,
+  brought to 512 points and compressed on the phone, stored in the public bucket `avatars`
+  under the person's folder, a new object per change, the previous one deleted. Shown on Moi,
+  Mon compte, the ranking and the podium, under exactly the condition that shows the first name:
+  the Réglages switch now reads « Publier sous mon prénom et ma photo », and its promise of
+  anonymity holds for the face. Deleting an account empties the folder (the worker's bucket
+  list). Two native modules join (`expo-image-picker`, `expo-image-manipulator`), so this needs
+  build 24 and a rebuilt development client.
+
+Verified: pgTAP `arene.sql` 110 green (the picture where the name is, none on a pseudonym, the
+own line); domaine 50, serveur 112, admin 54, mobile 88; strings and format green. The pitch fix
+is verified by the library's contract (decoding by the context resamples to its rate) and by
+Roch on build 24; the simulator's anonymous user cannot publish to the Arena, so it cannot play
+a public take there. Strings by the other session.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

@@ -3,12 +3,14 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import { Avatar } from '@/components/Avatar'
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Degrade } from '@/components/ui/Degrade'
+import { Icone } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import {
@@ -23,6 +25,7 @@ import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { minutesDe } from '@/services/rythme'
 import { lecteur, urlSignee } from '@/services/lecture'
+import { urlAvatar } from '@/services/photo'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
@@ -108,17 +111,24 @@ function Sujet() {
   const configuration = useConfiguration()
   const sujet = useSujet()
   const maPrise = useMaPrise(sujet.data?.id ?? null)
-  // Listening to one's own passage: the same player as the votes, on the same signed URL.
-  const [ecoute, setEcoute] = useState(false)
+  // Listening to one's own passage: the same player as the votes, on the same signed URL. One
+  // control plays and stops; while the take is decoding it says so and takes no second tap.
+  const [ecoute, setEcoute] = useState<'inactif' | 'chargement' | 'lecture'>('inactif')
   useEffect(() => () => lecteur.arreter(), [])
   const ecouterMonPassage = async (chemin: string) => {
-    if (ecoute) return
-    setEcoute(true)
+    if (ecoute === 'chargement') return
+    if (ecoute === 'lecture') {
+      lecteur.arreter()
+      setEcoute('inactif')
+      return
+    }
+    setEcoute('chargement')
     try {
-      await lecteur.jouer(await urlSignee(chemin), () => setEcoute(false))
+      await lecteur.jouer(await urlSignee(chemin), () => setEcoute('inactif'))
+      setEcoute('lecture')
     } catch (erreur) {
       console.warn('arène: lecture impossible', erreur)
-      setEcoute(false)
+      setEcoute('inactif')
     }
   }
   const classement = useClassement()
@@ -147,6 +157,8 @@ function Sujet() {
 
   const parle = maPrise.data !== null && maPrise.data !== undefined
   const lignes = classement.data?.classement ?? []
+  const audible = Boolean(maPrise.data?.chemin_audio) && !maPrise.data?.audio_supprime_le
+  const dansLeClassement = lignes.some((ligne) => ligne.moi)
 
   return (
     <>
@@ -192,12 +204,17 @@ function Sujet() {
                       : t('arene.signaleeDetail')}
                 </Text>
               </View>
-              {maPrise.data?.chemin_audio && !maPrise.data.audio_supprime_le ? (
+              {audible && !dansLeClassement ? (
                 <Bouton
                   variante="secondaire"
                   surFondSombre
-                  libelle={t('arene.ecouterMonPassage')}
-                  desactive={ecoute}
+                  libelle={
+                    ecoute === 'lecture'
+                      ? t('arene.arreter')
+                      : ecoute === 'chargement'
+                        ? t('commun.chargement')
+                        : t('arene.ecouterMonPassage')
+                  }
                   onPress={() => void ecouterMonPassage(maPrise.data!.chemin_audio!)}
                 />
               ) : null}
@@ -227,15 +244,46 @@ function Sujet() {
                   },
                 ]}
               >
-                <Text style={[typographie.corpsFort, styles.rang, { color: theme.texteTertiaire }]}>
-                  {ligne.rang}
-                </Text>
-                <Text style={[typographie.corpsFort, { color: theme.texte, flex: 1 }]}>
-                  {ligne.moi ? t('arene.moi') : ligne.nom}
-                </Text>
-                <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
-                  {ligne.votes === 1 ? t('arene.voteUn') : t('arene.votes', { votes: ligne.votes })}
-                </Text>
+                <Rang rang={ligne.rang} />
+                <Avatar
+                  prenom={ligne.pseudonyme ? null : ligne.nom}
+                  uri={urlAvatar(ligne.avatar)}
+                  taille={36}
+                />
+                <View style={styles.ligneTexte}>
+                  <Text style={[styles.nomLigne, { color: theme.texte }]} numberOfLines={1}>
+                    {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
+                  </Text>
+                  <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+                    {ligne.votes === 1
+                      ? t('arene.voteUn')
+                      : t('arene.votes', { votes: ligne.votes })}
+                  </Text>
+                </View>
+                {ligne.moi && audible ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      ecoute === 'lecture' ? t('arene.arreter') : t('arene.ecouterMonPassage')
+                    }
+                    accessibilityState={{ busy: ecoute === 'chargement' }}
+                    onPress={() => void ecouterMonPassage(maPrise.data!.chemin_audio!)}
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.lecture,
+                      { backgroundColor: ecoute === 'lecture' ? theme.texte : theme.lien },
+                      pressed && { opacity: 0.85 },
+                      ecoute === 'chargement' && { opacity: 0.6 },
+                    ]}
+                  >
+                    <Icone
+                      sf={ecoute === 'lecture' ? 'stop.fill' : 'play.fill'}
+                      material={ecoute === 'lecture' ? 'stop' : 'play-arrow'}
+                      taille={ecoute === 'lecture' ? 14 : 16}
+                      couleur={couleurs.blanc}
+                    />
+                  </Pressable>
+                ) : null}
               </View>
             ))}
           </Carte>
@@ -244,6 +292,33 @@ function Sujet() {
 
       <PodiumPasse />
     </>
+  )
+}
+
+/**
+ * The rank. The first three wear a crown, gold, silver and bronze, with their number beside it,
+ * the way a podium is read at a glance; from the fourth on, the number alone.
+ */
+const COURONNES: Readonly<Record<number, { fond: string; encre: string }>> = {
+  1: { fond: couleurs.or, encre: couleurs.bleuNuit },
+  2: { fond: '#C9D1DC', encre: couleurs.bleuNuit },
+  3: { fond: '#D9A074', encre: couleurs.bleuNuit },
+}
+
+function Rang({ rang }: { rang: number }) {
+  const theme = useTheme()
+  const couronne = COURONNES[rang]
+  return (
+    <View style={styles.rangBloc} accessibilityLabel={t('arene.rang', { rang })}>
+      {couronne ? (
+        <View style={[styles.couronne, { backgroundColor: couronne.fond }]}>
+          <Icone sf="crown.fill" material="emoji-events" taille={13} couleur={couronne.encre} />
+        </View>
+      ) : null}
+      <Text style={[styles.rangTexte, { color: couronne ? theme.texte : theme.texteTertiaire }]}>
+        {rang}
+      </Text>
+    </View>
   )
 }
 
@@ -385,7 +460,24 @@ const styles = StyleSheet.create({
   liste: { paddingVertical: 0 },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
   lignePadding: { paddingVertical: espaces.m },
-  rang: { width: 22 },
+  rangBloc: { width: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  couronne: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rangTexte: { fontFamily: polices.extraBold, fontSize: 14, lineHeight: 18 },
+  ligneTexte: { flex: 1, gap: 1 },
+  nomLigne: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
+  lecture: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   majuscules: { textTransform: 'uppercase', letterSpacing: 1 },
   bascule: { flexDirection: 'row', padding: 5, borderRadius: rayons.pilule },
   basculeOmbre: {

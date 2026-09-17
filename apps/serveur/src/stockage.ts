@@ -4,7 +4,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 export const BUCKET_AUDIO_TENTATIVES = 'audio-tentatives'
 export const BUCKET_AUDIO_PUBLIC = 'audio-public'
-export const BUCKETS = [BUCKET_AUDIO_TENTATIVES, BUCKET_AUDIO_PUBLIC] as const
+export const BUCKET_AVATARS = 'avatars'
+/** Every bucket a person can own objects in: emptied under their prefix when the account goes. */
+export const BUCKETS = [BUCKET_AUDIO_TENTATIVES, BUCKET_AUDIO_PUBLIC, BUCKET_AVATARS] as const
 
 export class ErreurStockage extends Error {
   override name = 'ErreurStockage'

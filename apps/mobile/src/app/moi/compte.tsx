@@ -20,6 +20,7 @@ import {
   moisEtAnnee,
   useProfil,
 } from '@/services/profil'
+import { choisirEtEnregistrerPhoto, retirerPhoto, urlAvatar } from '@/services/photo'
 import { usePoints, useSerie } from '@/services/progres'
 import { supabase, useSession } from '@/services/supabase'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -41,12 +42,48 @@ export default function MonCompte() {
   const formules = useFormules()
   // What the person typed, or nothing yet: the field shows the saved name until then.
   const [brouillon, setBrouillon] = useState<string | null>(null)
+  const [photoEnCours, setPhotoEnCours] = useState(false)
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [enCours, setEnCours] = useState(false)
 
   if (session?.user.is_anonymous) return <Redirect href="/accueil/compte" />
 
   const prenomEnregistre = profil.data?.prenom?.trim() ?? ''
+  const changerPhoto = async () => {
+    const id = session?.user.id
+    if (!id || photoEnCours) return
+    setPhotoEnCours(true)
+    setPhotoMessage(null)
+    try {
+      const resultat = await choisirEtEnregistrerPhoto(id, profil.data?.avatar_chemin ?? null)
+      if (resultat === 'refusee') setPhotoMessage(t('moi.monCompte.photoRefusee'))
+      if (resultat === 'enregistree') {
+        await clientRequetes.invalidateQueries({ queryKey: CLE_PROFIL_LECTURE })
+      }
+    } catch (erreur) {
+      console.warn('photo: enregistrement impossible', erreur)
+      setPhotoMessage(t('moi.monCompte.photoErreur'))
+    } finally {
+      setPhotoEnCours(false)
+    }
+  }
+  const enleverPhoto = async () => {
+    const id = session?.user.id
+    const chemin = profil.data?.avatar_chemin
+    if (!id || !chemin || photoEnCours) return
+    setPhotoEnCours(true)
+    setPhotoMessage(null)
+    try {
+      await retirerPhoto(id, chemin)
+      await clientRequetes.invalidateQueries({ queryKey: CLE_PROFIL_LECTURE })
+    } catch (erreur) {
+      console.warn('photo: retrait impossible', erreur)
+      setPhotoMessage(t('moi.monCompte.photoErreur'))
+    } finally {
+      setPhotoEnCours(false)
+    }
+  }
   const prenom = brouillon ?? prenomEnregistre
   const prenomChange = prenom.trim() !== prenomEnregistre
   const prenomValide = PrenomSchema.safeParse(prenom.trim()).success
@@ -140,11 +177,53 @@ export default function MonCompte() {
       </View>
 
       <View style={styles.entete}>
-        <Avatar
-          prenom={prenomEnregistre || null}
-          taille={88}
-          flamme={(serie.data?.courante ?? 0) > 0}
-        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('moi.monCompte.photo')}
+          accessibilityHint={
+            profil.data?.avatar_chemin
+              ? t('moi.monCompte.changerPhoto')
+              : t('moi.monCompte.ajouterPhoto')
+          }
+          disabled={photoEnCours}
+          onPress={() => void changerPhoto()}
+          style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+        >
+          <Avatar
+            prenom={prenomEnregistre || null}
+            uri={urlAvatar(profil.data?.avatar_chemin)}
+            taille={88}
+            flamme={(serie.data?.courante ?? 0) > 0}
+          />
+        </Pressable>
+        <View style={styles.photoActions}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={photoEnCours}
+            onPress={() => void changerPhoto()}
+            hitSlop={8}
+          >
+            <Text style={[styles.photoAction, { color: theme.lien }]}>
+              {photoEnCours
+                ? t('commun.chargement')
+                : profil.data?.avatar_chemin
+                  ? t('moi.monCompte.changerPhoto')
+                  : t('moi.monCompte.ajouterPhoto')}
+            </Text>
+          </Pressable>
+          {profil.data?.avatar_chemin && !photoEnCours ? (
+            <Pressable accessibilityRole="button" onPress={() => void enleverPhoto()} hitSlop={8}>
+              <Text style={[styles.photoAction, { color: theme.texteTertiaire }]}>
+                {t('moi.monCompte.retirerPhoto')}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+        {photoMessage ? (
+          <Text style={[typographie.petit, styles.centre, { color: theme.erreur }]}>
+            {photoMessage}
+          </Text>
+        ) : null}
         {profil.data ? (
           <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
             {t('moi.depuis', { mois: moisEtAnnee(profil.data.cree_le) })}
@@ -356,6 +435,9 @@ const styles = StyleSheet.create({
   },
   titre: { fontFamily: polices.extraBold, fontSize: 17, lineHeight: 22, letterSpacing: -0.2 },
   entete: { alignItems: 'center', gap: espaces.s },
+  photoActions: { flexDirection: 'row', gap: espaces.m, alignItems: 'center' },
+  photoAction: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18 },
+  centre: { textAlign: 'center' },
   section: { gap: 10 },
   etiquette: {
     textTransform: 'uppercase',
