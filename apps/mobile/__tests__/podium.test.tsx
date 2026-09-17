@@ -7,6 +7,7 @@ import { FournisseurTheme } from '@/theme/ThemeProvider'
 // C8 · What the podium says at the end of a week. The screen holds no arithmetic (that lives in
 // services/podiumVue and is tested there); what is checked here is what a person reads.
 
+jest.mock('@/services/photo', () => ({ urlAvatar: () => null }))
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ sujetId: 'sujet-1' }),
   useRouter: () => ({ back: jest.fn(), push: jest.fn() }),

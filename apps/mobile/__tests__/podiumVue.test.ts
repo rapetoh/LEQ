@@ -9,6 +9,8 @@ function ligne(rang: number, options: Partial<LigneClassement> = {}): LigneClass
     votes: Math.max(0, 10 - rang),
     moi: false,
     nom: `Voix ${rang}`,
+    pseudonyme: true,
+    avatar: null,
     ...options,
   }
 }
