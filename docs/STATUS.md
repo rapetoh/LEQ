@@ -932,7 +932,7 @@ Verified: pgTAP `arene.sql` 110 green (the picture where the name is, none on a 
 own line); domaine 50, serveur 112, admin 54, mobile 88; strings and format green. The pitch fix
 is verified by the library's contract (decoding by the context resamples to its rate) and by
 Roch on build 24; the simulator's anonymous user cannot publish to the Arena, so it cannot play
-a public take there. Strings by the other session.
+a public take there. Strings by the other session. Deployed: Fly release 29 (09:30 UTC, the worker empties `avatars` on account deletion); migration 20260917100000 on the hosted project. **Build 24 is uploaded** (Organizer, 04:34 local, "Uploaded to Apple") with the fixed player, the ranking line and the picture; the simulator's development client was rebuilt for the two native modules. Next build number: 25.
 
 ## Next
 
