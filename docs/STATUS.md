@@ -960,7 +960,7 @@ enforced by the database alone, at the last tap, three screens past the door. De
   account never silently erases progress.
 
 Verified: mobile 88 tests (the two component suites now mock the refresh and the anonymity
-hooks), typecheck, lint, strings and format; server 112. Strings by the other session.
+hooks), typecheck, lint, strings and format; server 112. Strings by the other session, whose second pass caught A7's title stacking an order on the raison's order and turned the seven raisons into statements; the archive was restarted for it. Deployed: Fly release 30 (the worker's purge counts from the last take), configuration on the hosted project. **Build 25 is uploaded** (Organizer, 05:30 local, "Uploaded to Apple") with the doors, the refresh and the corrected wording; the Arena door and A7 with its raison were read on the simulator's account-less user. Next build number: 26.
 
 ## Next
 
