@@ -434,7 +434,7 @@ export const fr = {
     sujetSemaine: 'Sujet de la semaine',
     jour: 'Jour {{jour}} sur {{total}}',
     enregistrer: 'Enregistrer mon passage · {{minutes}} min',
-    conservation: 'Ta prise reste en ligne le temps du sujet, puis elle est supprimée.',
+    conservation: 'Ta prise est conservée le temps du sujet, puis elle est supprimée.',
     passageDedans: 'Ton passage est en ligne',
     passageDetail:
       'Tu peux le réécouter ou le retirer tant que le sujet est ouvert. Une seule version est acceptée.',

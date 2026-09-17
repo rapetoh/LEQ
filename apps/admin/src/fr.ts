@@ -758,7 +758,7 @@ export const fr = {
   moderation: {
     titre: 'La modération',
     intro:
-      "Retire le contenu sexuel, le harcèlement de personnes réelles et ce qui est illégal. La politique, la religion et l'éthique restent.",
+      "Le contrôle automatique retient une prise, tu décides. La politique, la religion et l'éthique ne sont pas des motifs de retrait.",
     tous: 'Toutes',
     vide: 'Rien dans cette liste.',
     erreurChargement: 'Impossible de charger les prises.',
