@@ -114,6 +114,9 @@ export function Lancement({ pret, onPremierRendu, onFin }: Props) {
       lettre0.set(1)
       lettre1.set(1)
       lettre2.set(1)
+      // The dot sits at its place, not above it: `chute` is what brings it down, and with
+      // Reduce Motion on nothing will ever animate it there.
+      chute.set(1)
       visibilitePoint.set(1)
       const immobile = setTimeout(() => setGesteFini(true), TEMPS.reposImmobile)
       return () => clearTimeout(immobile)
