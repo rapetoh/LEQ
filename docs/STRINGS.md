@@ -296,6 +296,23 @@ One provisional string was deliberately left as it is: the `texte_a_lire` of `re
 and then argue with, so it is meant to be written as a provocation. It is `provisoire` and awaits a
 real text, ideally a sourced quotation, from Rebecca.
 
+## A string that is deliberately temporary
+
+`prise.detail` ("Détail technique : {{detail}}") prints a raw platform error under the failure
+message, on the recording screen (`EcranPrise.tsx`) and on the debate screen
+(`face-a-face/[debatId].tsx`). It is diagnostic: it exists so the cause of Roch's face-à-face
+failure comes back from his phone, and softening it while that is still being hunted would destroy
+the only thing it is for.
+
+It is not the application's voice. "Détail technique" is our vocabulary reaching a person, in the
+same class as "le modèle" and "RevenueCat", and the value beside it is an untranslated platform
+string. So it comes out of both screens in one pass once the cause is named (2026-09-17, agreed
+with the session that added it).
+
+If it is still here and nobody remembers why, that is the answer: take it out. Should it ever need
+to stay, it stops being a label on a log line and becomes an instruction, "Si ça recommence,
+envoie-nous ceci :" above the value.
+
 ## Strings that must be reviewed by a lawyer before release
 
 - A2 "Ta voix reste à toi." block (three promises).
