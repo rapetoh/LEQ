@@ -854,8 +854,7 @@ Done so far:
   L, E and Q rise into place one after the other, then the period arrives from above as a dot and
   strikes the end of the word; the letters take the hit and settle; the app fades in underneath.
   The letters are the brand's own glyphs, cut out of the white mark image; the dot is drawn so it
-  can fall. Under 1.2 s, once per cold start, over the loading the app already pays, static with
-  Reduce Motion on. The native launch screen is now plain bleu nuit (build 21 onwards) so the
+  can fall. About 2.4 s: a beat of plain blue, the letters, the dot's fall and its strike, then the finished mark rests, still, before it fades. Once per cold start, static with Reduce Motion on. Build 21 was too fast and Roch caught it on the device: the gesture started on mount, so its clock ran behind the native launch screen and he met it already half over, and the app being ready cut it off before the mark had settled. It now starts on the overlay's first visible frame and owns its own clock; readiness only decides whether it may leave after the rest, and a slow load simply holds the finished mark, which is a better waiting state than anything else we could draw. Measured on the simulator: 0.17 s of blue, 0.35 s for the letters, 0.45 s for the dot and the settle, 0.86 s at rest, 0.32 s of fade. The native launch screen is now plain bleu nuit (build 21 onwards) so the
   handoff to the overlay is invisible; a development build still shows the old native image first.
 - **B5, the feedback**: Bulle at the top with her label and a speech card that carries the outcome
   and, new, **what the model noticed outside the grid** (`evaluations.hors_grille`, written by the
