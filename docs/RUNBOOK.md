@@ -487,6 +487,24 @@ that only render when there is data.
 
 `.github/workflows/check.yml` runs on every push to `main` and on pull requests: Node from `.nvmrc`, `npm ci`, build of `@leq/domaine` and `@leq/moteur` if they declare a build script, `npm run check`, `npm run format:check`, and a separate job on Python 3.12 running `pytest apps/serveur/prosodie`. Nothing deploys from CI; deploys and EAS builds are manual.
 
+## Read the file back after a scripted edit
+
+An exact-match replacement that finds nothing changes nothing, and says nothing. This cost three
+evenings in one week: a sentence prettier had wrapped onto its own line, a helper that matched the
+wrong import block, and a helper script cleared out of /tmp between two runs. Every time, the guard,
+the formatter and the tests ran afterwards and reported green, because they were reading files that
+had never changed.
+
+So a script that edits a string counts its matches and refuses to continue when the count is not
+what it expected, and whoever ran it reads the line back out of the file before believing any check
+that follows:
+
+```bash
+grep -n "la nouvelle phrase" apps/mobile/src/i18n/fr.ts
+```
+
+A green `npm run check` after a failed edit is not evidence of anything.
+
 ## Everyday checks
 
 ```bash
