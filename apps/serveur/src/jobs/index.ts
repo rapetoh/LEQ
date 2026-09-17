@@ -14,6 +14,7 @@ import {
   type Stockage,
 } from '../stockage.js'
 import { JugeOpenAI } from '../openai/juge.js'
+import { ModerateurOpenAI } from '../openai/moderation.js'
 import { choisirTranscripteur } from '../transcription/index.js'
 import { choisirAdversaire } from '../debat/index.js'
 import { envoyerViaExpo, notifierRetourPret } from '../notifications/expoPush.js'
@@ -27,6 +28,7 @@ import {
 } from './arene.js'
 import { creerHandlerDebrieferDebat } from './debrieferDebat.js'
 import { creerHandlerEnvoyerAnnonce } from './envoyerAnnonce.js'
+import { creerHandlerNotifierModeration } from './moderation.js'
 import { creerHandlerPurgerAnonymes } from './purgerAnonymes.js'
 import { creerHandlerSupprimerCompte } from './supprimerCompte.js'
 import type { HandlerJob } from './types.js'
@@ -94,6 +96,10 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
       evaluerRegle,
       // The judged axes. Absent while no key is wired: the measured half carries the note alone.
       ...(config.juge === 'openai' && config.openai ? { juge: new JugeOpenAI(config.openai) } : {}),
+      // The screening of a public take's transcript. Same key; off without one.
+      ...(config.moderateur === 'openai' && config.openai
+        ? { moderateur: new ModerateurOpenAI(config.openai) }
+        : {}),
     }),
     supprimer_compte: creerHandlerSupprimerCompte(suppression),
     balayer_audio: creerHandlerBalayerAudio({ ex: pool, stockage }),
@@ -103,6 +109,7 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     fermer_duels: creerHandlerFermerDuels({ ex: pool, stockage }),
     supprimer_audio_public: creerHandlerSupprimerAudioPublic({ ex: pool, stockage }),
     envoyer_resultat_arene: creerHandlerEnvoyerResultatArene({ ex: pool, envoyer: envoyerViaExpo }),
+    notifier_moderation: creerHandlerNotifierModeration({ ex: pool, envoyer: envoyerViaExpo }),
     debriefer_debat: creerHandlerDebrieferDebat({
       ex: pool,
       adversaire: choisirAdversaire(config.adversaire, config.openai),

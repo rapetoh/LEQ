@@ -68,6 +68,7 @@ Prices and plan limits were read on 2026-09-06 and change; the note says where t
 
 ## OpenAI
 
+- Moderation (2026-09-17): `omni-moderation-latest` on the transcript of every Arena or duel take at analysis, free of charge, mapped onto the six categories of chapter 11 and stored in `analyses.moderation`. A failure of the call writes no verdict and the take publishes. Off with `MODERATEUR=aucun`.
 - Purpose: the four external roles behind a take and a debate (ADR-011): `whisper-1` transcribes a recorded take with word timings; the realtime transcription session (`gpt-4o-mini-transcribe`) hears the person during the face-à-face; `gpt-4.1-mini` writes Rétor's replies and the debrief and scores the two judged axes of the note; `gpt-4o-mini-tts` speaks Rétor. Always called from the server; the phone never holds the key.
 - Status: live in production since 2026-09-13 (`TRANSCRIPTEUR`, `TRANSCRIPTEUR_FLUX`, `ADVERSAIRE`, `VOIX`, `JUGE` all `openai` on Fly, `OPENAI_API_KEY` in Fly secrets). `apps/serveur/scripts/verif-openai.mjs` calls the four against the real API. A spending cap is set on the OpenAI organisation (Roch, 2026-09-13).
 - Region: US. No EU processing on the API.

@@ -16,6 +16,7 @@ export const TYPES_JOB = [
   'supprimer_audio_public',
   'envoyer_resultat_arene',
   'debriefer_debat',
+  'notifier_moderation',
 ] as const
 export const TypeJobSchema = z.enum(TYPES_JOB)
 export type TypeJob = z.infer<typeof TypeJobSchema>
@@ -72,6 +73,20 @@ export type ChargeEnvoyerResultatArene = z.infer<typeof ChargeEnvoyerResultatAre
 export const ChargeDebrieferDebatSchema = z.object({ debat_id: UuidSchema })
 export type ChargeDebrieferDebat = z.infer<typeof ChargeDebrieferDebatSchema>
 
+/** The moments the Arena tells a person about their take, and the admins about a flag. */
+export const EVENEMENTS_MODERATION = ['signalee', 'publiee', 'retiree'] as const
+export const EvenementModerationSchema = z.enum(EVENEMENTS_MODERATION)
+export type EvenementModeration = z.infer<typeof EvenementModerationSchema>
+/**
+ * Inserted by `publier_prise()` when the screening held a take, and by `moderer_prise()` on every
+ * decision: the person is told what happened to their take; on a flag, the admins are told too.
+ */
+export const ChargeNotifierModerationSchema = z.object({
+  prise_id: UuidSchema,
+  evenement: EvenementModerationSchema,
+})
+export type ChargeNotifierModeration = z.infer<typeof ChargeNotifierModerationSchema>
+
 /** One charge schema per job type. */
 export const CHARGES_JOB = {
   analyser_tentative: ChargeAnalyserTentativeSchema,
@@ -84,6 +99,7 @@ export const CHARGES_JOB = {
   supprimer_audio_public: ChargeSupprimerAudioPublicSchema,
   envoyer_resultat_arene: ChargeEnvoyerResultatAreneSchema,
   debriefer_debat: ChargeDebrieferDebatSchema,
+  notifier_moderation: ChargeNotifierModerationSchema,
 } as const satisfies Record<TypeJob, z.ZodType>
 
 export type ChargeJob<T extends TypeJob = TypeJob> = z.output<(typeof CHARGES_JOB)[T]>

@@ -39,7 +39,11 @@ export const CONTEXTES_PRISE_PUBLIQUE = ['arene', 'duel'] as const
 export const ContextePrisePubliqueSchema = z.enum(CONTEXTES_PRISE_PUBLIQUE)
 export type ContextePrisePublique = z.infer<typeof ContextePrisePubliqueSchema>
 
-export const STATUTS_PRISE_PUBLIQUE = ['en_moderation', 'publiee', 'retiree'] as const
+/**
+ * A take publishes on send. `signalee` is the one the automatic screening held back for Rebecca
+ * (2026-09-17: the approval queue of Phase 7 is gone, the cahier only asks for withdrawal).
+ */
+export const STATUTS_PRISE_PUBLIQUE = ['signalee', 'publiee', 'retiree'] as const
 export const StatutPrisePubliqueSchema = z.enum(STATUTS_PRISE_PUBLIQUE)
 export type StatutPrisePublique = z.infer<typeof StatutPrisePubliqueSchema>
 

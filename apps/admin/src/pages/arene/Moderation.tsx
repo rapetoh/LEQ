@@ -1,15 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { DialogueConfirmation } from '../../composants/Dialogue'
+import type { CategorieModeration, StatutPrisePublique } from '@leq/domaine'
+import { useEffect, useState } from 'react'
 import { useNotifier } from '../../composants/toastContext'
 import { fr } from '../../fr'
 import {
   chargerModeration,
   cleRequeteModeration,
+  lirePriseARelire,
   modererPrise,
+  urlAudioPrise,
   type PriseAModerer,
 } from '../../services/arene'
 import styles from '../banques/Banques.module.css'
+import propres from './Moderation.module.css'
 
 function formaterDate(iso: string): string {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(
@@ -17,17 +20,22 @@ function formaterDate(iso: string): string {
   )
 }
 
+type Filtre = StatutPrisePublique | 'tous'
+const FILTRES: readonly Filtre[] = ['signalee', 'publiee', 'retiree', 'tous']
+
 /**
- * The moderation queue of chapter 11: block the waste, not the difficult subjects. Sexual
+ * The moderation of chapter 11, as the cahier actually describes it: takes are live on send, the
+ * screening holds the ones it flagged, and Rebecca withdraws what has no place here. Sexual
  * content, harassment of real people and what is illegal go; politics, religion and ethics stay.
+ * She listens, reads the transcript and the reason the filter gave, then decides; the person is
+ * told either way.
  */
 export function Moderation() {
   const notifier = useNotifier()
   const clientRequetes = useQueryClient()
   const prises = useQuery({ queryKey: cleRequeteModeration, queryFn: chargerModeration })
-  const [filtre, setFiltre] = useState<'en_moderation' | 'publiee' | 'retiree' | 'tous'>(
-    'en_moderation',
-  )
+  const [filtre, setFiltre] = useState<Filtre>('signalee')
+  const [ouverte, setOuverte] = useState<string | null>(null)
   const [aRetirer, setARetirer] = useState<PriseAModerer | null>(null)
   const [motif, setMotif] = useState('')
 
@@ -61,7 +69,7 @@ export function Moderation() {
       </header>
 
       <div className={styles.formulaireInline} style={{ marginBottom: 14 }}>
-        {(['en_moderation', 'publiee', 'retiree', 'tous'] as const).map((valeur) => (
+        {FILTRES.map((valeur) => (
           <button
             key={valeur}
             type="button"
@@ -88,55 +96,64 @@ export function Moderation() {
       ) : (
         <div className={`carte ${styles.liste}`}>
           {lignes.map((prise) => (
-            <div
-              key={prise.id}
-              className={`${styles.ligne} ${prise.statut === 'retiree' ? styles.ligneInactive : ''}`}
-            >
-              <span className={styles.ordre}>{formaterDate(prise.cree_le)}</span>
-              <div>
-                <span className={styles.titre}>{prise.sujet ?? fr.moderation.sansSujet}</span>
-                <p className={styles.detail}>
-                  {fr.moderation.contextes[prise.contexte]} ·{' '}
-                  <span className="mono">{prise.utilisateur_id}</span>
-                  {prise.motif_retrait ? ` · ${prise.motif_retrait}` : ''}
-                  {prise.audio_supprime_le ? ` · ${fr.moderation.audioSupprime}` : ''}
-                </p>
-              </div>
-              <div className={styles.badges}>
-                <span
-                  className={
-                    prise.statut === 'publiee'
-                      ? styles.badgeValide
-                      : prise.statut === 'retiree'
-                        ? styles.badgeInactif
-                        : styles.badge
-                  }
-                >
-                  {fr.moderation.statuts[prise.statut]}
-                </span>
-              </div>
-              <div className={styles.actions}>
-                {prise.statut !== 'publiee' ? (
+            <div key={prise.id} className={propres.bloc}>
+              <div
+                className={`${styles.ligne} ${prise.statut === 'retiree' ? styles.ligneInactive : ''}`}
+              >
+                <span className={styles.ordre}>{formaterDate(prise.cree_le)}</span>
+                <div>
+                  <span className={styles.titre}>{prise.sujet ?? fr.moderation.sansSujet}</span>
+                  <p className={styles.detail}>
+                    {fr.moderation.contextes[prise.contexte]}
+                    {prise.motif_retrait ? ` · ${prise.motif_retrait}` : ''}
+                    {prise.audio_supprime_le ? ` · ${fr.moderation.audioSupprime}` : ''}
+                  </p>
+                </div>
+                <div className={styles.badges}>
+                  <span
+                    className={
+                      prise.statut === 'publiee'
+                        ? styles.badgeValide
+                        : prise.statut === 'retiree'
+                          ? styles.badgeInactif
+                          : styles.badge
+                    }
+                  >
+                    {fr.moderation.statuts[prise.statut]}
+                  </span>
+                </div>
+                <div className={styles.actions}>
                   <button
                     type="button"
                     className="bouton bouton-secondaire"
-                    disabled={decision.isPending}
-                    onClick={() => decision.mutate({ id: prise.id, statut: 'publiee' })}
+                    aria-expanded={ouverte === prise.id}
+                    onClick={() => setOuverte(ouverte === prise.id ? null : prise.id)}
                   >
-                    {fr.moderation.publier}
+                    {ouverte === prise.id ? fr.commun.fermer : fr.moderation.relire}
                   </button>
-                ) : null}
-                {prise.statut !== 'retiree' ? (
-                  <button
-                    type="button"
-                    className="bouton bouton-discret"
-                    disabled={decision.isPending}
-                    onClick={() => setARetirer(prise)}
-                  >
-                    {fr.moderation.retirer}
-                  </button>
-                ) : null}
+                  {prise.statut !== 'publiee' && !prise.audio_supprime_le ? (
+                    <button
+                      type="button"
+                      className="bouton bouton-secondaire"
+                      disabled={decision.isPending}
+                      onClick={() => decision.mutate({ id: prise.id, statut: 'publiee' })}
+                    >
+                      {fr.moderation.publier}
+                    </button>
+                  ) : null}
+                  {prise.statut !== 'retiree' ? (
+                    <button
+                      type="button"
+                      className="bouton bouton-discret"
+                      disabled={decision.isPending}
+                      onClick={() => setARetirer(prise)}
+                    >
+                      {fr.moderation.retirer}
+                    </button>
+                  ) : null}
+                </div>
               </div>
+              {ouverte === prise.id ? <Relecture prise={prise} /> : null}
             </div>
           ))}
         </div>
@@ -188,16 +205,86 @@ export function Moderation() {
           </div>
         </div>
       ) : null}
+    </div>
+  )
+}
 
-      <DialogueConfirmation
-        ouvert={false}
-        titre=""
-        message=""
-        libelleConfirmer=""
-        libelleAnnuler=""
-        onConfirmer={() => undefined}
-        onAnnuler={() => undefined}
-      />
+/**
+ * What Rebecca reviews: the audio of that take, the reason the filter gave, and the transcript.
+ * Loaded only when she opens the row: a signed URL and a transcript are read for one take at a
+ * time, never for the whole list.
+ */
+function Relecture({ prise }: { prise: PriseAModerer }) {
+  const lecture = useQuery({
+    queryKey: ['prise_a_relire', prise.id],
+    queryFn: () => lirePriseARelire(prise.id),
+  })
+  const [url, setUrl] = useState<string | null>(null)
+  const [erreurAudio, setErreurAudio] = useState<string | null>(null)
+
+  useEffect(() => {
+    let vivant = true
+    if (!prise.chemin_audio || prise.audio_supprime_le) return
+    urlAudioPrise(prise.chemin_audio)
+      .then((u) => {
+        if (vivant) setUrl(u)
+      })
+      .catch((erreur: Error) => {
+        if (vivant) setErreurAudio(erreur.message)
+      })
+    return () => {
+      vivant = false
+    }
+  }, [prise.chemin_audio, prise.audio_supprime_le])
+
+  const verdict = lecture.data?.moderation ?? null
+  return (
+    <div className={propres.relecture}>
+      <div className={propres.colonne}>
+        <span className="etiquette">{fr.moderation.ecouter}</span>
+        {!prise.chemin_audio || prise.audio_supprime_le ? (
+          <p className={styles.detail}>{fr.moderation.audioSupprime}</p>
+        ) : url ? (
+          <audio controls preload="metadata" src={url} className={propres.lecteur} />
+        ) : erreurAudio ? (
+          <p className={`${styles.detail} mono`}>{erreurAudio}</p>
+        ) : (
+          <p className={styles.detail}>{fr.commun.chargement}</p>
+        )}
+
+        <span className="etiquette">{fr.moderation.filtre}</span>
+        {lecture.isPending ? (
+          <p className={styles.detail}>{fr.commun.chargement}</p>
+        ) : verdict === null ? (
+          <p className={styles.detail}>{fr.moderation.nonFiltree}</p>
+        ) : verdict.signalee ? (
+          <ul className={propres.motifs}>
+            {verdict.categories.map((categorie: CategorieModeration) => (
+              <li key={categorie} className={styles.badge}>
+                {fr.moderation.motifs[categorie]}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.detail}>{fr.moderation.filtreRas}</p>
+        )}
+      </div>
+
+      <div className={propres.colonne}>
+        <span className="etiquette">
+          {fr.moderation.transcription}
+          {lecture.data?.prenom ? ` · ${lecture.data.prenom}` : ''}
+        </span>
+        {lecture.isPending ? (
+          <p className={styles.detail}>{fr.commun.chargement}</p>
+        ) : lecture.isError ? (
+          <p className={`${styles.detail} mono`}>{lecture.error.message}</p>
+        ) : lecture.data.texte && lecture.data.texte.trim() !== '' ? (
+          <p className={propres.transcription}>{lecture.data.texte}</p>
+        ) : (
+          <p className={styles.detail}>{fr.moderation.transcriptionVide}</p>
+        )}
+      </div>
     </div>
   )
 }

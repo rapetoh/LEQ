@@ -62,3 +62,29 @@ export const MESSAGE_RESULTAT_ARENE = {
   titre: "La semaine de l'Arène est finie",
   corps: 'Les votes sont comptés. Tu peux voir ton classement.',
 } as const
+
+/**
+ * What the Arena says to a person about their own take (chapter 11, publish on send). These
+ * answer the person's own gesture, so they are always on, like the feedback message. The titles
+ * are the sentences the Arena tab shows, so the notification and the screen say the same thing.
+ */
+export const MESSAGE_PRISE_SIGNALEE = {
+  titre: 'Ton passage attend une relecture',
+  corps: 'Rebecca le relit. Tu seras prévenu·e de sa décision.',
+} as const
+
+export const MESSAGE_PRISE_PUBLIEE = {
+  titre: 'Ton passage est en ligne',
+  corps: "Rebecca l'a publié. Les autres peuvent l'écouter et voter.",
+} as const
+
+export const MESSAGE_PRISE_RETIREE = {
+  titre: 'Ton passage a été retiré',
+  corps: "Il ne figure plus dans l'Arène. Rebecca peut t'en dire la raison par e-mail.",
+} as const
+
+/** To every admin with the app, the moment the screening holds a take. */
+export const MESSAGE_SIGNALEMENT_ADMIN = {
+  titre: 'Une prise est signalée',
+  corps: 'Elle attend ta décision dans la modération.',
+} as const

@@ -1,0 +1,55 @@
+/* The review panel under a take's row: the audio and the filter on the left, the transcript on
+   the right. Rebecca reads and listens in one glance, then decides on the row above. */
+
+.bloc {
+  border-bottom: 1px solid var(--bordure, #e6e1da);
+}
+
+.bloc:last-child {
+  border-bottom: none;
+}
+
+.relecture {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 2fr;
+  gap: 20px;
+  padding: 4px 16px 18px 16px;
+}
+
+@media (max-width: 720px) {
+  .relecture {
+    grid-template-columns: 1fr;
+  }
+}
+
+.colonne {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lecteur {
+  width: 100%;
+  max-width: 420px;
+}
+
+.motifs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.transcription {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--fond-doux, #f6f3ef);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  max-height: 320px;
+  overflow: auto;
+}

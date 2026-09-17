@@ -1,7 +1,11 @@
 // Direct Postgres access (node-postgres). The worker connects with the direct
 // connection string, never the pooler: it needs FOR UPDATE SKIP LOCKED and
 // multi-statement transactions.
-import { TYPES_JOB, type TypeJob as TypeJobDomaine } from '@leq/domaine'
+import {
+  TYPES_JOB,
+  type ModerationTranscription,
+  type TypeJob as TypeJobDomaine,
+} from '@leq/domaine'
 import pg from 'pg'
 import type { Mesures, RegleCritere, Transcription } from './contrat.js'
 
@@ -131,6 +135,8 @@ export interface NouvelleAnalyse {
   mesures: Mesures
   transcription: Transcription
   fournisseur_transcription: string
+  /** The screening's verdict for a public take; null for a private one or when it did not run. */
+  moderation: ModerationTranscription | null
 }
 
 export interface NouvelleEvaluation {
@@ -377,6 +383,50 @@ export async function listerJetonsPourResultatArene(
         )
       order by j.cree_le`,
     [sujetId],
+  )
+  return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
+}
+
+/** Who owns a public take, or null when it is gone. */
+export async function lireProprietairePrisePublique(
+  ex: Executeur,
+  priseId: string,
+): Promise<string | null> {
+  const { rows } = await ex.query(
+    'select utilisateur_id from public.prises_publiques where id = $1',
+    [priseId],
+  )
+  const ligne = rows[0]
+  return ligne ? String(ligne['utilisateur_id']) : null
+}
+
+/** Active tokens of one person. A transactional message: the switches of chapter 12 do not apply. */
+export async function listerJetonsDe(
+  ex: Executeur,
+  utilisateurId: string,
+): Promise<JetonDestinataire[]> {
+  const { rows } = await ex.query(
+    `select j.id, j.jeton
+       from public.jetons_push j
+      where j.utilisateur_id = $1 and j.desactive_le is null
+      order by j.cree_le`,
+    [utilisateurId],
+  )
+  return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
+}
+
+/**
+ * Active tokens of every admin: the role lives in the access token, which the hook reads from
+ * `auth.users.raw_app_meta_data`, so that is where an admin is recognised here too.
+ */
+export async function listerJetonsAdmins(ex: Executeur): Promise<JetonDestinataire[]> {
+  const { rows } = await ex.query(
+    `select j.id, j.jeton
+       from public.jetons_push j
+       join auth.users u on u.id = j.utilisateur_id
+      where j.desactive_le is null
+        and u.raw_app_meta_data ->> 'role' = 'admin'
+      order by j.cree_le`,
   )
   return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
 }
@@ -739,19 +789,21 @@ export async function enregistrerAnalyseEtEvaluation(
   try {
     await client.query('begin')
     await client.query(
-      `insert into public.analyses (tentative_id, version_schema, mesures, transcription, fournisseur_transcription)
-       values ($1, $2, $3::jsonb, $4::jsonb, $5)
+      `insert into public.analyses (tentative_id, version_schema, mesures, transcription, fournisseur_transcription, moderation)
+       values ($1, $2, $3::jsonb, $4::jsonb, $5, $6::jsonb)
        on conflict (tentative_id) do update
          set version_schema = excluded.version_schema,
              mesures = excluded.mesures,
              transcription = excluded.transcription,
-             fournisseur_transcription = excluded.fournisseur_transcription`,
+             fournisseur_transcription = excluded.fournisseur_transcription,
+             moderation = excluded.moderation`,
       [
         analyse.tentative_id,
         analyse.version_schema,
         JSON.stringify(analyse.mesures),
         JSON.stringify(analyse.transcription),
         analyse.fournisseur_transcription,
+        analyse.moderation === null ? null : JSON.stringify(analyse.moderation),
       ],
     )
     await client.query(

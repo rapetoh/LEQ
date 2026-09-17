@@ -87,6 +87,8 @@ export interface CibleNotification {
   tentative_id?: string
   annonce_id?: string
   sujet_id?: string
+  /** A message about the person's own Arena take: flagged, published, withdrawn. */
+  prise_id?: string
 }
 
 /**
@@ -96,6 +98,7 @@ export interface CibleNotification {
 export function routePourCible(cible: CibleNotification): string | null {
   if (cible.annonce_id) return '/aujourdhui/rebecca'
   if (cible.sujet_id) return `/arene/podium/${cible.sujet_id}`
+  if (cible.prise_id) return '/(onglets)/arene'
   return null
 }
 
@@ -108,6 +111,7 @@ export function lireCible(
   if (typeof data.tentative_id === 'string') return { tentative_id: data.tentative_id }
   if (typeof data.annonce_id === 'string') return { annonce_id: data.annonce_id }
   if (typeof data.sujet_id === 'string') return { sujet_id: data.sujet_id }
+  if (typeof data.prise_id === 'string') return { prise_id: data.prise_id }
   return null
 }
 

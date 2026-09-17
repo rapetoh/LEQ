@@ -98,7 +98,8 @@ One recording sent for analysis. The id is generated on the phone before upload 
 
 ### analyses
 
-Measures and transcript, the only thing kept from the voice.
+- `moderation` (jsonb, nullable, 2026-09-17): the verdict of the automatic screening of the transcript of an Arena or duel take, `{version: 1, signalee, categories[], fournisseur, evalue_le}`. The categories are the six of chapter 11 (sexuel, harcelement, haine, violence, automutilation, illicite); politics, religion and ethics have none and pass. Null for a private take and when the screening did not run.
+  Measures and transcript, the only thing kept from the voice.
 
 - `tentative_id uuid pk references tentatives(id) on delete cascade`
 - `version_schema integer not null default 1`
@@ -426,6 +427,7 @@ Rebecca's space, completed (cahier chapters 8 and 12): workshops and announcemen
 - `leq_fermer_duels` (`*/15 * * * *`): inserts `fermer_duels`; the worker closes a duel once both have spoken and expires it at the deadline.
 - `leq_supprimer_audio_public` (`*/30 * * * *`): inserts `supprimer_audio_public`; the worker deletes the objects of `prises_publiques` whose `date_suppression` has passed and stamps `audio_supprime_le`.
 - Job `envoyer_resultat_arene` `{sujet_id}` (worker): queued by the rotation handler when a week closes, never by pg_cron. One push per active token of the people who published a take on that week, keep `notif_social` on and are not suspended. Claimed with `reserver_resultat_arene()` before the first push leaves. Its data carries `sujet_id`, which opens that week's podium (C8).
+- Job `notifier_moderation` `{prise_id, evenement}` (worker, 2026-09-17): queued by `publier_prise()` on a flag and by `moderer_prise()` on every decision. Pushes the person with the message of the event (always on: it answers their own gesture), and on `signalee` every admin's active tokens (`auth.users.raw_app_meta_data.role = 'admin'`). Its data carries `prise_id`, which opens the Arena tab.
 
 ## Phase 8 additions (migrations `0015_face_a_face`, `0016_correctifs_face_a_face`)
 
@@ -483,10 +485,11 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 
 ### prises_publiques
 
-- `id`, `utilisateur_id`, `tentative_id unique`, `contexte` (arena or duel, checked against `sujet_id` and `duel_id`), `chemin_audio`, `statut` (en_moderation, publiee, retiree), `motif_retrait`, `votes_recus`, `date_suppression`, `audio_supprime_le`, timestamps. One take per person per duel.
+- `id`, `utilisateur_id`, `tentative_id unique`, `contexte` (arena or duel, checked against `sujet_id` and `duel_id`), `chemin_audio`, `statut` (publiee on send, signalee when the screening held it for Rebecca, retiree by her decision; default publiee), `motif_retrait`, `votes_recus`, `date_suppression`, `audio_supprime_le`, timestamps. One take per person per duel.
 - Created only by `publier_prise()`: the deliberate gesture of chapter 11, on an attempt of type `arene` or `duel` that is already analysed, never by an anonymous or suspended account.
 - `chemin_audio` here is `tentatives.chemin_audio_public`, the copy the worker keeps for the length of the contest: the private object is deleted as soon as the evaluation is committed (chapter 2), so it is null by the time anyone publishes. A take whose copy never arrived is refused with `analyse_incomplete` rather than published mute, because a silent card costs its owner the week: nobody votes for a voice they cannot hear.
-- RLS: own takes always; a published take of the active subject only once the caller has spoken on it (`a_parle_sur()`); a duel take only to the two participants and only once the duel is closed; the admin sees everything, including what waits for moderation.
+- RLS: own takes always; a published take of the active subject only once the caller has spoken on it (`a_parle_sur()`); a duel take only to the two participants and only once the duel is closed; the admin sees everything, including what the screening held (`signalee`); the storage policy `audio_public_select` lets an admin play the audio of any public take, so Rebecca can listen before she decides.
+- **Published on send (2026-09-17).** `publier_prise()` reads `analyses.moderation` of the attempt: `signalee` true holds the take as `signalee` and queues `notifier_moderation {prise_id, evenement: signalee}`; anything else, a verdict that says nothing or no verdict at all, is `publiee` at once, because an outage of the filter must not close the Arena. The approval queue of Phase 7 (`en_moderation`) was never in the cahier, which asks for withdrawal after the fact and nothing more, and is gone.
 
 ### impressions, votes
 
@@ -506,7 +509,7 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 
 ### moderations
 
-- `id`, `prise_id`, `decision` (publiee, retiree), `motif`, `decide_par`, `cree_le`. Written by `moderer_prise()` (admin), which also marks a withdrawn take for deletion.
+- `id`, `prise_id`, `decision` (publiee, retiree), `motif`, `decide_par`, `cree_le`. Written by `moderer_prise()` (admin), which also marks a withdrawn take for deletion. Every decision queues `notifier_moderation {prise_id, evenement: publiee | retiree}`, keyed by the decision row, so the person learns it. `lire_prise_a_relire(prise)` (admin) answers that take's transcript text, its screening verdict and the author's first name, and nothing else of anyone's analyses.
 
 ### roter_sujet_arene()
 

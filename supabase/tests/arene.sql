@@ -136,18 +136,16 @@ select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilis
 select throws_ok($$ select public.publier_prise((select t from prise_anon)) $$, '42501', 'compte_requis', 'an anonymous account cannot publish in the Arena');
 reset role; select tests_leq.deconnecter();
 
--- takes stay hidden until you have spoken, and until moderation lets them through --------------------
+-- takes stay hidden until you have spoken; a take nothing flagged is live the moment it is sent ---
 select tests_leq.creer_utilisateur('66666666-6666-4666-8666-666666666666', 'd@test.leq', false);
 select tests_leq.connecter('66666666-6666-4666-8666-666666666666', false, 'utilisateur');
 select is((select count(*) from public.prises_publiques), 0::bigint, 'D has not spoken: sees nothing');
 select is((select (public.paire_a_voter()) ->> 'raison'), 'parle_d_abord', 'and is asked to speak first');
 reset role; select tests_leq.deconnecter();
+select is((select count(*) from public.prises_publiques where statut = 'publiee'), 3::bigint,
+  'the three takes are live on send: nothing screened them, nobody had to approve them');
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
-select is((select count(*) from public.prises_publiques), 1::bigint, 'A has spoken but the others wait for moderation');
-reset role; select tests_leq.deconnecter();
-update public.prises_publiques set statut = 'publiee';
-select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
-select is((select count(*) from public.prises_publiques), 3::bigint, 'once published, A sees the three');
+select is((select count(*) from public.prises_publiques), 3::bigint, 'A has spoken and sees the three');
 
 -- voting by pairs ------------------------------------------------------------------------------------
 select is((select (public.paire_a_voter()) ->> 'raison'), 'ok', 'A gets a pair');
@@ -402,6 +400,46 @@ select is((public.paire_a_voter()) ->> 'raison', 'assez_ecoute',
   'past the limit the Arena says the listening is done for today');
 reset role; select tests_leq.deconnecter();
 update public.configuration set valeur = '6'::jsonb where cle = 'prises_ecoutees_par_jour';
+
+-- the filter, and Rebecca's review (2026-09-17) ------------------------------------------------------
+-- A take the screening flagged waits for Rebecca instead of going live; the person and the admins
+-- are told through the jobs table; Rebecca reads that take's transcript and decides; either
+-- decision tells the person. A take nothing flagged is live at once, checked above.
+delete from public.jobs where type = 'notifier_moderation';
+create temp table signalee as select tests_leq.prise_analysee('66666666-6666-4666-8666-666666666666', 'arene', null, 19) as t;
+grant select on signalee to authenticated;
+insert into public.analyses (tentative_id, version_schema, mesures, transcription, fournisseur_transcription, moderation)
+values ((select t from signalee), 1, '{}'::jsonb, '{"texte": "un texte que le filtre a relevé", "mots": []}'::jsonb, 'test',
+        '{"version": 1, "signalee": true, "categories": ["harcelement"], "fournisseur": "test", "evalue_le": "2026-09-17T00:00:00Z"}'::jsonb);
+select tests_leq.connecter('66666666-6666-4666-8666-666666666666', false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select t from signalee)) $$, 'D publishes a take the filter flagged');
+select is((select statut from public.prises_publiques where tentative_id = (select t from signalee)), 'signalee',
+  'it waits for Rebecca instead of going live');
+select is((select count(*) from public.prises_publiques where tentative_id = (select t from signalee)), 1::bigint,
+  'D still sees their own take');
+select throws_ok($$ select public.lire_prise_a_relire((select id from public.prises_publiques where tentative_id = (select t from signalee))) $$,
+  '42501', null, 'a person reads no transcript through the review function');
+reset role; select tests_leq.deconnecter();
+select is((select count(*) from public.jobs where type = 'notifier_moderation' and charge ->> 'evenement' = 'signalee'), 1::bigint,
+  'the flag queues one notification job, for the person and the admins');
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((select count(*) from public.prises_publiques where tentative_id = (select t from signalee)), 0::bigint,
+  'nobody else sees a flagged take');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');
+select is((public.lire_prise_a_relire((select id from public.prises_publiques where tentative_id = (select t from signalee)))) ->> 'texte',
+  'un texte que le filtre a relevé', 'the admin reads the transcript of that take');
+select is(((public.lire_prise_a_relire((select id from public.prises_publiques where tentative_id = (select t from signalee)))) -> 'moderation' ->> 'signalee')::boolean,
+  true, 'and the verdict that flagged it');
+select lives_ok($$ select public.moderer_prise((select id from public.prises_publiques where tentative_id = (select t from signalee)), 'publiee') $$,
+  'Rebecca publishes it');
+select is((select statut from public.prises_publiques where tentative_id = (select t from signalee)), 'publiee', 'and it is live');
+reset role; select tests_leq.deconnecter();
+select is((select count(*) from public.jobs where type = 'notifier_moderation' and charge ->> 'evenement' = 'publiee'), 1::bigint,
+  'the decision queues the notification to the person');
+select is((select column_default from information_schema.columns where table_schema = 'public' and table_name = 'prises_publiques' and column_name = 'statut'),
+  $$'publiee'::text$$, 'the default status is live');
+delete from public.prises_publiques where tentative_id = (select t from signalee);
 
 select * from finish();
 rollback;

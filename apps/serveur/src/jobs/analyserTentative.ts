@@ -7,6 +7,7 @@ import {
   partNormalisee,
   type ObservationHorsGrille,
   type SousNote,
+  type ModerationTranscription,
 } from '@leq/domaine'
 import { z } from 'zod'
 import type {
@@ -26,6 +27,7 @@ import type {
   Tentative,
 } from '../db.js'
 import { messageErreur } from '../log.js'
+import type { Moderateur } from '../openai/moderation.js'
 import type { Transcripteur } from '../transcription/index.js'
 import { typeMimeDepuisChemin } from '../transcription/index.js'
 import type { ContexteJob, HandlerJob } from './types.js'
@@ -117,6 +119,12 @@ export interface DependancesAnalyse {
   evaluerRegle: FonctionEvaluerRegle
   /** Absent while no key is wired: the measured half then carries the note on its own. */
   juge?: Juge
+  /**
+   * The screening of chapter 11, on the transcript of a public take. Absent, or failing: no
+   * verdict is written and the take publishes, because an outage of the filter must not close
+   * the Arena.
+   */
+  moderateur?: Moderateur
 }
 
 export type ResultatAnalyse =
@@ -249,6 +257,21 @@ export async function analyserTentative(
     })
     log.debug({ fournisseur: deps.transcripteur.nom }, 'transcription obtenue')
 
+    // The screening of chapter 11, on what will become public. Its verdict rides with the
+    // analysis; `publier_prise()` holds a flagged take for Rebecca and publishes any other.
+    let moderation: ModerationTranscription | null = null
+    if (deps.moderateur && (tentative.type === 'arene' || tentative.type === 'duel')) {
+      try {
+        moderation = await deps.moderateur.moderer(transcription.texte)
+        log.info(
+          { signalee: moderation.signalee, categories: moderation.categories },
+          'transcription filtree',
+        )
+      } catch (erreur) {
+        log.warn({ err: erreur }, 'filtre indisponible, la prise publiera sans verdict')
+      }
+    }
+
     // Mesure
     await depot.mettreAJourStatut(tentativeId, 'en_mesure')
     const audio = await deps.decoder(octets)
@@ -296,6 +319,7 @@ export async function analyserTentative(
       mesures,
       transcription,
       fournisseur_transcription: deps.transcripteur.nom,
+      moderation,
     }
     const resultat = await depot.enregistrerAnalyseEtEvaluation(analyse, evaluation)
     log.info(

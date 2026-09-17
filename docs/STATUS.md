@@ -877,6 +877,35 @@ window is Device Hub (`docs/RUNBOOK.md`, « Looking at a screen »), and the old
 Xcode swap while the device kept running headless. My `simctl` screenshots showed the app the whole
 time; Roch saw nothing.
 
+## L'Arène publie sur envoi (2026-09-17)
+
+Roch recorded a passage, went to the Arena, and read « en attente de publication ». He asked who
+decided that every take waits for an admin. I did, in the plan (decision 12), and the cahier never
+did: chapter 11 asks that Rebecca can withdraw a public take or suspend an account, and nothing
+more. Nobody had ever approved anything in that queue, and the admin page could not even play the
+take. Replaced in one change across the five workspaces:
+
+- **Live on send.** `publier_prise()` publishes at once. `en_moderation` is gone; the one row it
+  held (Roch's) is published by the migration, since nothing ever flagged it.
+- **The screening.** The worker sends the transcript of an Arena or duel take to OpenAI's
+  moderation endpoint (free) at analysis time and writes the verdict in `analyses.moderation`:
+  the six categories of chapter 11, politics and religion pass. A flagged take gets the status
+  `signalee` and waits for Rebecca; a failed call writes no verdict and the take publishes, because
+  an outage of the filter must not close the Arena.
+- **Everyone is told.** A new job `notifier_moderation` pushes the person when their passage is
+  held, published or withdrawn, in the same words the Arena tab shows, and every admin with the
+  app when a take is held. The admin home counts the held takes.
+- **Rebecca can review.** The moderation page gets a player (an admin may now read the audio of a
+  public take), the transcript and the reasons the filter gave, through `lire_prise_a_relire()`,
+  admin only and scoped to public takes: nothing else of anyone's analyses opens up. Publish or
+  withdraw as before.
+- **A person can listen to their own passage** from the Arena tab.
+
+Verified: pgTAP `arene.sql` 104 green against the hosted project (the flag, its visibility, the
+review function refused to a person, both decisions queuing their notification); server 96 tests
+plus the screener's category mapping and the notification job; admin and mobile suites green.
+Strings by the other session, verbatim. `docs/decisions/ADR-012-arene-publiee-sur-envoi.md`.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

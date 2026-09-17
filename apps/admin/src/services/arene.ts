@@ -8,6 +8,8 @@ import {
   type SujetAreneEditable,
   type These,
   type TheseEditable,
+  BUCKET_AUDIO_PUBLIC,
+  ModerationTranscriptionSchema,
 } from '@leq/domaine'
 import { supabase } from './supabase'
 
@@ -68,6 +70,31 @@ export async function chargerModeration(): Promise<PriseAModerer[]> {
       ...prise,
       sujet: sujets_arene?.texte ?? duels?.sujet ?? null,
     }))
+}
+
+/** What Rebecca reads before she decides: that take's transcript and the filter's verdict. */
+const PriseARelireSchema = z.object({
+  texte: z.string().nullable(),
+  moderation: ModerationTranscriptionSchema.nullable(),
+  prenom: z.string().nullable(),
+})
+export type PriseARelire = z.output<typeof PriseARelireSchema>
+
+export async function lirePriseARelire(priseId: string): Promise<PriseARelire> {
+  const { data, error } = await supabase.rpc('lire_prise_a_relire', { p_prise: priseId })
+  if (error) throw new Error(error.message)
+  return PriseARelireSchema.parse(data)
+}
+
+const DUREE_SIGNATURE_S = 60 * 60
+
+/** A signed URL on the public bucket; the storage policy lets an admin read any public take. */
+export async function urlAudioPrise(chemin: string): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_AUDIO_PUBLIC)
+    .createSignedUrl(chemin, DUREE_SIGNATURE_S)
+  if (error || !data?.signedUrl) throw new Error(error?.message ?? 'URL indisponible')
+  return data.signedUrl
 }
 
 export async function modererPrise(

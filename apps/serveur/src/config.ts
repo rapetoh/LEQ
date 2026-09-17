@@ -25,7 +25,10 @@ export const ADVERSAIRES = ['stub', 'openai'] as const
 export type NomAdversaire = (typeof ADVERSAIRES)[number]
 export const VOIX = ['stub', 'openai'] as const
 export const JUGES = ['aucun', 'openai'] as const
+/** The screening of chapter 11 on public takes. On by default: it needs the same key as the rest. */
+export const MODERATEURS = ['aucun', 'openai'] as const
 export type NomJuge = (typeof JUGES)[number]
+export type NomModerateur = (typeof MODERATEURS)[number]
 export type NomVoix = (typeof VOIX)[number]
 
 // prosodie/extraire.py sits one level above src/ and above dist/, so the same
@@ -58,6 +61,7 @@ const SchemaEnv = z.object({
   VOIX: z.enum(VOIX).default('stub'),
   /** The judged axes of the note. `aucun` while no key is wired: the measured half then carries it. */
   JUGE: z.enum(JUGES).default('aucun'),
+  MODERATEUR: z.enum(MODERATEURS).default('openai'),
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_BASE_URL: z.url().optional(),
   FFMPEG_PATH: z.string().min(1).default('ffmpeg'),
@@ -85,6 +89,7 @@ export interface Config {
   adversaire: NomAdversaire
   voix: NomVoix
   juge: NomJuge
+  moderateur: NomModerateur
   openai: { cle: string; base?: string } | null
   ffmpegPath: string
   dossierWeb: string | undefined
@@ -130,6 +135,7 @@ export function chargerConfig(env: NodeJS.ProcessEnv = process.env): Config {
     adversaire: e.ADVERSAIRE,
     voix: e.VOIX,
     juge: e.JUGE,
+    moderateur: e.MODERATEUR,
     openai: e.OPENAI_API_KEY
       ? { cle: e.OPENAI_API_KEY, ...(e.OPENAI_BASE_URL ? { base: e.OPENAI_BASE_URL } : {}) }
       : null,

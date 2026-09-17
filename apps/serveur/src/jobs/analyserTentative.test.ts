@@ -274,6 +274,75 @@ describe('la copie publique', () => {
     expect(faux.journal).toContain('televersement_public')
   })
 
+  it('filtre la transcription d une prise publique et range le verdict avec l analyse', async () => {
+    const faux = construireFaux({ tentative: { ...tentative(), type: 'arene' } })
+    const textes: string[] = []
+    await analyserTentative(
+      {
+        ...faux.deps,
+        moderateur: {
+          nom: 'faux',
+          moderer: async (texte) => {
+            textes.push(texte)
+            return {
+              version: 1,
+              signalee: true,
+              categories: ['harcelement'],
+              fournisseur: 'faux',
+              evalue_le: '2026-09-17T10:00:00.000Z',
+            }
+          },
+        },
+      },
+      ID,
+      { log, dernierEssai: false },
+    )
+    expect(textes).toEqual([TRANSCRIPTION.texte])
+    expect(faux.ecrits.analyse?.moderation?.signalee).toBe(true)
+    expect(faux.ecrits.analyse?.moderation?.categories).toEqual(['harcelement'])
+  })
+
+  it('ne filtre pas une prise privée', async () => {
+    const faux = construireFaux()
+    let appels = 0
+    await analyserTentative(
+      {
+        ...faux.deps,
+        moderateur: {
+          nom: 'faux',
+          moderer: async () => {
+            appels += 1
+            throw new Error('ne doit pas etre appele')
+          },
+        },
+      },
+      ID,
+      { log, dernierEssai: false },
+    )
+    expect(appels).toBe(0)
+    expect(faux.ecrits.analyse?.moderation).toBeNull()
+  })
+
+  it('publie sans verdict quand le filtre tombe en panne, et termine l analyse', async () => {
+    const faux = construireFaux({ tentative: { ...tentative(), type: 'arene' } })
+    const resultat = await analyserTentative(
+      {
+        ...faux.deps,
+        moderateur: {
+          nom: 'faux',
+          moderer: async () => {
+            throw new Error('panne du filtre')
+          },
+        },
+      },
+      ID,
+      { log, dernierEssai: false },
+    )
+    expect(resultat).toBe('analysee')
+    expect(faux.ecrits.analyse?.moderation).toBeNull()
+    expect(faux.journal).toContain('statut:retour_disponible')
+  })
+
   it("n'en garde aucune pour un diagnostic ni pour une étape", async () => {
     for (const type of ['diagnostic', 'etape'] as const) {
       const faux = construireFaux({ tentative: { ...tentative(), type } })

@@ -178,7 +178,7 @@ The process is selected by `PROCESS` (falls back to Fly's `FLY_PROCESS_GROUP`). 
 - Storage: clients may only insert at `{auth.uid()}/{uuid}.m4a` in `audio-tentatives`; no client read, update or delete. `audio-public` is served by signed URLs (Phase 7).
 - Clients never hold provider keys. The publishable Supabase key and the RevenueCat public SDK key are the only keys in the app, both public by design.
 - Caps and filters (announcements per month, geo filter, quotas) are enforced in the server write path, never only in the SPA.
-- Moderation is a state (`en_moderation`) between analysis and publication for public takes (Phase 7).
+- A public take is live on send. The worker screens its transcript at analysis (OpenAI moderations, the six categories of chapter 11) and `publier_prise()` holds a flagged take as `signalee` for Rebecca; she withdraws after the fact, which is all the cahier asks (2026-09-17, ADR-012).
 
 ## Configuration and flags
 

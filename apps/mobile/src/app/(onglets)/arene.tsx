@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
@@ -22,6 +22,7 @@ import {
 import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { minutesDe } from '@/services/rythme'
+import { lecteur, urlSignee } from '@/services/lecture'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
@@ -107,6 +108,19 @@ function Sujet() {
   const configuration = useConfiguration()
   const sujet = useSujet()
   const maPrise = useMaPrise(sujet.data?.id ?? null)
+  // Listening to one's own passage: the same player as the votes, on the same signed URL.
+  const [ecoute, setEcoute] = useState(false)
+  useEffect(() => () => lecteur.arreter(), [])
+  const ecouterMonPassage = async (chemin: string) => {
+    if (ecoute) return
+    setEcoute(true)
+    try {
+      await lecteur.jouer(await urlSignee(chemin), () => setEcoute(false))
+    } catch (erreur) {
+      console.warn('arène: lecture impossible', erreur)
+      setEcoute(false)
+    }
+  }
   const classement = useClassement()
   const jours = configuration.data?.duree_sujet_arene_jours ?? 7
   const points = configuration.data?.points_par_vote ?? 5
@@ -168,16 +182,25 @@ function Sujet() {
                     ? t('arene.passageDedans')
                     : maPrise.data?.statut === 'retiree'
                       ? t('arene.passageRetire')
-                      : t('arene.enModeration')}
+                      : t('arene.signalee')}
                 </Text>
                 <Text style={[styles.heroCorps, { color: couleurs.encre3 }]}>
                   {maPrise.data?.statut === 'publiee'
                     ? t('arene.passageDetail')
                     : maPrise.data?.statut === 'retiree'
                       ? t('arene.passageRetireDetail')
-                      : t('arene.enModerationDetail')}
+                      : t('arene.signaleeDetail')}
                 </Text>
               </View>
+              {maPrise.data?.chemin_audio && !maPrise.data.audio_supprime_le ? (
+                <Bouton
+                  variante="secondaire"
+                  surFondSombre
+                  libelle={t('arene.ecouterMonPassage')}
+                  desactive={ecoute}
+                  onPress={() => void ecouterMonPassage(maPrise.data!.chemin_audio!)}
+                />
+              ) : null}
               <Bouton
                 variante="or"
                 libelle={t('arene.ecouterEtVoter', { points })}

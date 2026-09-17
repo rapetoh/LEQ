@@ -20,6 +20,8 @@ Status values: Proposed, Accepted, Superseded by ADR-nnn.
 | [ADR-010](ADR-010-hebergement-pages-publiques.md)            | The public pages are served by the real-time process        | Accepted                                               | 2026-09-11 |
 | [ADR-011](ADR-011-openai-fournisseurs.md)                    | OpenAI for transcription, Rétor, the judge and the voice    | Accepted                                               | 2026-09-13 |
 
+- [ADR-012](ADR-012-arene-publiee-sur-envoi.md). A public take is live on send; the screening holds, Rebecca withdraws.
+
 ## Reserved numbers
 
 ADR-007 is reserved for the result of the audio capture spike (plan, Phase 0, spike a). The spike answers three questions: can expo-audio record 16 kHz mono AAC with automatic gain control and noise suppression disabled (iOS `.measurement` mode, Android `UNPROCESSED`), does a recording survive an interruption on Android without a corrupt file, and can a library such as `react-native-audio-api` stream microphone PCM out and play PCM chunks in for the debate. The file `ADR-007-capture-audio.md` is written by that spike, not by the docs pass.

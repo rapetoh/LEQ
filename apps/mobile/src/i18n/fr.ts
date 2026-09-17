@@ -441,8 +441,8 @@ export const fr = {
     passageRetire: 'Ton passage a été retiré',
     passageRetireDetail:
       "Il ne figure plus dans l'Arène. Rebecca peut t'en dire la raison par e-mail.",
-    enModeration: 'En attente de publication',
-    enModerationDetail: "Ta prise est envoyée. Elle rejoint les autres dès qu'elle est relue.",
+    signalee: 'Ton passage attend une relecture',
+    signaleeDetail: 'Rebecca le relit. Tu seras prévenu·e de sa décision.',
     votesOuverts: 'Votes ouverts',
     ecouterEtVoter: 'Écouter et voter · +{{points}} pts par vote',
     aucunSujetTitre: 'Pas de sujet cette semaine.',
