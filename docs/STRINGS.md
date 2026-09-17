@@ -172,6 +172,21 @@ and fixed on 2026-09-12.
 
 ## Review the screen, never the string
 
+### A rule about shape can be right in general and wrong in one position
+
+The six door lines of A7 were sent back once for using the wrong shape, rewritten to
+"Crée ton compte pour parler dans l'Arène.", and then reversed, because A7 renders its title
+unconditionally and a raison replaces only the subtitle. Under "Garde ton profil." that shape
+stacks two imperatives ordering the same action, where the line it displaces worked by adding a
+fact instead of repeating the instruction. The three database fallbacks kept the imperative,
+correctly, because they appear alone with no title above them.
+
+So the same sentence is right in one slot and wrong in another, and no rule in this file settles
+it. Before prescribing a shape for a string, look at what renders above and below it: `npm run
+ecrans` lists a screen's strings in order, but the ternaries and the conditions live in the
+component, and only reading it says which lines actually meet. Prescribing from the key alone is
+the same fault as judging it alone, committed one step earlier.
+
 A string is never judged alone. What the person reads is a screen: a title, a subtitle, a
 status line and a footnote, and half of them come from the database rather than from `fr.ts`.
 The reward card that failed review was four correct sentences: a database subtitle saying the
