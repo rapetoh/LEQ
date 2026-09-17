@@ -904,7 +904,7 @@ take. Replaced in one change across the five workspaces:
 Verified: pgTAP `arene.sql` 104 green against the hosted project (the flag, its visibility, the
 review function refused to a person, both decisions queuing their notification); server 96 tests
 plus the screener's category mapping and the notification job; admin and mobile suites green.
-Strings by the other session, verbatim. `docs/decisions/ADR-012-arene-publiee-sur-envoi.md`.
+Strings by the other session, verbatim. `docs/decisions/ADR-012-arene-publiee-sur-envoi.md`. Deployed: Fly release 27 (10:49 UTC), migration on the hosted project, the served admin bundle checked for the new page. **Build 23 is uploaded** (Organizer, 03:54 local, the usual dSYM warnings) with the app side: the Arena card's three states and listening to one's own passage. Two lines rewritten by the other session after the archive (the conservation promise before recording, the moderation intro) ride in build 24. Next build number: 24.
 
 ## Next
 
