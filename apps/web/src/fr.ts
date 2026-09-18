@@ -69,7 +69,7 @@ export const fr = {
     perdu: "L'autre personne gagne.",
     perduContre: (prenom: string) => `${prenom} gagne.`,
     egalite: 'Égalité.',
-    sansVerdict: "La grille de Rebecca n'est pas encore en place : ce duel reste sans verdict.",
+    sansVerdict: "La grille de Rebecca n'est pas encore en place, donc ce duel n'a pas de verdict.",
     expireSansReponse: "L'autre personne n'a pas répondu à temps.",
     expireSansReponseDe: (prenom: string) => `${prenom} n'a pas répondu à temps.`,
     expireSansMaReponse: "Tu n'as pas répondu à temps.",

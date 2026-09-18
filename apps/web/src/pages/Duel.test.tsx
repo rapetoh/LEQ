@@ -124,7 +124,7 @@ describe('the duel invitation page', () => {
     afficher()
 
     // The sentence carries a no-break space, which the matcher's normaliser would flatten.
-    expect(await screen.findByText(/reste sans verdict/)).toBeInTheDocument()
+    expect(await screen.findByText(/n'a pas de verdict/)).toBeInTheDocument()
     expect(document.querySelector('audio')).toBeNull()
   })
 

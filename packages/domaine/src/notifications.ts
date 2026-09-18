@@ -162,7 +162,7 @@ export function courrielDuelTermine(duel: {
         : duel.issue === 'egalite'
           ? 'Égalité.'
           : duel.issue === 'sans_verdict'
-            ? "La grille de Rebecca n'est pas encore en place : ce duel reste sans verdict."
+            ? "La grille de Rebecca n'est pas encore en place, donc ce duel n'a pas de verdict."
             : duel.issue === 'expire_sans_reponse'
               ? `${autre} n'a pas répondu à temps.`
               : "Tu n'as pas répondu à temps."

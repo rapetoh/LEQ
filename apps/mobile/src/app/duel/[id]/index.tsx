@@ -188,9 +188,11 @@ export default function EcranDuel() {
         />
       ) : null}
 
-      <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-        {t('duel.automatique')}
-      </Text>
+      {duel.statut === 'ouvert' ? (
+        <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          {t('duel.automatique')}
+        </Text>
+      ) : null}
 
       <View style={styles.actions}>
         <Bouton libelle={t('commun.retour')} variante="texte" onPress={() => router.back()} />
@@ -398,9 +400,7 @@ function Verdict({ duel, nom }: { duel: DuelVue; nom: string }) {
     duel.moi.mesures && duel.lui.mesures ? { moi: duel.moi.mesures, lui: duel.lui.mesures } : null
   return (
     <Carte teinte="douce" style={styles.bloc}>
-      <Text style={[styles.etiquette, { color: theme.lien }]}>
-        {phrase ? t('duel.verdictTitre') : t('duel.sansVerdictTitre')}
-      </Text>
+      <Text style={[styles.etiquette, { color: theme.lien }]}>{t('duel.verdictTitre')}</Text>
       <Text style={[phrase ? typographie.titreSection : typographie.corps, { color: theme.texte }]}>
         {phrase ?? t('duel.sansVerdictCorps')}
       </Text>
