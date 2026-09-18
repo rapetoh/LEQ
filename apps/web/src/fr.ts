@@ -19,6 +19,7 @@ export const fr = {
   duel: {
     surtitre: 'Duel de parole',
     titre: 'Tu as été défié·e.',
+    titreDe: (prenom: string) => `${prenom} te défie.`,
     intro:
       "Vous répondez au même sujet, chacun de votre côté. Tu ne verras sa réponse qu'après avoir enregistré la tienne.",
     sujetTitre: 'Le sujet',
@@ -63,11 +64,20 @@ export const fr = {
     emailManquant: 'Écris une adresse e-mail valable.',
 
     verdictTitre: 'Le verdict',
+    verdictContre: (prenom: string) => `Duel contre ${prenom}`,
     gagne: 'Tu gagnes.',
     perdu: "L'autre personne gagne.",
+    perduContre: (prenom: string) => `${prenom} gagne.`,
     egalite: 'Égalité.',
-    sansVerdict: "L'analyse n'a pas pu vous départager.",
+    sansVerdict: "La grille de Rebecca n'est pas encore en place : ce duel reste sans verdict.",
+    expireSansReponse: "L'autre personne n'a pas répondu à temps.",
+    expireSansReponseDe: (prenom: string) => `${prenom} n'a pas répondu à temps.`,
+    expireSansMaReponse: "Tu n'as pas répondu à temps.",
     verdictDetail: "Rendu par l'analyse, sur les critères de Rebecca.",
+    maReponse: 'Ta réponse',
+    saReponse: 'Sa réponse',
+    saReponseDe: (prenom: string) => `La réponse de ${prenom}`,
+    ecoutes: 'Vous pouvez réécouter vos deux réponses ici pendant deux jours.',
 
     // Refusals and failures, in the person's words.
     introuvable: 'Ce lien ne mène à aucun duel.',

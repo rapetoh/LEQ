@@ -74,6 +74,16 @@ const SchemaEnv = z.object({
   PROSODIE_SCRIPT: z.string().min(1).default(cheminScriptParDefaut),
   INTERVALLE_INACTIF_MS: z.coerce.number().int().min(100).default(2000),
   DELAI_OUTIL_MS: z.coerce.number().int().min(1000).default(120_000),
+  // The e-mail a duel sends to an invitee who answered by the link and has no app to push to.
+  // The same Gmail app password as the sign-in codes; without it, no e-mail leaves and the job
+  // says so in its log.
+  SMTP_HOST: z.string().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+  SMTP_USER: z.string().min(1).optional(),
+  SMTP_PASS: z.string().min(1).optional(),
+  SMTP_SENDER: z.string().min(1).optional(),
+  /** Where the public pages live: the duel link in an e-mail is built on it. */
+  URL_PUBLIQUE: z.url().default('https://leq-serveur.fly.dev'),
 })
 
 export interface Config {
@@ -98,6 +108,14 @@ export interface Config {
   prosodieScript: string
   intervalleInactifMs: number
   delaiOutilMs: number
+  courriel: {
+    hote: string
+    port: number
+    utilisateur: string
+    motDePasse: string
+    expediteur: string
+  } | null
+  urlPublique: string
 }
 
 export class ErreurConfig extends Error {
@@ -146,5 +164,16 @@ export function chargerConfig(env: NodeJS.ProcessEnv = process.env): Config {
     prosodieScript: e.PROSODIE_SCRIPT,
     intervalleInactifMs: e.INTERVALLE_INACTIF_MS,
     delaiOutilMs: e.DELAI_OUTIL_MS,
+    courriel:
+      e.SMTP_HOST && e.SMTP_USER && e.SMTP_PASS
+        ? {
+            hote: e.SMTP_HOST,
+            port: e.SMTP_PORT,
+            utilisateur: e.SMTP_USER,
+            motDePasse: e.SMTP_PASS,
+            expediteur: e.SMTP_SENDER ?? e.SMTP_USER,
+          }
+        : null,
+    urlPublique: e.URL_PUBLIQUE,
   }
 }

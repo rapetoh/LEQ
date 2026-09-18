@@ -170,6 +170,8 @@ function Application({ theme }: { theme: ReturnType<typeof useTheme> }) {
         <Stack.Screen name="defi/[etapeId]/rattrapage" />
         <Stack.Screen name="defi/[etapeId]/exercice" />
         <Stack.Screen name="defi/limite" />
+        <Stack.Screen name="arene/prise" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="duel/[id]/prise" options={{ gestureEnabled: false }} />
         <Stack.Screen name="analyse/[id]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="retour/[tentativeId]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="acte/[acteId]/index" />

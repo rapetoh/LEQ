@@ -119,7 +119,7 @@ reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('33333333-3333-4333-8333-333333333333', false, 'utilisateur');
 select lives_ok($$ select public.publier_prise((select tc from prises)) $$, 'C publishes a take');
 reset role; select tests_leq.deconnecter();
-select is((select count(*) from public.prises_publiques), 3::bigint, 'three public takes');
+select is((select count(*) from public.prises_publiques where sujet_id is not null), 3::bigint, 'three public takes');
 
 -- an anonymous account publishes nothing in the Arena (it would be ranked) --------------------------
 select tests_leq.connecter('55555555-5555-4555-8555-555555555555', true, 'utilisateur');
@@ -222,7 +222,9 @@ reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
 select lives_ok($$ select public.publier_prise((select tb from duelprises)) $$, 'B answers the duel');
 reset role; select tests_leq.deconnecter();
-select is(public.cloturer_duel((select id from duel)), 'invite', 'the higher grid total wins, and the app says the verdict is automatic');
+-- The second answer closes the duel on the spot (2026-09-18); the cron's call finds it closed.
+select is((select verdict from public.duels where id = (select id from duel)), 'invite', 'the higher grid total wins, and the app says the verdict is automatic');
+select is(public.cloturer_duel((select id from duel)), null, 'a closed duel is not closed twice');
 -- Two people who both spoke are never told that nobody answered. Deciding presence on the grid
 -- total did exactly that on a project where no grid is published: both notes null, both read as
 -- silence, and at the deadline the duel expired over two takes that were sitting right there.
@@ -245,7 +247,7 @@ reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
 select lives_ok($$ select public.publier_prise((select tb from prises_sans_note)) $$, 'and B answers it too');
 reset role; select tests_leq.deconnecter();
-select is(public.cloturer_duel((select id from duel_sans_note)), 'sans_verdict',
+select is((select verdict from public.duels where id = (select id from duel_sans_note)), 'sans_verdict',
   'the duel closes saying the analysis could not separate them');
 select is((select statut from public.duels where id = (select id from duel_sans_note)), 'clos',
   'closed, and not expired: nobody stayed silent');
@@ -460,6 +462,138 @@ select is((select l ->> 'avatar' from jsonb_array_elements((public.classement_ar
   (select b from ctx)::text || '/1.jpg', 'and their own picture');
 reset role; select tests_leq.deconnecter();
 select is((select public from storage.buckets where id = 'avatars'), true, 'the avatars bucket is public');
+
+-- l'Arène s'écoute, et le duel se lit (2026-09-18) ---------------------------------------------------
+-- Roch, with two voices in the Arena, could hear neither the other one nor vote: a pair needs two
+-- other takes. The ranking now carries what the caller may hear, the pair function says how many
+-- others there are, a person withdraws their own passage, and a duel says who is on the other
+-- side, who has spoken, and tells both sides at every step.
+delete from public.impressions;
+delete from public.votes;
+delete from public.jobs where type = 'notifier_duel';
+delete from public.prises_publiques where sujet_id is not null;
+update public.sujets_arene set actif_le = null, ferme_le = null;
+update public.sujets_arene set actif_le = now() where cle = 'sujet_un';
+create temp table deux_voix as select
+  tests_leq.prise_analysee((select a from ctx), 'arene', null, 20) as ta,
+  tests_leq.prise_analysee((select b from ctx), 'arene', null, 18) as tb,
+  tests_leq.prise_analysee((select a from ctx), 'arene', null, 21) as ta2;
+grant select on deux_voix to authenticated;
+update public.tentatives set duree_s = 58 where id = (select ta from deux_voix);
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select ta from deux_voix)) $$, 'A speaks on the week');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tb from deux_voix)) $$, 'B speaks on the week');
+reset role; select tests_leq.deconnecter();
+update public.prises_publiques set statut = 'publiee' where sujet_id is not null;
+-- C has not spoken: the ranking lists the two voices, and lets C hear none of them.
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select is((select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l), 2::bigint,
+  'the ranking lists both voices to someone who has not spoken');
+select is((select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l where l ->> 'chemin_audio' is not null),
+  0::bigint, 'and lets them hear none of them');
+reset role; select tests_leq.deconnecter();
+-- A has spoken: A hears their own passage and B's, and reads how long each one is.
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l where l ->> 'chemin_audio' is not null),
+  2::bigint, 'a person who has spoken hears every passage of the ranking');
+select is((select (l ->> 'duree_s')::numeric from jsonb_array_elements((public.classement_arene()) -> 'classement') l where (l ->> 'moi')::boolean),
+  58::numeric, 'and reads how long each passage is');
+select is((public.paire_a_voter()) ->> 'raison', 'rien_a_comparer', 'with one other voice there is no pair');
+select is(((public.paire_a_voter()) ->> 'autres')::int, 1, 'and the answer says how many other voices there are');
+-- A withdraws their own passage: it leaves the ranking, the others go quiet again for A, and A
+-- may publish another one.
+select throws_ok($$ select public.retirer_ma_prise((select id from public.prises_publiques where utilisateur_id = (select b from ctx) and sujet_id is not null)) $$,
+  'P0002', 'prise_introuvable', 'nobody withdraws someone else''s passage');
+select lives_ok($$ select public.retirer_ma_prise((select id from public.prises_publiques where utilisateur_id = (select a from ctx) and sujet_id is not null)) $$,
+  'A withdraws their own passage');
+select is((select retiree_par from public.prises_publiques where tentative_id = (select ta from deux_voix)), 'personne',
+  'and the row says who withdrew it');
+select isnt((select date_suppression from public.prises_publiques where tentative_id = (select ta from deux_voix)), null,
+  'its audio is marked for deletion');
+select is((select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l where l ->> 'chemin_audio' is not null),
+  0::bigint, 'having withdrawn, A hears the others no more');
+select lives_ok($$ select public.publier_prise((select ta2 from deux_voix)) $$, 'and A may publish another passage');
+select is((select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l), 2::bigint,
+  'the ranking holds one line per voice');
+reset role; select tests_leq.deconnecter();
+-- Rebecca's withdrawal says it was hers.
+select tests_leq.connecter('44444444-4444-4444-8444-444444444444', false, 'admin');
+select lives_ok($$ select public.moderer_prise((select id from public.prises_publiques where tentative_id = (select tb from deux_voix)), 'retiree', 'x') $$,
+  'the admin withdraws a passage');
+select is((select retiree_par from public.prises_publiques where tentative_id = (select tb from deux_voix)), 'admin',
+  'and the row says it was the admin');
+reset role; select tests_leq.deconnecter();
+
+-- the duel, read by its two sides -----------------------------------------------------------------
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+create temp table duel_lu as select * from public.creer_duel('Le silence est-il une réponse ?');
+grant select on duel_lu to authenticated;
+select is((select l ->> 'adversaire' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'before anyone joins, the duel has no adversary');
+select isnt((select l ->> 'jeton' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'the inviter reads the token, to share the link again');
+reset role; select tests_leq.deconnecter();
+select is((public.lire_duel_par_jeton((select jeton from duel_lu))) ->> 'inviteur_prenom', 'Alice',
+  'the invitation names the person who sent it');
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select lives_ok($$ select public.rejoindre_duel((select jeton from duel_lu)) $$, 'B joins');
+select is((select l ->> 'role' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  'invite', 'B reads the duel as the invitee');
+select is((select l -> 'adversaire' ->> 'prenom' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  'Alice', 'and sees who invited them');
+select is((select l ->> 'jeton' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'the invitee never reads the token');
+reset role; select tests_leq.deconnecter();
+select is((select count(*) from public.jobs where type = 'notifier_duel' and charge ->> 'evenement' = 'rejoint' and (charge ->> 'duel_id')::uuid = (select id from duel_lu)),
+  1::bigint, 'joining queues one notification for the inviter');
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((select l -> 'adversaire' ->> 'prenom' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  'Bob', 'the inviter sees who joined');
+select is((select (l -> 'lui' ->> 'a_parle')::boolean from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  false, 'and that they have not spoken yet');
+reset role; select tests_leq.deconnecter();
+create temp table prises_lues as select
+  tests_leq.prise_analysee((select a from ctx), 'duel', (select id from duel_lu), 22) as ta,
+  tests_leq.prise_analysee((select b from ctx), 'duel', (select id from duel_lu), 26) as tb;
+grant select on prises_lues to authenticated;
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tb from prises_lues)) $$, 'B answers first');
+reset role; select tests_leq.deconnecter();
+select is((select count(*) from public.jobs where type = 'notifier_duel' and charge ->> 'evenement' = 'repondu' and (charge ->> 'duel_id')::uuid = (select id from duel_lu)),
+  1::bigint, 'the first answer queues one notification for the other side');
+select is((select statut from public.duels where id = (select id from duel_lu)), 'ouvert', 'the duel stays open');
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((select (l -> 'lui' ->> 'a_parle')::boolean from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  true, 'the inviter reads that the other side has answered');
+select is((select l -> 'lui' ->> 'chemin_audio' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'and cannot hear it before having spoken');
+select is((select l -> 'lui' ->> 'mesures' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'nor read its measures');
+select lives_ok($$ select public.publier_prise((select ta from prises_lues)) $$, 'A answers second');
+select is((select l ->> 'statut' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  'clos', 'the second answer closes the duel on the spot');
+select is((select l ->> 'verdict' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  'invite', 'with its verdict');
+select isnt((select l -> 'lui' ->> 'chemin_audio' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'now A may hear the other take');
+select isnt((select l -> 'lui' -> 'mesures' from jsonb_array_elements(public.mes_duels()) l where (l ->> 'id')::uuid = (select id from duel_lu)),
+  null, 'and read its measures');
+reset role; select tests_leq.deconnecter();
+select is((select count(*) from public.jobs where type = 'notifier_duel' and charge ->> 'evenement' = 'verdict' and (charge ->> 'duel_id')::uuid = (select id from duel_lu)),
+  1::bigint, 'closing queues the verdict notification');
+select ok((select min(date_suppression) > now() + interval '47 hours' from public.prises_publiques where duel_id = (select id from duel_lu)),
+  'the two voices stay audible the length of a duel after the verdict');
+-- Expiry tells both sides too.
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+create temp table duel_muet as select * from public.creer_duel('Sans réponse');
+grant select on duel_muet to authenticated;
+reset role; select tests_leq.deconnecter();
+update public.duels set echeance = now() - interval '1 hour' where id = (select id from duel_muet);
+select is(public.cloturer_duel((select id from duel_muet)), 'expire', 'an unanswered duel expires');
+select is((select count(*) from public.jobs where type = 'notifier_duel' and charge ->> 'evenement' = 'expire' and (charge ->> 'duel_id')::uuid = (select id from duel_muet)),
+  1::bigint, 'and says so');
 
 select * from finish();
 rollback;

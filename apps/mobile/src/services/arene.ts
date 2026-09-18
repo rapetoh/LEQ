@@ -5,12 +5,14 @@ import {
   ClassementAreneSchema,
   DuelParJetonSchema,
   DuelSchema,
+  DuelVueSchema,
   lireRefusArene,
   PaireAVoterSchema,
   PrisePubliqueSchema,
   SujetAreneSchema,
   type ClassementArene,
   type Duel,
+  type DuelVue,
   type PaireAVoter,
   type PrisePublique,
   type RefusArene,
@@ -24,13 +26,14 @@ import { t, type CleTexte } from '@/i18n/fr'
 
 import { supabase, useSession } from './supabase'
 
-export type { PaireAVoter, RefusArene, SujetArene, Duel, ClassementArene, PrisePublique }
+export type { PaireAVoter, RefusArene, SujetArene, Duel, DuelVue, ClassementArene, PrisePublique }
 
 export const CLE_SUJET = ['sujet_arene'] as const
 export const CLE_MA_PRISE = ['ma_prise_arene'] as const
 export const CLE_CLASSEMENT = ['classement_arene'] as const
 export const CLE_PAIRE = ['paire_a_voter'] as const
 export const CLE_DUELS = ['duels'] as const
+export const CLE_MES_DUELS = ['mes_duels'] as const
 export const CLE_DERNIER_CLOS = ['dernier_sujet_arene_clos'] as const
 export const CLE_PODIUM = ['podium_arene'] as const
 export const CLE_PASSAGES_DUEL = ['passages_duel'] as const
@@ -64,7 +67,8 @@ const MESSAGES_REFUS: Readonly<Record<RefusArene, CleTexte>> = {
   duel_expire: 'arene.refusDuelExpire',
   duel_sur_soi: 'arene.refusDuelSurSoi',
   duel_complet: 'arene.refusDuelComplet',
-  sujet_requis: 'arene.duelErreur',
+  sujet_requis: 'duel.erreurCreation',
+  sujet_ferme: 'arene.refusSujetFerme',
 }
 
 /** The sentence to show for a refusal of the database, in the person's words. */
@@ -85,7 +89,11 @@ export async function chargerSujet(): Promise<SujetArene | null> {
   return ligne ? SujetAreneSchema.parse(ligne) : null
 }
 
-/** The caller's own take on the active subject, if they have spoken. */
+/**
+ * The caller's own take on the active subject, if they have spoken. A take the person withdrew
+ * themselves no longer counts: the card offers to record again, as « le retirer » promised.
+ * The latest one wins when a withdrawn take sits beside a newer one.
+ */
 export async function chargerMaPrise(sujetId: string | null): Promise<PrisePublique | null> {
   if (!sujetId) return null
   const { data: session } = await supabase.auth.getSession()
@@ -96,9 +104,18 @@ export async function chargerMaPrise(sujetId: string | null): Promise<PrisePubli
     .select('*')
     .eq('sujet_id', sujetId)
     .eq('utilisateur_id', uid)
+    .or('retiree_par.is.null,retiree_par.neq.personne')
+    .order('cree_le', { ascending: false })
+    .limit(1)
     .maybeSingle()
   if (error) echouer(error.message)
   return data ? PrisePubliqueSchema.parse(data) : null
+}
+
+/** The person withdraws their own passage while the subject is open. */
+export async function retirerMaPrise(priseId: string): Promise<void> {
+  const { error } = await supabase.rpc('retirer_ma_prise', { p_prise: priseId })
+  if (error) echouer(error.message)
 }
 
 /** The ranking of the active week, or of the week whose identifier is given (C8). */
@@ -145,6 +162,13 @@ export async function publierPrise(tentativeId: string): Promise<string> {
   const { data, error } = await supabase.rpc('publier_prise', { p_tentative_id: tentativeId })
   if (error) echouer(error.message)
   return z.uuid().parse(data)
+}
+
+/** The caller's duels as the screens read them: the other side, who has spoken, what may be heard. */
+export async function chargerMesDuels(): Promise<DuelVue[]> {
+  const { data, error } = await supabase.rpc('mes_duels')
+  if (error) echouer(error.message)
+  return z.array(DuelVueSchema).parse(data ?? [])
 }
 
 export async function chargerDuels(): Promise<Duel[]> {
@@ -204,6 +228,7 @@ export function usePodium(sujetId: string) {
   })
 }
 export const useDuels = (actif = true) => useRequete(CLE_DUELS, chargerDuels, actif)
+export const useMesDuels = (actif = true) => useRequete(CLE_MES_DUELS, chargerMesDuels, actif)
 export function useMaPrise(sujetId: string | null) {
   return useRequete(
     [...CLE_MA_PRISE, sujetId ?? ''],
@@ -247,6 +272,7 @@ export function invaliderArene(client: QueryClient): void {
     CLE_CLASSEMENT,
     CLE_PAIRE,
     CLE_DUELS,
+    CLE_MES_DUELS,
     CLE_DERNIER_CLOS,
     CLE_PODIUM,
     CLE_PASSAGES_DUEL,

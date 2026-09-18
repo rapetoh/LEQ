@@ -3,6 +3,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { formaterEntier } from '@/app/(onglets)/moi'
+import { AnneauProgression } from '@/components/AnneauProgression'
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -12,8 +13,9 @@ import { PorteCompte } from '@/components/PorteCompte'
 import { t } from '@/i18n/fr'
 import { useActualisation } from '@/services/actualisation'
 import { useEstAnonyme } from '@/services/compte'
-import { jourDuSujet, useSujet } from '@/services/arene'
-import { useDrapeaux } from '@/services/configuration'
+import { jourDuSujet, useClassement, useMaPrise, useMesDuels, useSujet } from '@/services/arene'
+import { useConfiguration, useDrapeaux } from '@/services/configuration'
+import { duelAMettreEnAvant, nomAdversaire } from '@/services/duelVue'
 import { nomFormule, useFormules } from '@/services/formules'
 import { useEtapeDuJour, useRetour, useCarte } from '@/services/parcours'
 import { useDerniereMesure, useProfil } from '@/services/profil'
@@ -24,9 +26,11 @@ import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
 // B1 · Aujourd'hui, laid out as the mockup draws it: the greeting and the streak, the step of
-// the day on the orange card (it IS the next step of the path, the dots say so), what to work
-// on next beside the points, the week's subject, and what Rebecca offers this month. Nothing on
-// this screen is a placeholder: a card that has nothing to show is not shown.
+// the day on the orange card (it IS the next step of the path, the dots say so) or, once it is
+// done, the day's win on bleu nuit; what to work on next beside the points; the week's subject
+// with where the person stands in it; the duel that waits for them; and what Rebecca offers
+// this month. Nothing on this screen is a placeholder: a card that has nothing to show is not
+// shown.
 
 function dateDuJour(): string {
   const brut = new Date().toLocaleDateString('fr-FR', {
@@ -44,7 +48,15 @@ export default function Aujourdhui() {
   const insets = useSafeAreaInsets()
   const drapeaux = useDrapeaux()
   const areneActive = drapeaux.data?.arene === true
+  const duelsActifs = drapeaux.data?.duels === true
   const sujet = useSujet(areneActive)
+  const maPrise = useMaPrise(areneActive ? (sujet.data?.id ?? null) : null)
+  const classement = useClassement()
+  const duels = useMesDuels(duelsActifs)
+  const configuration = useConfiguration()
+  const joursSujet = configuration.data?.duree_sujet_arene_jours ?? 7
+  const mienne = (classement.data?.classement ?? []).find((ligne) => ligne.moi) ?? null
+  const enAvant = duelsActifs ? duelAMettreEnAvant(duels.data ?? []) : null
   const serie = useSerie()
   const points = usePoints()
   const ateliers = useAteliers()
@@ -159,25 +171,56 @@ export default function Aujourdhui() {
       </View>
 
       {areneActive ? (
-        <Pressable accessibilityRole="button" onPress={() => router.push('/(onglets)/arene')}>
-          <Carte style={styles.sujet}>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={[styles.etiquetteRouge, { color: couleurs.rouge }]}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/(onglets)/arene')}
+          style={({ pressed }) => [styles.sujetOmbre, pressed && styles.presse]}
+        >
+          <View style={styles.sujet}>
+            <Degrade de={couleurs.bleu} a={couleurs.bleuNuit} rayon={rayons.hero} id="sujet" />
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={[styles.etiquetteOr, { color: couleurs.or }]}>
                 {sujet.data
-                  ? `${t('aujourdhui.sujetSemaine')} · ${t('arene.jour', { jour: jourDuSujet(sujet.data), total: 7 })}`
+                  ? `${t('aujourdhui.sujetSemaine')} · ${t('arene.jour', { jour: jourDuSujet(sujet.data, joursSujet), total: joursSujet })}`
                   : t('aujourdhui.sujetSemaine')}
               </Text>
-              <Text style={[styles.sujetTexte, { color: theme.texte }]} numberOfLines={1}>
-                {sujet.data ? `« ${sujet.data.texte} »` : t('aujourdhui.aucunSujet')}
+              <Text style={styles.sujetTexte} numberOfLines={2}>
+                {sujet.data ? `«\u202f${sujet.data.texte}\u202f»` : t('aujourdhui.aucunSujet')}
               </Text>
+              {sujet.data ? (
+                <Text style={[styles.sujetEtat, { color: couleurs.encre3 }]} numberOfLines={1}>
+                  {maPrise.data && maPrise.data.statut !== 'retiree'
+                    ? [
+                        t('aujourdhui.sujetParle'),
+                        mienne
+                          ? mienne.votes === 1
+                            ? t('aujourdhui.sujetVoixUne')
+                            : t('aujourdhui.sujetVoix', { votes: mienne.votes })
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')
+                    : t('aujourdhui.sujetPasParle')}
+                </Text>
+              ) : null}
             </View>
-            <Icone
-              sf="chevron.right"
-              material="chevron-right"
-              taille={16}
-              couleur={theme.texteTertiaire}
-            />
-          </Carte>
+            {sujet.data ? (
+              <AnneauProgression
+                progression={jourDuSujet(sujet.data, joursSujet) / joursSujet}
+                diametre={48}
+                epaisseur={5}
+              >
+                <Text style={styles.anneauTexte}>{jourDuSujet(sujet.data, joursSujet)}</Text>
+              </AnneauProgression>
+            ) : (
+              <Icone
+                sf="chevron.right"
+                material="chevron-right"
+                taille={16}
+                couleur={couleurs.encre3}
+              />
+            )}
+          </View>
         </Pressable>
       ) : (
         <Carte teinte="douce" style={{ gap: espaces.xs }}>
@@ -189,6 +232,35 @@ export default function Aujourdhui() {
           </Text>
         </Carte>
       )}
+
+      {enAvant ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push(`/duel/${enAvant.duel.id}`)}
+          style={({ pressed }) => [pressed && styles.presse]}
+        >
+          <Carte teinte="sombre" style={styles.duel}>
+            <View style={[styles.duelIcone, { backgroundColor: 'rgba(255, 189, 89, 0.18)' }]}>
+              <Icone sf="waveform" material="graphic-eq" taille={18} couleur={couleurs.or} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[styles.duelTitre, { color: couleurs.blanc }]} numberOfLines={1}>
+                {enAvant.attention === 'a_toi'
+                  ? enAvant.duel.adversaire?.prenom
+                    ? t('aujourdhui.duelATonTour', { nom: nomAdversaire(enAvant.duel) })
+                    : t('aujourdhui.duelATonTourSansNom')
+                  : t('aujourdhui.duelVerdict')}
+              </Text>
+              <Text style={[styles.duelDetail, { color: couleurs.encre3 }]} numberOfLines={1}>
+                {enAvant.attention === 'a_toi'
+                  ? t('aujourdhui.duelATonTourDetail')
+                  : t('aujourdhui.duelVerdictDetail', { nom: nomAdversaire(enAvant.duel) })}
+              </Text>
+            </View>
+            <Icone sf="arrow.right" material="arrow-forward" taille={18} couleur={couleurs.blanc} />
+          </Carte>
+        </Pressable>
+      ) : null}
 
       <Carte style={styles.rebecca}>
         <View style={styles.rebeccaEntete}>
@@ -410,18 +482,64 @@ export function CarteDuJour() {
   const cle = etat.etat === 'defi' ? 'aucune_etape' : etat.etat
   const texte = textes[cle]
 
+  // The day's step is done: the card celebrates it on bleu nuit, the way the app marks every
+  // moment meant to be felt, and says when the next one opens.
+  if (cle === 'limite_jour') {
+    return (
+      <View style={styles.faitOmbre}>
+        <View style={styles.fait}>
+          <Degrade de={couleurs.bleu} a={couleurs.bleuNuit} rayon={rayons.hero} id="fait" />
+          <View style={styles.faitEntete}>
+            <View style={styles.faitCoche}>
+              <Icone sf="checkmark" material="check" taille={16} couleur={couleurs.bleuNuit} />
+            </View>
+            <Text style={[styles.etiquetteOr, { color: couleurs.or }]}>
+              {t('aujourdhui.defiDuJourCourt')}
+            </Text>
+          </View>
+          <Text style={styles.heroTitre}>{t('aujourdhui.defiFait')}</Text>
+          <Text style={[styles.faitCorps, { color: couleurs.encre3 }]}>
+            {t('aujourdhui.defiFaitDemain')}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/(onglets)/defis')}
+            style={({ pressed }) => [styles.lancer, pressed && styles.presse]}
+          >
+            <Text style={[styles.lancerTexte, { color: couleurs.bleu }]}>
+              {t('aujourdhui.voirCarte')}
+            </Text>
+            <Icone sf="arrow.right" material="arrow-forward" taille={18} couleur={couleurs.bleu} />
+          </Pressable>
+          <View style={[styles.bandeau, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
+            <Text
+              style={[styles.bandeauTexte, { color: couleurs.encreClair, flex: 1 }]}
+              numberOfLines={1}
+            >
+              {formule}
+            </Text>
+            {limitee ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/defi/limite')}
+                hitSlop={8}
+              >
+                <Text style={[styles.bandeauLien, { color: couleurs.or }]}>
+                  {t('defi.enchainer')}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <Carte teinte={cle === 'aucune_etape' ? 'douce' : 'orange'} style={styles.defiAttente}>
       <Text style={[typographie.titreCarte, { color: theme.texte }]}>{texte.titre}</Text>
       <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>{texte.corps}</Text>
-      {cle === 'limite_jour' ? (
-        <Bouton
-          libelle={t('defi.enchainer')}
-          variante="secondaire"
-          onPress={() => router.push('/defi/limite')}
-        />
-      ) : null}
-      {cle === 'limite_jour' || cle === 'limite_essais' ? (
+      {cle === 'limite_essais' ? (
         <Bouton
           libelle={t('aujourdhui.voirCarte')}
           variante="texte"
@@ -558,22 +676,84 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     letterSpacing: 0.76,
   },
+  sujetOmbre: {
+    borderRadius: rayons.hero,
+    shadowColor: couleurs.bleu,
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+  },
   sujet: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: espaces.s,
-    paddingVertical: espaces.s,
-    paddingHorizontal: espaces.m,
-    borderRadius: rayons.xl,
+    gap: espaces.m,
+    paddingVertical: espaces.m,
+    paddingHorizontal: espaces.l,
+    borderRadius: rayons.hero,
+    overflow: 'hidden',
   },
-  etiquetteRouge: {
+  etiquetteOr: {
     textTransform: 'uppercase',
     fontFamily: polices.extraBold,
-    fontSize: 10,
-    lineHeight: 13,
-    letterSpacing: 0.8,
+    fontSize: 10.5,
+    lineHeight: 14,
+    letterSpacing: 0.95,
   },
-  sujetTexte: { fontFamily: polices.bold, fontSize: 13.5, lineHeight: 18 },
+  sujetTexte: {
+    fontFamily: polices.extraBold,
+    fontSize: 16,
+    lineHeight: 21,
+    color: couleurs.blanc,
+  },
+  sujetEtat: { fontFamily: polices.semiBold, fontSize: 12, lineHeight: 16 },
+  anneauTexte: {
+    fontFamily: polices.extraBold,
+    fontSize: 15,
+    lineHeight: 18,
+    color: couleurs.blanc,
+  },
+  faitOmbre: {
+    borderRadius: rayons.hero,
+    shadowColor: couleurs.bleu,
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 8,
+  },
+  fait: {
+    gap: 10,
+    paddingVertical: 18,
+    paddingHorizontal: espaces.l,
+    borderRadius: rayons.hero,
+    overflow: 'hidden',
+  },
+  faitEntete: { flexDirection: 'row', alignItems: 'center', gap: espaces.xs },
+  faitCoche: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: couleurs.or,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faitCorps: { fontFamily: polices.medium, fontSize: 14, lineHeight: 21 },
+  duel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espaces.s,
+    paddingVertical: 14,
+    paddingHorizontal: espaces.m,
+  },
+  duelIcone: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  duelTitre: { fontFamily: polices.extraBold, fontSize: 14, lineHeight: 18 },
+  duelDetail: { fontFamily: polices.semiBold, fontSize: 12, lineHeight: 16 },
   rebecca: { gap: 10, paddingVertical: 14, paddingHorizontal: espaces.m },
   rebeccaEntete: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
   portrait: {

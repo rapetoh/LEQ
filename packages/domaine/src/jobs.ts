@@ -17,6 +17,7 @@ export const TYPES_JOB = [
   'envoyer_resultat_arene',
   'debriefer_debat',
   'notifier_moderation',
+  'notifier_duel',
 ] as const
 export const TypeJobSchema = z.enum(TYPES_JOB)
 export type TypeJob = z.infer<typeof TypeJobSchema>
@@ -87,6 +88,22 @@ export const ChargeNotifierModerationSchema = z.object({
 })
 export type ChargeNotifierModeration = z.infer<typeof ChargeNotifierModerationSchema>
 
+/** The moments a duel tells its two sides something (2026-09-18). */
+export const EVENEMENTS_DUEL = ['rejoint', 'repondu', 'verdict', 'expire'] as const
+export const EvenementDuelSchema = z.enum(EVENEMENTS_DUEL)
+export type EvenementDuel = z.infer<typeof EvenementDuelSchema>
+/**
+ * Queued by `rejoindre_duel()` (rejoint, to the inviter), by `publier_prise()` (repondu, to the
+ * other side), and by `cloturer_duel()` (verdict or expire, to both). `acteur_id` is the person
+ * whose gesture it was, when there is one; the recipients are everyone else on the duel.
+ */
+export const ChargeNotifierDuelSchema = z.object({
+  duel_id: UuidSchema,
+  evenement: EvenementDuelSchema,
+  acteur_id: UuidSchema.optional(),
+})
+export type ChargeNotifierDuel = z.infer<typeof ChargeNotifierDuelSchema>
+
 /** One charge schema per job type. */
 export const CHARGES_JOB = {
   analyser_tentative: ChargeAnalyserTentativeSchema,
@@ -100,6 +117,7 @@ export const CHARGES_JOB = {
   envoyer_resultat_arene: ChargeEnvoyerResultatAreneSchema,
   debriefer_debat: ChargeDebrieferDebatSchema,
   notifier_moderation: ChargeNotifierModerationSchema,
+  notifier_duel: ChargeNotifierDuelSchema,
 } as const satisfies Record<TypeJob, z.ZodType>
 
 export type ChargeJob<T extends TypeJob = TypeJob> = z.output<(typeof CHARGES_JOB)[T]>

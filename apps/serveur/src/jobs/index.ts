@@ -29,6 +29,8 @@ import {
 import { creerHandlerDebrieferDebat } from './debrieferDebat.js'
 import { creerHandlerEnvoyerAnnonce } from './envoyerAnnonce.js'
 import { creerHandlerNotifierModeration } from './moderation.js'
+import { creerHandlerNotifierDuel } from './notifierDuel.js'
+import { creerEnvoyeurCourriel } from '../notifications/courriel.js'
 import { creerHandlerPurgerAnonymes } from './purgerAnonymes.js'
 import { creerHandlerSupprimerCompte } from './supprimerCompte.js'
 import type { HandlerJob } from './types.js'
@@ -110,6 +112,12 @@ export function creerHandlers(deps: DependancesHandlers): Record<TypeJob, Handle
     supprimer_audio_public: creerHandlerSupprimerAudioPublic({ ex: pool, stockage }),
     envoyer_resultat_arene: creerHandlerEnvoyerResultatArene({ ex: pool, envoyer: envoyerViaExpo }),
     notifier_moderation: creerHandlerNotifierModeration({ ex: pool, envoyer: envoyerViaExpo }),
+    notifier_duel: creerHandlerNotifierDuel({
+      ex: pool,
+      envoyer: envoyerViaExpo,
+      courriel: creerEnvoyeurCourriel(config),
+      urlPublique: config.urlPublique,
+    }),
     debriefer_debat: creerHandlerDebrieferDebat({
       ex: pool,
       adversaire: choisirAdversaire(config.adversaire, config.openai),

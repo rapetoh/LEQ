@@ -12,13 +12,23 @@ export function texteDelai(echeance: string, maintenant: Date = new Date()): str
 }
 
 /**
- * The verdict, said from the invitee's side: this page is only ever read by the invitee.
- * A closed duel without a verdict is one nobody answered, so it expired.
+ * The verdict, said from the invitee's side: this page is only ever read by the invitee. On an
+ * expiry it says who stayed silent when it knows; a closed duel without a verdict is one nobody
+ * answered, so it expired.
  */
-export function texteVerdict(duel: IssueDuel): string {
-  if (duel.statut === 'expire' || duel.verdict === null) return fr.duel.expireTitre
+export function texteVerdict(
+  duel: IssueDuel,
+  detail: { autre: string | null; jaiParle: boolean | null } = { autre: null, jaiParle: null },
+): string {
+  if (duel.statut === 'expire' || duel.verdict === null) {
+    if (detail.jaiParle === true)
+      return detail.autre ? fr.duel.expireSansReponseDe(detail.autre) : fr.duel.expireSansReponse
+    if (detail.jaiParle === false) return fr.duel.expireSansMaReponse
+    return fr.duel.expireTitre
+  }
   if (duel.verdict === 'invite') return fr.duel.gagne
-  if (duel.verdict === 'inviteur') return fr.duel.perdu
+  if (duel.verdict === 'inviteur')
+    return detail.autre ? fr.duel.perduContre(detail.autre) : fr.duel.perdu
   // Both spoke and nothing could separate them. Saying « le délai est passé » here would blame a
   // silence that never happened.
   if (duel.verdict === 'sans_verdict') return fr.duel.sansVerdict

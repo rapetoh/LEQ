@@ -1031,6 +1031,74 @@ the debrief queued and written. **Build 27 is uploaded** (Organizer, 19:22 local
 strings in `packages/domaine/src/notifications.ts` left uncommitted by another session at that
 moment; not this change.
 
+## L'Arène s'écoute, le duel se lit, l'accueil célèbre (2026-09-18)
+
+Roch, on build 26, with Rebecca's second account in the Arena and one duel answered by the
+link: he could neither hear « Voix 2 » nor vote (« il n'y a rien à voter »), the duel screen
+said « À toi de parler » without saying who had joined or that she had already answered, the
+invitation was a bare URL with a copy button, and the home read below the mockup. All four
+were real, none was a wording problem, and each had the same cause: a screen written from the
+database's point of view instead of the person's.
+
+- **The Arena lets you hear the others once you have spoken.** The ranking carries the path of
+  every passage the caller may hear (`classement_arene` 2026-09-18: their own always, the
+  others' once they have spoken, chapter 11 unchanged), and every line plays. The pair vote needs
+  two other voices; with one, `paire_a_voter()` used to answer « rien à comparer » and the screen
+  said « Tu as tout écouté » to someone who had heard nothing. It now says how many other
+  voices there are, and the card says « Encore un passage, et les votes ouvrent » or « Ton
+  passage est le seul pour l'instant » instead of a gold button that leads nowhere. The header
+  says « 2 ont parlé », as the mockup's pill does.
+- **« Retirer » exists.** The card had promised « tu peux le retirer » since Phase 7 and nothing
+  did it. `retirer_ma_prise()`: the passage leaves the ranking, its audio goes at the next sweep,
+  and the person may publish another while the subject is open (the weekly unique index now
+  ignores withdrawn takes). `retiree_par` tells Rebecca's withdrawal from the person's own, so
+  the card no longer sends someone to Rebecca for a gesture they made themselves.
+- **The duel is read from the person's side.** `mes_duels()` answers, for each duel, who is on
+  the other side (name and picture), whether each side has spoken, what may be heard, how long
+  each take is, and once closed the measures of both. The duel screen shows two seats face to
+  face and one card for the state: the invitation to send (the phone's share sheet, with the
+  subject and the link in the message; the bare link stays one tap away), « À toi de parler »
+  with « Tu entendras la réponse de Rebecca après la tienne », the wait with the hours left, the
+  verdict with the winner's seat crowned, an expiry that says who stayed silent, and « Revanche,
+  même sujet ». The list rows say « Contre Rebecca », the subject, whose turn it is and the hours
+  left. « Défier un ami » is the subject alone; the duel's own screen takes over.
+- **No grid, no verdict, and the screen says so.** Every duel today closes `sans_verdict`
+  because no grid is published. The screen used to say « L'analyse n'a pas pu vous départager »,
+  which reads as a failure; it now says the grid is not in place yet and puts the three measures
+  of both takes side by side (counts, never a note). My decision, listed in docs/OPEN-INPUTS.md.
+- **The second answer closes the duel on the spot**, instead of up to fifteen minutes later by
+  the cron. And the two voices stay audible `duree_duel_heures` after the verdict: they used to be
+  marked for deletion at closing and gone within the half hour, before the inviter had opened
+  the app. Also my decision, in docs/OPEN-INPUTS.md.
+- **Both sides are told.** Nothing notified anyone about a duel. `notifier_duel` pushes the
+  inviter when someone joins, the other side when one answers, both at the verdict or the
+  expiry (social switch of chapter 12). The invitee who answered by the link gave an address
+  « pour te dire qui a gagné » and nothing ever wrote to it: the worker now sends that e-mail
+  through the Gmail account of the sign-in codes (nodemailer, `SMTP_*` on Fly). A tap on a push
+  opens the duel; the home shows the duel that waits for the person (« Rebecca a répondu à ton
+  duel · À toi de parler », or a fresh verdict), as the mockup's B1 draws it.
+- **The invitee page** names who is asking (« Roch te défie. »), shows a returning invitee the
+  verdict instead of « ce duel est terminé », with both takes to hear in the browser, and says
+  the same truth about a duel without a grid.
+- **The home**: the day's step, once done, is a bleu nuit celebration card (gold check, « Défi
+  du jour relevé », « Le suivant se débloque demain », the tier strip with « Enchaîner »)
+  instead of a pale card with two buttons; the week's subject is a gradient card with the day
+  ring, the subject in quotes and where the person stands in it (« Ton passage est en ligne ·
+  2 voix »); the duel banner above Rebecca's card. Roch put Gemini's rendering of the same
+  screen next to ours; what it did better was the weight of the done state and of the subject
+  card, and that is what changed, in our palette.
+
+Verified: pgTAP `arene.sql` 153 green against the hosted project inside one rolled-back
+transaction with the migration (the audible ranking, `autres`, the withdrawal by the person and
+by Rebecca, the two sides of `mes_duels()`, the queued notifications, the second answer closing
+the duel, the listening window); server 119 (the duel job: who hears what, the e-mail with the
+outcome in words, the expiry from each side); web 34 (the inviter's name, the returning
+invitee's verdict with two players, the grid sentence); mobile 94 (the duel lines in every
+state, the hours left, what the home points at, the done-state card); strings and lint green.
+Migration `20260918010000_arene_ecoutable_duels_lisibles` pushed. Fly deploy and build 28
+below. Not verified on a device: the share sheet and the push on a phone, which need the build;
+the e-mail to an anonymous invitee, which needs the next real duel by link.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

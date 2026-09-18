@@ -489,3 +489,22 @@ a {
 .erreur {
   color: var(--orange);
 }
+
+/* The two takes of a closed duel, the browser's own player on each. */
+.ecoutes {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.ecoute {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ecoute audio {
+  width: 100%;
+}

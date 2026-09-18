@@ -387,6 +387,81 @@ export async function listerJetonsPourResultatArene(
   return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
 }
 
+/** A duel as the notification job needs it: its two sides, who they are, who has spoken. */
+export interface DuelANotifier {
+  id: string
+  sujet: string
+  jeton: string
+  statut: string
+  verdict: string | null
+  inviteur_id: string
+  invite_id: string | null
+  inviteur_prenom: string | null
+  invite_prenom: string | null
+  invite_email: string | null
+  invite_anonyme: boolean
+  a_parle_inviteur: boolean
+  a_parle_invite: boolean
+}
+
+export async function lireDuelANotifier(
+  ex: Executeur,
+  duelId: string,
+): Promise<DuelANotifier | null> {
+  const { rows } = await ex.query(
+    `select d.id, d.sujet, d.jeton, d.statut, d.verdict, d.inviteur_id, d.invite_id,
+            pi.prenom as inviteur_prenom,
+            coalesce(nullif(btrim(coalesce(d.invite_prenom, '')), ''), pv.prenom) as invite_prenom,
+            d.invite_email,
+            coalesce(u.is_anonymous, false) as invite_anonyme,
+            exists (select 1 from public.prises_publiques p
+                     where p.duel_id = d.id and p.utilisateur_id = d.inviteur_id) as a_parle_inviteur,
+            exists (select 1 from public.prises_publiques p
+                     where p.duel_id = d.id and p.utilisateur_id = d.invite_id) as a_parle_invite
+       from public.duels d
+       left join public.profils pi on pi.id = d.inviteur_id
+       left join public.profils pv on pv.id = d.invite_id
+       left join auth.users u on u.id = d.invite_id
+      where d.id = $1`,
+    [duelId],
+  )
+  const r = rows[0]
+  if (!r) return null
+  return {
+    id: String(r['id']),
+    sujet: String(r['sujet']),
+    jeton: String(r['jeton']),
+    statut: String(r['statut']),
+    verdict: r['verdict'] === null || r['verdict'] === undefined ? null : String(r['verdict']),
+    inviteur_id: String(r['inviteur_id']),
+    invite_id:
+      r['invite_id'] === null || r['invite_id'] === undefined ? null : String(r['invite_id']),
+    inviteur_prenom: r['inviteur_prenom'] ? String(r['inviteur_prenom']) : null,
+    invite_prenom: r['invite_prenom'] ? String(r['invite_prenom']) : null,
+    invite_email: r['invite_email'] ? String(r['invite_email']) : null,
+    invite_anonyme: r['invite_anonyme'] === true,
+    a_parle_inviteur: r['a_parle_inviteur'] === true,
+    a_parle_invite: r['a_parle_invite'] === true,
+  }
+}
+
+/** Active tokens of one person who keeps the social events switch on (chapter 12). */
+export async function listerJetonsSociauxDe(
+  ex: Executeur,
+  utilisateurId: string,
+): Promise<JetonDestinataire[]> {
+  const { rows } = await ex.query(
+    `select j.id, j.jeton
+       from public.jetons_push j
+       join public.profils p on p.id = j.utilisateur_id
+      where j.utilisateur_id = $1 and j.desactive_le is null
+        and p.notif_social and p.suspendu_le is null
+      order by j.cree_le`,
+    [utilisateurId],
+  )
+  return rows.map((r) => ({ id: String(r['id']), jeton: String(r['jeton']) }))
+}
+
 /** Who owns a public take, or null when it is gone. */
 export async function lireProprietairePrisePublique(
   ex: Executeur,

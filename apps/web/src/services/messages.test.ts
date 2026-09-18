@@ -28,6 +28,18 @@ describe('texteVerdict', () => {
     expect(texteVerdict({ statut: 'expire', verdict: null })).toBe(fr.duel.expireTitre)
     expect(texteVerdict({ statut: 'clos', verdict: null })).toBe(fr.duel.expireTitre)
   })
+
+  it('says who stayed silent when it knows, and names the winner when it can', () => {
+    expect(
+      texteVerdict({ statut: 'expire', verdict: null }, { autre: 'Roch', jaiParle: true }),
+    ).toBe("Roch n'a pas répondu à temps.")
+    expect(
+      texteVerdict({ statut: 'expire', verdict: null }, { autre: null, jaiParle: false }),
+    ).toBe(fr.duel.expireSansMaReponse)
+    expect(
+      texteVerdict({ statut: 'clos', verdict: 'inviteur' }, { autre: 'Roch', jaiParle: true }),
+    ).toBe('Roch gagne.')
+  })
 })
 
 describe('the wording rules of decision 17', () => {

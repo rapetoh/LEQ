@@ -57,6 +57,8 @@ export const PrisePubliqueSchema = z.object({
   chemin_audio: z.string().nullable(),
   statut: StatutPrisePubliqueSchema,
   motif_retrait: z.string().nullable(),
+  /** Who withdrew it: the person themselves, or Rebecca. Null while it is not withdrawn. */
+  retiree_par: z.enum(['personne', 'admin']).nullable().default(null),
   votes_recus: z.int().min(0),
   date_suppression: IsoTimestampSchema.nullable(),
   audio_supprime_le: IsoTimestampSchema.nullable(),
@@ -109,9 +111,70 @@ export const DuelParJetonSchema = z.discriminatedUnion('raison', [
     c_est_moi: z.boolean().default(false),
     /** The caller sent this invitation. */
     c_est_mon_duel: z.boolean().default(false),
+    /** Who sent it, so the page says « Roch te défie » rather than « tu as été défié·e ». */
+    inviteur_prenom: z.string().nullable().default(null),
   }),
 ])
 export type DuelParJeton = z.output<typeof DuelParJetonSchema>
+
+/** The three measures the duel screen puts side by side once both have spoken. */
+export const MesuresDuelSchema = z.object({
+  mots_par_minute: z.number().nullable().default(null),
+  bequilles: z.int().nullable().default(null),
+  silences_tenus: z.int().nullable().default(null),
+})
+export type MesuresDuel = z.output<typeof MesuresDuelSchema>
+
+/**
+ * One side of a duel as `mes_duels()` answers it: whether that person has spoken, the path the
+ * caller may play (their own take while it exists, the other's once the duel is closed), the
+ * length of the take, and its measures once the duel is closed.
+ */
+export const CoteDuelSchema = z.object({
+  a_parle: z.boolean(),
+  prise_id: UuidSchema.nullable().default(null),
+  chemin_audio: z.string().nullable().default(null),
+  duree_s: z.number().nullable().default(null),
+  mesures: MesuresDuelSchema.nullable().default(null),
+})
+export type CoteDuel = z.output<typeof CoteDuelSchema>
+
+export const ROLES_DUEL = ['inviteur', 'invite'] as const
+export const RoleDuelSchema = z.enum(ROLES_DUEL)
+export type RoleDuel = z.infer<typeof RoleDuelSchema>
+
+/** A duel read by one of its two participants (`mes_duels()`, 2026-09-18). */
+export const DuelVueSchema = z.object({
+  id: UuidSchema,
+  sujet: z.string().min(1),
+  statut: StatutDuelSchema,
+  verdict: VerdictDuelSchema.nullable(),
+  echeance: IsoTimestampSchema,
+  cree_le: IsoTimestampSchema,
+  clos_le: IsoTimestampSchema.nullable(),
+  duree_max_s: z.int().positive(),
+  role: RoleDuelSchema,
+  /** The invitation token, given to the inviter only, to share the link again. */
+  jeton: z.string().nullable().default(null),
+  /** Null until someone joins. */
+  adversaire: z
+    .object({ prenom: z.string().nullable(), avatar: z.string().nullable() })
+    .nullable()
+    .default(null),
+  moi: CoteDuelSchema,
+  lui: CoteDuelSchema,
+})
+export type DuelVue = z.output<typeof DuelVueSchema>
+
+/** The outcome of a duel as read by one side; `null` while it is open or without verdict. */
+export function issueDuel(
+  duel: Pick<DuelVue, 'statut' | 'verdict' | 'role'>,
+): 'gagne' | 'perdu' | 'egalite' | 'sans_verdict' | null {
+  if (duel.statut !== 'clos' || duel.verdict === null) return null
+  if (duel.verdict === 'egalite') return 'egalite'
+  if (duel.verdict === 'sans_verdict') return 'sans_verdict'
+  return duel.verdict === duel.role ? 'gagne' : 'perdu'
+}
 
 /** `assez_ecoute`: six takes heard today. A listening limit, never a limit on who may speak. */
 export const RAISONS_PAIRE = [
@@ -128,13 +191,14 @@ export type RaisonPaire = z.infer<typeof RaisonPaireSchema>
 export const PaireAVoterSchema = z.discriminatedUnion('raison', [
   z.object({ raison: z.literal('aucun_sujet') }),
   z.object({ raison: z.literal('parle_d_abord') }),
-  z.object({ raison: z.literal('rien_a_comparer') }),
+  /** `autres`: how many other published voices there are at all (0, 1, or every pair voted). */
+  z.object({ raison: z.literal('rien_a_comparer'), autres: z.int().min(0).default(0) }),
   z.object({ raison: z.literal('assez_ecoute') }),
   z.object({
     raison: z.literal('ok'),
     sujet: z.object({ id: UuidSchema, texte: z.string(), consigne: z.string().nullable() }),
-    a: z.object({ id: UuidSchema }),
-    b: z.object({ id: UuidSchema }),
+    a: z.object({ id: UuidSchema, duree_s: z.number().nullable().default(null) }),
+    b: z.object({ id: UuidSchema, duree_s: z.number().nullable().default(null) }),
   }),
 ])
 export type PaireAVoter = z.output<typeof PaireAVoterSchema>
@@ -149,6 +213,10 @@ export const LigneClassementSchema = z.object({
   pseudonyme: z.boolean().default(false),
   /** Path in the `avatars` bucket, only where the name is shown. */
   avatar: z.string().nullable().default(null),
+  /** Length of the passage, in seconds. */
+  duree_s: z.number().nullable().default(null),
+  /** Path in `audio-public`, only when the caller may hear it: their own, the others' once they have spoken. */
+  chemin_audio: z.string().nullable().default(null),
 })
 export type LigneClassement = z.output<typeof LigneClassementSchema>
 
@@ -180,6 +248,7 @@ export const REFUS_ARENE = [
   'sujet_requis',
   'prenom_requis',
   'email_requis',
+  'sujet_ferme',
 ] as const
 export type RefusArene = (typeof REFUS_ARENE)[number]
 

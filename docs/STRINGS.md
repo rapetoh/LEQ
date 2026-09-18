@@ -317,5 +317,6 @@ envoie-nous ceci :" above the value.
 
 - A2 "Ta voix reste à toi." block (three promises).
 - G3 "Ta voix n'est pas conservée" block, which is the cahier's reference sentence: "Chaque prise est analysée puis effacée, seuls tes résultats restent. Exception : une prise d'Arène ou de duel, le temps du concours."
-- C1 and C5 "Ta prise reste en ligne le temps du sujet, puis elle est supprimée." and the duel equivalent.
+- C1 and C5 "Ta prise reste en ligne le temps du sujet, puis elle est supprimée." and the duel equivalent. Since 2026-09-18 « le temps du duel » includes `duree_duel_heures` after the verdict, so that each side can hear the other; the sentence is unchanged and the lawyer should know what it covers.
+- The e-mail an invitee without the app receives at the end of a duel (`courrielDuelTermine` in `packages/domaine/src/notifications.ts`).
 - The privacy and terms pages in `apps/web`.

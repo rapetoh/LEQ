@@ -13,11 +13,14 @@ import {
   estStatutTentativeFinal,
   lireIssue,
   lireInvitation,
+  lireMonDuel,
   messageRefus,
   publier,
   rejoindre,
   envoyerPrise,
   lireStatutTentative,
+  urlSignee,
+  type DuelVue,
   type IssueDuel,
 } from '../services/duel'
 import {
@@ -34,7 +37,13 @@ import {
  * says what becomes of the voice at the moment it is sent, not only in the terms.
  */
 
-type Invitation = { id: string; sujet: string; dureeMaxS: number; echeance: string }
+type Invitation = {
+  id: string
+  sujet: string
+  dureeMaxS: number
+  echeance: string
+  inviteurPrenom: string | null
+}
 
 type Etat =
   | { phase: 'chargement' }
@@ -56,7 +65,8 @@ type Etat =
       reprise: { invitation: Invitation; duelId: string; prise: PriseEnregistree } | null
     }
   | { phase: 'attente'; duelId: string }
-  | { phase: 'verdict'; issue: IssueDuel }
+  /** `duel` carries the two takes to hear and who was on the other side; null when unreadable. */
+  | { phase: 'verdict'; issue: IssueDuel; duel: DuelVue | null }
   | { phase: 'message'; titre: string; detail: string }
 
 const INTERVALLE_ANALYSE_MS = 3_000
@@ -108,6 +118,18 @@ export function Duel() {
           })
           return
         }
+        // The person who answered comes back to a duel that has ended: the verdict is theirs to
+        // read, with the two takes to hear, on the same browser that holds their session.
+        if (reponse.c_est_moi && reponse.statut !== 'ouvert') {
+          const duel = await lireMonDuel(reponse.id).catch(() => null)
+          if (!vivant) return
+          setEtat({
+            phase: 'verdict',
+            issue: { statut: reponse.statut, verdict: duel?.verdict ?? null },
+            duel,
+          })
+          return
+        }
         if (reponse.statut === 'clos') {
           setEtat({ phase: 'message', titre: fr.duel.closTitre, detail: fr.duel.closDetail })
           return
@@ -127,6 +149,15 @@ export function Duel() {
           setEtat({ phase: 'message', titre: fr.duel.completTitre, detail: fr.duel.completDetail })
           return
         }
+        // Back after having answered: nothing to record again, the wait for the other side.
+        if (reponse.c_est_moi) {
+          const duel = await lireMonDuel(reponse.id).catch(() => null)
+          if (!vivant) return
+          if (duel?.moi.a_parle) {
+            setEtat({ phase: 'attente', duelId: reponse.id })
+            return
+          }
+        }
         setEtat({
           phase: 'invitation',
           invitation: {
@@ -134,6 +165,7 @@ export function Duel() {
             sujet: reponse.sujet,
             dureeMaxS: reponse.duree_max_s,
             echeance: reponse.echeance,
+            inviteurPrenom: reponse.inviteur_prenom ?? null,
           },
         })
       } catch (erreur) {
@@ -274,7 +306,9 @@ export function Duel() {
     const regarder = async () => {
       try {
         const issue = await lireIssue(duelId)
-        if (vivant && issue.statut !== 'ouvert') setEtat({ phase: 'verdict', issue })
+        if (!vivant || issue.statut === 'ouvert') return
+        const duel = await lireMonDuel(duelId).catch(() => null)
+        if (vivant) setEtat({ phase: 'verdict', issue, duel })
       } catch (erreur) {
         console.warn('duel: lecture du verdict impossible', erreur)
       }
@@ -313,7 +347,11 @@ export function Duel() {
             <Bulle taille={96} visage="parle" />
             <p className="surtitre">{fr.duel.surtitre}</p>
           </div>
-          <h1>{fr.duel.titre}</h1>
+          <h1>
+            {etat.invitation.inviteurPrenom
+              ? fr.duel.titreDe(etat.invitation.inviteurPrenom)
+              : fr.duel.titre}
+          </h1>
           <p className="corps">{fr.duel.intro}</p>
 
           <section className="carte carte-sujet">
@@ -438,17 +476,64 @@ export function Duel() {
       {etat.phase === 'verdict' ? (
         <Centre>
           <Bulle taille={96} visage={etat.issue.verdict === 'invite' ? 'parle' : 'sourit'} calme />
-          <p className="surtitre">{fr.duel.verdictTitre}</p>
+          <p className="surtitre">
+            {etat.duel?.adversaire?.prenom
+              ? fr.duel.verdictContre(etat.duel.adversaire.prenom)
+              : fr.duel.verdictTitre}
+          </p>
           <div className="verdict">
             <h1 className={etat.issue.verdict === 'invite' ? 'verdict-gagne' : undefined}>
-              {texteVerdict(etat.issue)}
+              {texteVerdict(etat.issue, {
+                autre: etat.duel?.adversaire?.prenom ?? null,
+                jaiParle: etat.duel ? etat.duel.moi.a_parle : null,
+              })}
             </h1>
             <p className="petit">{fr.duel.verdictDetail}</p>
           </div>
+          {etat.duel && (etat.duel.moi.chemin_audio || etat.duel.lui.chemin_audio) ? (
+            <section className="carte ecoutes">
+              {etat.duel.moi.chemin_audio ? (
+                <Lecteur libelle={fr.duel.maReponse} chemin={etat.duel.moi.chemin_audio} />
+              ) : null}
+              {etat.duel.lui.chemin_audio ? (
+                <Lecteur
+                  libelle={
+                    etat.duel.adversaire?.prenom
+                      ? fr.duel.saReponseDe(etat.duel.adversaire.prenom)
+                      : fr.duel.saReponse
+                  }
+                  chemin={etat.duel.lui.chemin_audio}
+                />
+              ) : null}
+              <p className="petit">{fr.duel.ecoutes}</p>
+            </section>
+          ) : null}
           <PiedApplication />
         </Centre>
       ) : null}
     </main>
+  )
+}
+
+/** One take to hear: the browser's own player on a signed URL the storage policy grants. */
+function Lecteur({ libelle, chemin }: { libelle: string; chemin: string }) {
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let vivant = true
+    urlSignee(chemin)
+      .then((signee) => {
+        if (vivant) setUrl(signee)
+      })
+      .catch((erreur: unknown) => console.warn('duel: lecture impossible', erreur))
+    return () => {
+      vivant = false
+    }
+  }, [chemin])
+  return (
+    <div className="ecoute">
+      <p className="champ-libelle">{libelle}</p>
+      {url ? <audio controls preload="none" src={url} aria-label={libelle} /> : null}
+    </div>
   )
 }
 

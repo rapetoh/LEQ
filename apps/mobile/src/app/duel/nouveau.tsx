@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query'
-import * as Clipboard from 'expo-clipboard'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
@@ -11,16 +10,12 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { creerDuel, invaliderArene, messageRefus } from '@/services/arene'
 import { compter } from '@/services/usage'
-import { lienInvitationDuel } from '@leq/domaine'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons, typographie } from '@/theme/tokens'
 
-// C5 · Défier un ami. The subject, then the link. The person answers within 48 hours, alone,
-// and the link works even without the app. Rebecca's bank of subjects arrives with her.
-
-// Where the public pages live. Today that is the Fly process that serves apps/web; Phase 9
-// points EXPO_PUBLIC_LIEN_DUEL at the real domain, and nothing else changes.
-const BASE_LIEN = process.env.EXPO_PUBLIC_LIEN_DUEL ?? 'https://leq-serveur.fly.dev'
+// C5 · Défier un ami. The subject, and the duel exists: its own screen then carries the
+// invitation to send, the seat that waits, and the person's own take. Rebecca's bank of
+// subjects arrives with her.
 
 export default function NouveauDuel() {
   const theme = useTheme()
@@ -28,7 +23,6 @@ export default function NouveauDuel() {
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
   const [sujet, setSujet] = useState('')
-  const [lien, setLien] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
 
@@ -37,84 +31,61 @@ export default function NouveauDuel() {
     setMessage(null)
     try {
       const duel = await creerDuel(sujet.trim())
-      setLien(lienInvitationDuel(BASE_LIEN, duel.jeton))
       compter('duel_cree')
       invaliderArene(clientRequetes)
+      router.replace(`/duel/${duel.id}`)
     } catch (erreur) {
       setMessage(messageRefus(erreur))
-    } finally {
       setEnvoi(false)
     }
   }
 
   return (
     <ScrollView
+      keyboardShouldPersistTaps="handled"
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[
         styles.contenu,
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Titre niveau="ecran">{t('arene.defier')}</Titre>
+      <Text style={[typographie.etiquette, { color: theme.texteTertiaire }]}>
+        {t('duel.surtitre')}
+      </Text>
+      <Titre niveau="ecran">{t('duel.nouveauTitre')}</Titre>
 
-      {lien === null ? (
-        <>
-          <Carte style={styles.bloc}>
-            <Text style={[typographie.corpsFort, { color: theme.texte }]}>
-              {t('arene.duelSujet')}
-            </Text>
-            <TextInput
-              accessibilityLabel={t('arene.duelSujet')}
-              value={sujet}
-              onChangeText={setSujet}
-              multiline
-              placeholder={t('arene.duelSujetAide')}
-              placeholderTextColor={theme.texteTertiaire}
-              style={[
-                typographie.corps,
-                styles.champ,
-                { color: theme.texte, borderColor: theme.bordure },
-              ]}
-            />
-            <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-              {t('arene.duelDelai')}
-            </Text>
-          </Carte>
-          <Bouton
-            libelle={t('arene.duelCreer')}
-            desactive={sujet.trim().length === 0}
-            chargement={envoi}
-            onPress={() => void creer()}
-          />
-        </>
-      ) : (
-        <Carte teinte="voix" style={styles.bloc}>
-          <Text style={[typographie.corpsFort, { color: theme.texte }]}>{t('arene.duelLien')}</Text>
-          <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{lien}</Text>
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-            {t('arene.duelLienAide')}
-          </Text>
-          <Bouton
-            libelle={t('arene.duelCopier')}
-            onPress={() => {
-              void Clipboard.setStringAsync(lien).then(() => setMessage(t('arene.duelCopie')))
-            }}
-          />
-        </Carte>
-      )}
-
-      {message ? (
-        <Text style={[typographie.corps, styles.centre, { color: theme.texteSecondaire }]}>
-          {message}
+      <Carte style={styles.bloc}>
+        <Text style={[typographie.corpsFort, { color: theme.texte }]}>{t('duel.sujetTitre')}</Text>
+        <TextInput
+          accessibilityLabel={t('duel.sujetTitre')}
+          value={sujet}
+          onChangeText={setSujet}
+          multiline
+          autoFocus
+          placeholder={t('duel.sujetExemple')}
+          placeholderTextColor={theme.texteTertiaire}
+          style={[
+            typographie.corps,
+            styles.champ,
+            { color: theme.texte, borderColor: theme.bordure, backgroundColor: theme.fond },
+          ]}
+        />
+        <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          {t('duel.sujetAide')}
         </Text>
+      </Carte>
+      <Bouton
+        libelle={t('duel.creer')}
+        desactive={sujet.trim().length === 0}
+        chargement={envoi}
+        onPress={() => void creer()}
+      />
+      {message ? (
+        <Text style={[typographie.corps, styles.centre, { color: theme.erreur }]}>{message}</Text>
       ) : null}
 
       <View style={styles.actions}>
-        <Bouton
-          libelle={lien === null ? t('commun.retour') : t('commun.fermer')}
-          variante="texte"
-          onPress={() => router.back()}
-        />
+        <Bouton libelle={t('commun.retour')} variante="texte" onPress={() => router.back()} />
       </View>
     </ScrollView>
   )
@@ -123,7 +94,7 @@ export default function NouveauDuel() {
 const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.m },
   bloc: { gap: espaces.s },
-  champ: { borderWidth: 1, borderRadius: rayons.l, padding: espaces.m, minHeight: 88 },
+  champ: { borderWidth: 1, borderRadius: rayons.l, padding: espaces.m, minHeight: 96 },
   centre: { textAlign: 'center' },
   actions: { marginTop: 'auto', paddingTop: espaces.l },
 })

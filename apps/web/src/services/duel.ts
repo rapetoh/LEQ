@@ -7,16 +7,19 @@
  * speaks, so a refusal is said before ninety seconds of effort, not after.
  */
 import {
+  BUCKET_AUDIO_PUBLIC,
   BUCKET_AUDIO_TENTATIVES,
   cheminAudioTentative,
   DuelParJetonSchema,
   DuelSchema,
+  DuelVueSchema,
   estStatutTentativeFinal,
   lireRefusArene,
   NouvelleTentativeSchema,
   StatutTentativeSchema,
   type Duel,
   type DuelParJeton,
+  type DuelVue,
   type RefusArene,
   type StatutTentative,
 } from '@leq/domaine'
@@ -26,7 +29,7 @@ import { fr } from '../fr'
 import { connecterAnonymement, supabase } from '../supabase'
 import type { PriseEnregistree } from './enregistrement'
 
-export type { Duel, DuelParJeton }
+export type { Duel, DuelParJeton, DuelVue }
 
 export class ErreurDuel extends Error {
   constructor(
@@ -100,6 +103,26 @@ export async function lireIssue(duelId: string): Promise<IssueDuel> {
     .single()
   if (error) echouer(error.message)
   return IssueDuelSchema.parse(data)
+}
+
+/**
+ * The duel as this invitee may read it once the seat is theirs: who invited them, whether each
+ * side has spoken, and once it is closed the two takes to listen to. Same anonymous session.
+ */
+export async function lireMonDuel(duelId: string): Promise<DuelVue | null> {
+  const { data, error } = await supabase.rpc('mes_duels')
+  if (error) echouer(error.message)
+  const duels = z.array(DuelVueSchema).parse(data ?? [])
+  return duels.find((d) => d.id === duelId) ?? null
+}
+
+/** A one-hour signed URL on a public take the storage policy lets this person read. */
+export async function urlSignee(chemin: string): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_AUDIO_PUBLIC)
+    .createSignedUrl(chemin, 60 * 60)
+  if (error || !data?.signedUrl) echouer(error?.message ?? 'URL indisponible')
+  return data.signedUrl
 }
 
 /**

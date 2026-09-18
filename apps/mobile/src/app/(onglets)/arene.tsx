@@ -1,7 +1,8 @@
+import type { DuelVue, LigneClassement } from '@leq/domaine'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { Avatar } from '@/components/Avatar'
 import { PorteCompte } from '@/components/PorteCompte'
@@ -15,26 +16,32 @@ import { Icone } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import {
+  invaliderArene,
   jourDuSujet,
+  messageRefus,
+  retirerMaPrise,
   useClassement,
   useDernierSujetClos,
-  useDuels,
   useMaPrise,
+  useMesDuels,
   useSujet,
 } from '@/services/arene'
 import { useActualisation } from '@/services/actualisation'
 import { useEstAnonyme, versCompte } from '@/services/compte'
 import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
+import { dureeCourte } from '@/services/delai'
+import { ligneEtat, titreLigne } from '@/services/duelVue'
 import { minutesDe } from '@/services/rythme'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { urlAvatar } from '@/services/photo'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
-// C1 to C4 · L'Arène. Two toggles at the top: the subject of the moment, and the duels. The
-// subject runs seven days: you speak, you listen, you vote. The others stay veiled until you
-// have spoken yourself. The duels are private and their verdict comes from the analysis.
+// C1 to C4 · L'Arène. Three toggles at the top: the subject of the moment, the duels, the
+// face-à-face. The subject runs seven days: you speak, then you hear the others and you vote.
+// The others stay veiled until you have spoken yourself. The duels are private and their
+// verdict comes from the analysis.
 
 type Onglet = 'sujet' | 'duels' | 'face'
 
@@ -44,8 +51,6 @@ export default function Arene() {
   const espaceBarre = useEspaceBarreOnglets()
   const drapeaux = useDrapeaux()
   const duelsActifs = drapeaux.data?.duels === true
-  // The face-à-face used to live under « Moi · mon profil d'orateur », where nobody thinks to
-  // look for a debate. It belongs here, next to the other two ways of speaking against someone.
   const faceActif = drapeaux.data?.face_a_face === true
   const onglets: Onglet[] = [
     'sujet',
@@ -53,6 +58,20 @@ export default function Arene() {
     ...(faceActif ? (['face'] as const) : []),
   ]
   const [onglet, setOnglet] = useState<Onglet>('sujet')
+  const classement = useClassement()
+  const duels = useMesDuels(duelsActifs)
+  const orateurs = classement.data?.classement.length ?? 0
+  const duelsEnCours = (duels.data ?? []).filter((d) => d.statut === 'ouvert').length
+  const pastille =
+    onglet === 'sujet' && orateurs > 0
+      ? orateurs === 1
+        ? t('arene.orateurUn')
+        : t('arene.orateurs', { nombre: orateurs })
+      : onglet === 'duels' && duelsEnCours > 0
+        ? duelsEnCours === 1
+          ? t('duel.enCoursUn')
+          : t('duel.enCours', { n: duelsEnCours })
+        : null
 
   return (
     <ScrollView
@@ -66,7 +85,17 @@ export default function Arene() {
       style={{ backgroundColor: theme.fond }}
       contentContainerStyle={[styles.contenu, { paddingBottom: espaceBarre }]}
     >
-      <EnteteEcran titre={t('arene.titre')} />
+      <EnteteEcran
+        titre={t('arene.titre')}
+        droite={
+          pastille ? (
+            <View style={[styles.pastille, { backgroundColor: theme.accentDoux }]}>
+              <View style={[styles.point, { backgroundColor: couleurs.orange }]} />
+              <Text style={[styles.pastilleTexte, { color: couleurs.rouge }]}>{pastille}</Text>
+            </View>
+          ) : undefined
+        }
+      />
       <View style={styles.sections}>
         {onglets.length > 1 ? (
           <View
@@ -115,35 +144,60 @@ export default function Arene() {
   )
 }
 
+type Ecoute = { prise: string; etat: 'chargement' | 'lecture' } | null
+
 /** C1, C2, C3: the subject, then what you can do with it depending on whether you have spoken. */
 function Sujet() {
   const theme = useTheme()
   const router = useRouter()
+  const clientRequetes = useQueryClient()
   const configuration = useConfiguration()
   const sujet = useSujet()
   const maPrise = useMaPrise(sujet.data?.id ?? null)
   const anonyme = useEstAnonyme()
-  // Listening to one's own passage: the same player as the votes, on the same signed URL. One
-  // control plays and stops; while the take is decoding it says so and takes no second tap.
-  const [ecoute, setEcoute] = useState<'inactif' | 'chargement' | 'lecture'>('inactif')
+  const classement = useClassement()
+  // One player for the whole tab: a tap plays or stops, and a take still decoding takes no
+  // second tap. The same control sits on the hero and on every line the person may hear.
+  const [ecoute, setEcoute] = useState<Ecoute>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [retrait, setRetrait] = useState(false)
   useEffect(() => () => lecteur.arreter(), [])
-  const ecouterMonPassage = async (chemin: string) => {
-    if (ecoute === 'chargement') return
-    if (ecoute === 'lecture') {
+  const ecouter = async (priseId: string, chemin: string) => {
+    if (ecoute?.prise === priseId) {
+      if (ecoute.etat === 'chargement') return
       lecteur.arreter()
-      setEcoute('inactif')
+      setEcoute(null)
       return
     }
-    setEcoute('chargement')
+    setMessage(null)
+    setEcoute({ prise: priseId, etat: 'chargement' })
     try {
-      await lecteur.jouer(await urlSignee(chemin), () => setEcoute('inactif'))
-      setEcoute('lecture')
+      await lecteur.jouer(await urlSignee(chemin), () => setEcoute(null))
+      setEcoute({ prise: priseId, etat: 'lecture' })
     } catch (erreur) {
       console.warn('arène: lecture impossible', erreur)
-      setEcoute('inactif')
+      setEcoute(null)
+      setMessage(t('arene.lectureEchouee'))
     }
   }
-  const classement = useClassement()
+  const retirer = (priseId: string) => {
+    Alert.alert(t('arene.retirerTitre'), t('arene.retirerCorps'), [
+      { text: t('arene.retirerGarder'), style: 'cancel' },
+      {
+        text: t('arene.retirerConfirmer'),
+        style: 'destructive',
+        onPress: () => {
+          setRetrait(true)
+          lecteur.arreter()
+          setEcoute(null)
+          void retirerMaPrise(priseId)
+            .then(() => invaliderArene(clientRequetes))
+            .catch((erreur: unknown) => setMessage(messageRefus(erreur)))
+            .finally(() => setRetrait(false))
+        },
+      },
+    ])
+  }
   const jours = configuration.data?.duree_sujet_arene_jours ?? 7
   const points = configuration.data?.points_par_vote ?? 5
 
@@ -167,10 +221,14 @@ function Sujet() {
     )
   }
 
-  const parle = maPrise.data !== null && maPrise.data !== undefined
+  const prise = maPrise.data ?? null
+  const parle = prise !== null
   const lignes = classement.data?.classement ?? []
-  const audible = Boolean(maPrise.data?.chemin_audio) && !maPrise.data?.audio_supprime_le
-  const dansLeClassement = lignes.some((ligne) => ligne.moi)
+  const mienne = lignes.find((ligne) => ligne.moi) ?? null
+  const autres = lignes.filter((ligne) => !ligne.moi).length
+  const audible = Boolean(prise?.chemin_audio) && !prise?.audio_supprime_le
+  const votesOuverts = parle && prise.statut === 'publiee' && autres >= 2
+  const dureeMienne = dureeCourte(mienne?.duree_s)
 
   return (
     <>
@@ -178,13 +236,15 @@ function Sujet() {
         <View style={styles.hero}>
           <Degrade de={couleurs.bleu} a={couleurs.bleuNuit} rayon={26} id="arene" />
           <View style={styles.ligne}>
-            <Text style={[styles.heroEtiquette, { flex: 1 }]}>{t('arene.sujetSemaine')}</Text>
+            <Text style={[styles.heroEtiquette, { flex: 1 }]}>
+              {votesOuverts ? t('arene.votesOuverts') : t('arene.sujetSemaine')}
+            </Text>
             <Text style={styles.heroEtiquette}>
               {t('arene.jour', { jour: jourDuSujet(sujet.data, jours), total: jours })}
             </Text>
           </View>
           <Text style={styles.heroTitre}>{sujet.data.texte}</Text>
-          {sujet.data.consigne ? (
+          {sujet.data.consigne && !parle ? (
             <Text style={[styles.heroCorps, { color: couleurs.encre3 }]}>
               {sujet.data.consigne}
             </Text>
@@ -205,102 +265,101 @@ function Sujet() {
           ) : (
             <>
               <View style={styles.heroEtat}>
-                <Text style={[styles.libelleEtat, { color: couleurs.blanc }]}>
-                  {maPrise.data?.statut === 'publiee'
-                    ? t('arene.passageDedans')
-                    : maPrise.data?.statut === 'retiree'
-                      ? t('arene.passageRetire')
-                      : t('arene.signalee')}
-                </Text>
-                <Text style={[styles.heroCorps, { color: couleurs.encre3 }]}>
-                  {maPrise.data?.statut === 'publiee'
-                    ? t('arene.passageDetail')
-                    : maPrise.data?.statut === 'retiree'
+                <View style={styles.ligne}>
+                  {prise.statut === 'publiee' ? (
+                    <View style={styles.coche}>
+                      <Icone
+                        sf="checkmark"
+                        material="check"
+                        taille={12}
+                        couleur={couleurs.bleuNuit}
+                      />
+                    </View>
+                  ) : null}
+                  <Text style={[styles.libelleEtat, { color: couleurs.or, flex: 1 }]}>
+                    {prise.statut === 'publiee'
+                      ? t('arene.passageDedans')
+                      : prise.statut === 'retiree'
+                        ? t('arene.passageRetire')
+                        : t('arene.signalee')}
+                  </Text>
+                  {dureeMienne ? <Text style={styles.heroDuree}>{dureeMienne}</Text> : null}
+                </View>
+                {prise.statut !== 'publiee' ? (
+                  <Text style={[styles.heroCorps, { color: couleurs.encre3 }]}>
+                    {prise.statut === 'retiree'
                       ? t('arene.passageRetireDetail')
                       : t('arene.signaleeDetail')}
-                </Text>
+                  </Text>
+                ) : null}
               </View>
-              {audible && !dansLeClassement ? (
-                <Bouton
-                  variante="secondaire"
-                  surFondSombre
-                  libelle={
-                    ecoute === 'lecture'
-                      ? t('arene.arreter')
-                      : ecoute === 'chargement'
-                        ? t('commun.chargement')
-                        : t('arene.ecouterMonPassage')
-                  }
-                  onPress={() => void ecouterMonPassage(maPrise.data!.chemin_audio!)}
-                />
+              {prise.statut !== 'retiree' ? (
+                <View style={styles.rangee}>
+                  {audible ? (
+                    <Bouton
+                      variante="secondaire"
+                      surFondSombre
+                      style={{ flex: 1 }}
+                      libelle={
+                        ecoute?.prise === prise.id
+                          ? ecoute.etat === 'chargement'
+                            ? t('commun.chargement')
+                            : t('arene.arreter')
+                          : t('arene.reecouter')
+                      }
+                      onPress={() => void ecouter(prise.id, prise.chemin_audio!)}
+                    />
+                  ) : null}
+                  <Bouton
+                    variante="secondaire"
+                    surFondSombre
+                    style={{ flex: 1 }}
+                    libelle={t('arene.retirer')}
+                    chargement={retrait}
+                    onPress={() => retirer(prise.id)}
+                  />
+                </View>
               ) : null}
-              <Bouton
-                variante="or"
-                libelle={t('arene.ecouterEtVoter', { points })}
-                onPress={() => router.push('/arene/voter')}
-              />
+              {prise.statut === 'publiee' ? (
+                votesOuverts ? (
+                  <Bouton
+                    variante="or"
+                    libelle={t('arene.ecouterEtVoter', { points })}
+                    onPress={() => router.push('/arene/voter')}
+                  />
+                ) : (
+                  <Text style={styles.heroNote}>
+                    {autres === 0 ? t('arene.seulPassage') : t('arene.encoreUnPassage')}
+                  </Text>
+                )
+              ) : null}
             </>
           )}
         </View>
       </View>
+
+      {message ? (
+        <Text style={[typographie.petit, { color: theme.texteSecondaire, textAlign: 'center' }]}>
+          {message}
+        </Text>
+      ) : null}
 
       {lignes.length > 0 ? (
         <View style={styles.section}>
           <Titre niveau="section">{t('arene.classement')}</Titre>
           <Carte style={styles.liste}>
             {lignes.map((ligne, index) => (
-              <View
+              <LigneClassementVue
                 key={ligne.prise_id}
-                style={[
-                  styles.ligne,
-                  styles.lignePadding,
-                  index > 0 && {
-                    borderTopWidth: StyleSheet.hairlineWidth,
-                    borderTopColor: theme.bordure,
-                  },
-                ]}
-              >
-                <Rang rang={ligne.rang} />
-                <Avatar
-                  prenom={ligne.pseudonyme ? null : ligne.nom}
-                  uri={urlAvatar(ligne.avatar)}
-                  taille={36}
-                />
-                <View style={styles.ligneTexte}>
-                  <Text style={[styles.nomLigne, { color: theme.texte }]} numberOfLines={1}>
-                    {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
-                  </Text>
-                  <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
-                    {ligne.votes === 1
-                      ? t('arene.voteUn')
-                      : t('arene.votes', { votes: ligne.votes })}
-                  </Text>
-                </View>
-                {ligne.moi && audible ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      ecoute === 'lecture' ? t('arene.arreter') : t('arene.ecouterMonPassage')
-                    }
-                    accessibilityState={{ busy: ecoute === 'chargement' }}
-                    onPress={() => void ecouterMonPassage(maPrise.data!.chemin_audio!)}
-                    hitSlop={8}
-                    style={({ pressed }) => [
-                      styles.lecture,
-                      { backgroundColor: ecoute === 'lecture' ? theme.texte : theme.lien },
-                      pressed && { opacity: 0.85 },
-                      ecoute === 'chargement' && { opacity: 0.6 },
-                    ]}
-                  >
-                    <Icone
-                      sf={ecoute === 'lecture' ? 'stop.fill' : 'play.fill'}
-                      material={ecoute === 'lecture' ? 'stop' : 'play-arrow'}
-                      taille={ecoute === 'lecture' ? 14 : 16}
-                      couleur={couleurs.blanc}
-                    />
-                  </Pressable>
-                ) : null}
-              </View>
+                ligne={ligne}
+                premiere={index === 0}
+                ecoute={ecoute}
+                onEcouter={
+                  ligne.chemin_audio
+                    ? () => void ecouter(ligne.prise_id, ligne.chemin_audio!)
+                    : null
+                }
+              />
             ))}
           </Carte>
         </View>
@@ -308,6 +367,79 @@ function Sujet() {
 
       <PodiumPasse />
     </>
+  )
+}
+
+/** One line of the ranking: the rank, the person, the votes, and the passage to hear. */
+function LigneClassementVue({
+  ligne,
+  premiere,
+  ecoute,
+  onEcouter,
+}: {
+  ligne: LigneClassement
+  premiere: boolean
+  ecoute: Ecoute
+  onEcouter: (() => void) | null
+}) {
+  const theme = useTheme()
+  const enLecture = ecoute?.prise === ligne.prise_id
+  const duree = dureeCourte(ligne.duree_s)
+  const detail = [
+    ligne.votes === 1 ? t('arene.voteUn') : t('arene.votes', { votes: ligne.votes }),
+    duree,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  return (
+    <View
+      style={[
+        styles.ligne,
+        styles.lignePadding,
+        !premiere && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.bordure },
+      ]}
+    >
+      <Rang rang={ligne.rang} />
+      <Avatar
+        prenom={ligne.pseudonyme ? null : ligne.nom}
+        uri={urlAvatar(ligne.avatar)}
+        taille={36}
+      />
+      <View style={styles.ligneTexte}>
+        <Text style={[styles.nomLigne, { color: theme.texte }]} numberOfLines={1}>
+          {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
+        </Text>
+        <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{detail}</Text>
+      </View>
+      {onEcouter ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            enLecture
+              ? t('arene.arreter')
+              : ligne.moi
+                ? t('arene.ecouterMonPassage')
+                : t('arene.ecouterPassage')
+          }
+          accessibilityState={{ busy: enLecture && ecoute?.etat === 'chargement' }}
+          onPress={onEcouter}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.lecture,
+            { backgroundColor: enLecture ? theme.texte : theme.lien },
+            pressed && { opacity: 0.85 },
+            enLecture && ecoute?.etat === 'chargement' && { opacity: 0.6 },
+          ]}
+        >
+          <Icone
+            sf={enLecture && ecoute?.etat === 'lecture' ? 'stop.fill' : 'play.fill'}
+            material={enLecture && ecoute?.etat === 'lecture' ? 'stop' : 'play-arrow'}
+            taille={enLecture ? 14 : 16}
+            couleur={couleurs.blanc}
+          />
+        </Pressable>
+      ) : null}
+    </View>
   )
 }
 
@@ -360,7 +492,6 @@ function PodiumPasse() {
   )
 }
 
-/** C4: the duels in progress and the finished ones. */
 /** The door to the face-à-face, where people actually look for it. E0's own screen prepares it. */
 function PorteFaceAFace() {
   const theme = useTheme()
@@ -396,13 +527,12 @@ function PorteFaceAFace() {
   )
 }
 
+/** C4: the duels in progress and the finished ones, each with the person on the other side. */
 function Duels() {
   const theme = useTheme()
   const anonyme = useEstAnonyme()
   const router = useRouter()
-  const clientRequetes = useQueryClient()
-  const duels = useDuels()
-  void clientRequetes
+  const duels = useMesDuels()
 
   if (duels.isPending) {
     return (
@@ -418,59 +548,106 @@ function Duels() {
   return (
     <>
       <Bouton
-        libelle={t('arene.defier')}
+        libelle={t('duel.defier')}
         onPress={() => router.push(anonyme ? versCompte('duel') : '/duel/nouveau')}
       />
       {anonyme ? <PorteCompte raison="duel" /> : null}
       {liste.length === 0 ? (
-        <CartePlaceholder phrase={t('arene.duelsAucun')} />
+        <CartePlaceholder phrase={t('duel.aucun')} />
       ) : (
         <>
           {enCours.length > 0 ? (
-            <View style={styles.section}>
-              <Titre niveau="section">{t('arene.duelsEnCours')}</Titre>
-              {enCours.map((duel) => (
-                <LigneDuel key={duel.id} duel={duel} />
-              ))}
-            </View>
+            <ListeDuels titre={t('duel.enCoursSection')} duels={enCours} />
           ) : null}
-          {passes.length > 0 ? (
-            <View style={styles.section}>
-              <Titre niveau="section">{t('arene.duelsPasses')}</Titre>
-              {passes.map((duel) => (
-                <LigneDuel key={duel.id} duel={duel} />
-              ))}
-            </View>
-          ) : null}
+          {passes.length > 0 ? <ListeDuels titre={t('duel.passesSection')} duels={passes} /> : null}
         </>
       )}
       <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
-        {t('arene.verdictAutomatique')}
+        {t('duel.automatique')}
       </Text>
     </>
   )
 }
 
-function LigneDuel({ duel }: { duel: import('@leq/domaine').Duel }) {
+function ListeDuels({ titre, duels }: { titre: string; duels: DuelVue[] }) {
+  const theme = useTheme()
+  return (
+    <Carte style={styles.liste}>
+      <Text style={[styles.etiquetteListe, { color: theme.texteTertiaire }]}>{titre}</Text>
+      {duels.map((duel, index) => (
+        <LigneDuel key={duel.id} duel={duel} premiere={index === 0} />
+      ))}
+    </Carte>
+  )
+}
+
+function LigneDuel({ duel, premiere }: { duel: DuelVue; premiere: boolean }) {
   const theme = useTheme()
   const router = useRouter()
-  const etat =
-    duel.statut === 'clos'
-      ? t('arene.verdictPret')
-      : duel.statut === 'expire'
-        ? t('arene.duelExpire')
-        : duel.invite_id === null
-          ? t('arene.attenteReponse')
-          : t('arene.aToiDeParler')
+  const aToi = duel.statut === 'ouvert' && duel.adversaire !== null && !duel.moi.a_parle
+  const termine = duel.statut !== 'ouvert'
   return (
-    <Pressable accessibilityRole="button" onPress={() => router.push(`/duel/${duel.id}`)}>
-      <Carte style={[styles.ligne, styles.bloc]}>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={[typographie.corpsFort, { color: theme.texte }]}>{duel.sujet}</Text>
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>{etat}</Text>
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push(`/duel/${duel.id}`)}
+      style={({ pressed }) => [pressed && { opacity: 0.8 }]}
+    >
+      <View
+        style={[
+          styles.ligne,
+          styles.ligneDuel,
+          !premiere && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.bordure },
+        ]}
+      >
+        {duel.adversaire ? (
+          <Avatar
+            prenom={duel.adversaire.prenom}
+            uri={urlAvatar(duel.adversaire.avatar)}
+            taille={40}
+          />
+        ) : (
+          <View style={[styles.siegeVide, { backgroundColor: theme.carteDouce }]}>
+            <Icone
+              sf="person.badge.plus"
+              material="person-add"
+              taille={18}
+              couleur={theme.texteTertiaire}
+            />
+          </View>
+        )}
+        <View style={styles.ligneTexte}>
+          <Text style={[styles.nomLigne, { color: theme.texte }]} numberOfLines={1}>
+            {titreLigne(duel)}
+          </Text>
+          <Text style={[typographie.petit, { color: theme.texteSecondaire }]} numberOfLines={2}>
+            {duel.sujet}
+          </Text>
+          <Text
+            style={[
+              styles.etatDuel,
+              { color: aToi || (termine && duel.verdict) ? couleurs.rouge : theme.texteTertiaire },
+            ]}
+            numberOfLines={1}
+          >
+            {ligneEtat(duel)}
+          </Text>
         </View>
-        <Text style={[typographie.etiquette, { color: theme.lien }]}>{t('arene.voir')}</Text>
-      </Carte>
+        <View
+          style={[
+            styles.piluleVoir,
+            { backgroundColor: aToi ? theme.accentDoux : theme.carteDouce },
+          ]}
+        >
+          <Text
+            style={[
+              styles.piluleVoirTexte,
+              { color: aToi ? couleurs.rouge : theme.texteSecondaire },
+            ]}
+          >
+            {t('duel.voir')}
+          </Text>
+        </View>
+      </View>
     </Pressable>
   )
 }
@@ -483,6 +660,8 @@ const styles = StyleSheet.create({
   liste: { paddingVertical: 0 },
   ligne: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
   lignePadding: { paddingVertical: espaces.m },
+  ligneDuel: { paddingVertical: espaces.m },
+  rangee: { flexDirection: 'row', gap: espaces.s },
   rangBloc: { width: 48, flexDirection: 'row', alignItems: 'center', gap: 4 },
   couronne: {
     width: 22,
@@ -502,6 +681,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   majuscules: { textTransform: 'uppercase', letterSpacing: 1 },
+  pastille: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: rayons.pilule,
+    marginBottom: 6,
+  },
+  point: { width: 7, height: 7, borderRadius: 4 },
+  pastilleTexte: {
+    fontFamily: polices.extraBold,
+    fontSize: 11.5,
+    lineHeight: 14,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
   bascule: { flexDirection: 'row', padding: 5, borderRadius: rayons.pilule },
   basculeOmbre: {
     shadowColor: couleurs.bleuNuit,
@@ -550,6 +746,7 @@ const styles = StyleSheet.create({
     color: couleurs.blanc,
   },
   heroCorps: { fontFamily: polices.medium, fontSize: 14, lineHeight: 21 },
+  heroDuree: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18, color: couleurs.encre3 },
   heroNote: {
     fontFamily: polices.semiBold,
     fontSize: 11.5,
@@ -558,6 +755,32 @@ const styles = StyleSheet.create({
     color: couleurs.encre2,
   },
   heroEtat: { gap: 4 },
+  coche: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: couleurs.or,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   libelleEtat: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
   porte: { gap: espaces.s },
+  etiquetteListe: {
+    fontFamily: polices.bold,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    paddingTop: espaces.m,
+  },
+  siegeVide: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  etatDuel: { fontFamily: polices.semiBold, fontSize: 12.5, lineHeight: 16, marginTop: 2 },
+  piluleVoir: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: rayons.pilule },
+  piluleVoirTexte: { fontFamily: polices.extraBold, fontSize: 12, lineHeight: 16 },
 })

@@ -131,8 +131,10 @@ describe('CarteDuJour', () => {
         raison: 'limite_jour',
       },
     })
-    expect(ecran.getByText('Ton défi du jour est fait.')).toBeTruthy()
+    expect(ecran.getByText('Défi du jour relevé')).toBeTruthy()
+    expect(ecran.getByText('Le suivant se débloque demain.')).toBeTruthy()
     expect(ecran.queryByText('Je me lance')).toBeNull()
+    expect(ecran.getByText('Voir la carte des actes')).toBeTruthy()
     fireEvent.press(ecran.getByText('Enchaîner ›'))
     expect(mockPush).toHaveBeenCalledWith('/defi/limite')
   })

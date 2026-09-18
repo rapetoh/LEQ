@@ -6,6 +6,7 @@ import { fr } from '../fr'
 import { Duel } from './Duel'
 
 const lireInvitation = vi.fn()
+const lireMonDuel = vi.fn()
 
 vi.mock('../services/duel', () => ({
   lireInvitation: (jeton: string) => lireInvitation(jeton) as unknown,
@@ -14,6 +15,8 @@ vi.mock('../services/duel', () => ({
   lireStatutTentative: vi.fn(),
   publier: vi.fn(),
   lireIssue: vi.fn(),
+  lireMonDuel: (duelId: string) => lireMonDuel(duelId) as unknown,
+  urlSignee: (chemin: string) => Promise.resolve(`https://signee.test/${chemin}`),
   estStatutTentativeFinal: () => true,
   messageRefus: () => ({ titre: fr.duel.erreur, detail: fr.commun.reessayer }),
 }))
@@ -52,7 +55,78 @@ const INVITATION = {
 }
 
 describe('the duel invitation page', () => {
-  beforeEach(() => lireInvitation.mockReset())
+  beforeEach(() => {
+    lireInvitation.mockReset()
+    lireMonDuel.mockReset()
+  })
+
+  it('names the person who sent the invitation', async () => {
+    lireInvitation.mockResolvedValue({ ...INVITATION, inviteur_prenom: 'Roch' })
+    afficher()
+
+    expect(await screen.findByText('Roch te défie.')).toBeInTheDocument()
+  })
+
+  it('shows a returning invitee the verdict, with both takes to hear', async () => {
+    lireInvitation.mockResolvedValue({
+      ...INVITATION,
+      statut: 'clos',
+      deja_repondu: true,
+      c_est_moi: true,
+      inviteur_prenom: 'Roch',
+    })
+    lireMonDuel.mockResolvedValue({
+      id: INVITATION.id,
+      sujet: INVITATION.sujet,
+      statut: 'clos',
+      verdict: 'invite',
+      echeance: DANS_DEUX_JOURS,
+      cree_le: DANS_DEUX_JOURS,
+      clos_le: DANS_DEUX_JOURS,
+      duree_max_s: 90,
+      role: 'invite',
+      jeton: null,
+      adversaire: { prenom: 'Roch', avatar: null },
+      moi: { a_parle: true, prise_id: 'p1', chemin_audio: 'a/1.m4a', duree_s: 58, mesures: null },
+      lui: { a_parle: true, prise_id: 'p2', chemin_audio: 'b/2.m4a', duree_s: 61, mesures: null },
+    })
+    afficher()
+
+    expect(await screen.findByText(fr.duel.gagne)).toBeInTheDocument()
+    expect(screen.getByText('Duel contre Roch')).toBeInTheDocument()
+    expect(await screen.findByLabelText('La réponse de Roch')).toBeInTheDocument()
+    expect(screen.getByLabelText(fr.duel.maReponse)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: fr.duel.commencer })).not.toBeInTheDocument()
+  })
+
+  it('says the truth about a duel the grid cannot judge yet', async () => {
+    lireInvitation.mockResolvedValue({
+      ...INVITATION,
+      statut: 'clos',
+      deja_repondu: true,
+      c_est_moi: true,
+    })
+    lireMonDuel.mockResolvedValue({
+      id: INVITATION.id,
+      sujet: INVITATION.sujet,
+      statut: 'clos',
+      verdict: 'sans_verdict',
+      echeance: DANS_DEUX_JOURS,
+      cree_le: DANS_DEUX_JOURS,
+      clos_le: DANS_DEUX_JOURS,
+      duree_max_s: 90,
+      role: 'invite',
+      jeton: null,
+      adversaire: { prenom: null, avatar: null },
+      moi: { a_parle: true, prise_id: 'p1', chemin_audio: null, duree_s: null, mesures: null },
+      lui: { a_parle: true, prise_id: 'p2', chemin_audio: null, duree_s: null, mesures: null },
+    })
+    afficher()
+
+    // The sentence carries a no-break space, which the matcher's normaliser would flatten.
+    expect(await screen.findByText(/reste sans verdict/)).toBeInTheDocument()
+    expect(document.querySelector('audio')).toBeNull()
+  })
 
   it('shows the subject, the ceiling and the deadline', async () => {
     lireInvitation.mockResolvedValue(INVITATION)

@@ -88,3 +88,102 @@ export const MESSAGE_SIGNALEMENT_ADMIN = {
   titre: 'Une prise est signalée',
   corps: 'Elle attend ta décision dans la modération.',
 } as const
+
+/**
+ * What a duel tells its two sides (chapter 11, 2026-09-18). Social events of chapter 12: they
+ * reach the people who keep `notif_social` on. Each names the other person, or says « ton
+ * adversaire » when the profile carries no first name. The verdict is told without the outcome:
+ * who won is read on the screen, with the two takes beside it.
+ */
+export function messageDuelRejoint(prenom: string | null) {
+  return {
+    titre: prenom ? `${prenom} a rejoint ton duel` : 'Ton adversaire a rejoint le duel',
+    corps: 'À vous deux de parler.',
+  } as const
+}
+
+export function messageDuelRepondu(prenom: string | null) {
+  return {
+    titre: prenom ? `${prenom} a répondu` : 'Ton adversaire a répondu',
+    corps: 'À toi de parler. Tu entendras sa réponse après la tienne.',
+  } as const
+}
+
+export function messageDuelVerdict(prenom: string | null) {
+  return {
+    titre: 'Le duel est terminé',
+    corps: prenom
+      ? `${prenom} et toi avez parlé. Le verdict t'attend dans LEQ.`
+      : "Vous avez parlé tou·te·s les deux. Le verdict t'attend dans LEQ.",
+  } as const
+}
+
+export function messageDuelExpire(prenom: string | null, jaiParle: boolean) {
+  return {
+    titre: 'Le duel a expiré',
+    corps: jaiParle
+      ? prenom
+        ? `${prenom} n'a pas répondu à temps.`
+        : "Ton adversaire n'a pas répondu à temps."
+      : "Tu n'as pas répondu à temps.",
+  } as const
+}
+
+/** How a closed duel ended, read from one side. */
+export const ISSUES_DUEL_POUR_MOI = [
+  'gagne',
+  'perdu',
+  'egalite',
+  'sans_verdict',
+  'expire_sans_reponse',
+  'expire_sans_ma_reponse',
+] as const
+export type IssueDuelPourMoi = (typeof ISSUES_DUEL_POUR_MOI)[number]
+
+/**
+ * The e-mail to an invitee who answered by the link and has no app: the page asked for their
+ * address « pour te dire qui a gagné », and this is that promise kept. The link opens the duel
+ * in the same browser, where both takes can be heard.
+ */
+export function courrielDuelTermine(duel: {
+  prenom: string | null
+  autre: string | null
+  sujet: string
+  issue: IssueDuelPourMoi
+  lien: string
+}): { sujet: string; texte: string } {
+  const autre = duel.autre ?? 'ton adversaire'
+  const salut = duel.prenom ? `Bonjour ${duel.prenom},` : 'Bonjour,'
+  const issue =
+    duel.issue === 'gagne'
+      ? 'Tu gagnes.'
+      : duel.issue === 'perdu'
+        ? `${autre} gagne.`
+        : duel.issue === 'egalite'
+          ? 'Égalité.'
+          : duel.issue === 'sans_verdict'
+            ? "La grille de Rebecca n'est pas encore en place : ce duel reste sans verdict."
+            : duel.issue === 'expire_sans_reponse'
+              ? `${autre} n'a pas répondu à temps.`
+              : "Tu n'as pas répondu à temps."
+  const suite =
+    duel.issue === 'gagne' ||
+    duel.issue === 'perdu' ||
+    duel.issue === 'egalite' ||
+    duel.issue === 'sans_verdict'
+      ? `Vous pouvez réécouter vos deux réponses en ouvrant le lien sur le même appareil : ${duel.lien}`
+      : null
+  return {
+    sujet: `Ton duel avec ${autre} est terminé`,
+    texte: [
+      salut,
+      '',
+      `Le duel « ${duel.sujet} » est terminé. ${issue}`,
+      ...(suite ? ['', suite] : []),
+      '',
+      "Le verdict est rendu par l'analyse, sur les critères de Rebecca.",
+      '',
+      'LEQ',
+    ].join('\n'),
+  }
+}

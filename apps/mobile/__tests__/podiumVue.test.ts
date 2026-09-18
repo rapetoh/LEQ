@@ -11,6 +11,8 @@ function ligne(rang: number, options: Partial<LigneClassement> = {}): LigneClass
     nom: `Voix ${rang}`,
     pseudonyme: true,
     avatar: null,
+    duree_s: null,
+    chemin_audio: null,
     ...options,
   }
 }
