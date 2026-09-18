@@ -1237,8 +1237,13 @@ Roch's six points, in order.
 Verified: pgTAP `arene.sql` 163 green with the migration (the arrival number holds when the
 votes move); mobile 102, web 37 (three new cases on the invitation page), server 119, domaine 50,
 moteur 33; strings, lint and format green. Deployed: migration
-`20260918040000_numero_stable_et_ecoute_du_jour` on the hosted project. **Build 31** carries the
-screens.
+`20260918040000_numero_stable_et_ecoute_du_jour` on the hosted project. **Build 31 is uploaded**
+(06:08 local). Its first attempt died on « xcodebuild encountered an error (69) » just after
+« Checking completion status », on Apple's side, and the same archive went through unchanged on
+the second. The whole upload ran through the accessibility interface while Roch was working on
+the same Mac, with no mouse and no window brought forward, and the outcome was read from the
+archive's own `Distributions.uploadEvent` record rather than from a screenshot
+(docs/RUNBOOK.md). Next build number: 32.
 
 ## Next
 
