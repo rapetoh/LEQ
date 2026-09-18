@@ -1009,6 +1009,25 @@ under his identity, rolled back, opens a debate and leaves his one session intac
 
 Still open, on his phone: whether the audio starts. Build 26 names the cause on the screen.
 
+## Le face-à-face n'a jamais démarré sur un téléphone, et pourquoi (2026-09-17, nuit)
+
+Build 26 put the cause on Roch's screen: « offset must be a finite non-negative number: -1 ».
+In react-native-audio-api 0.13.3 the queue source's `start(when = 0, offset = -1)` rejects its own
+default, so `file.start()` in `AudioDebat.demarrer` threw on every phone since the queue source
+landed (00acf31, 2026-09-12). The native side treats `start(0, 0)` on an empty queue as a plain
+start, so that is the call now. The take player's live context (build 26) was real but was not
+this failure.
+
+Why nobody saw it: the debate's audio start never ran on iOS after 09-12, because the simulator's
+user has no account and the debate screen sits behind one. The development-only diagnostic screen
+(`/diagnostic`) now runs the face-à-face's audio too: session, voice context, queue source, mic
+frames, one silent chunk queued as Rétor. On the simulator tonight: « face-à-face : audio démarré,
+14 trames de micro en 1,5 s, OK ». It runs before any build that touches audio.
+
+Build 27 carries the call. Mobile 88 tests, typecheck, lint green. The strings guard fails on three
+strings in `packages/domaine/src/notifications.ts` left uncommitted by another session at that
+moment; not this change.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

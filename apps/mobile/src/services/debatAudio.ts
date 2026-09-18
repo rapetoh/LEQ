@@ -90,7 +90,11 @@ export class AudioDebat {
     const contexte = new AudioContext({ sampleRate: FREQUENCE_VOIX_HZ })
     const file = contexte.createBufferQueueSource({ pitchCorrection: false })
     file.connect(contexte.destination)
-    file.start()
+    // Both arguments, always. In react-native-audio-api 0.13.3 the queue source's `start` has a
+    // default offset of -1 and then rejects any negative offset, so `start()` throws on every
+    // phone (« offset must be a finite non-negative number: -1 », Roch's screen, 2026-09-17).
+    // An offset of 0 on an empty queue is a plain start on the native side.
+    file.start(0, 0)
     this.contexte = contexte
     this.fileVoix = file
 
