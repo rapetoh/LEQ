@@ -211,7 +211,7 @@ export default function Voter() {
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={
-                        enLecture ? t('arene.arreter') : t('arene.ecouterVoix', { lettre })
+                        enLecture ? t('arene.arreter') : t('arene.ecouterPassageLettre', { lettre })
                       }
                       accessibilityState={{ busy: enLecture && enCours?.etat === 'chargement' }}
                       onPress={() => void ecouter(prise.id)}

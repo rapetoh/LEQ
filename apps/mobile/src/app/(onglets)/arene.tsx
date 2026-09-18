@@ -227,6 +227,9 @@ function Sujet() {
   const mienne = lignes.find((ligne) => ligne.moi) ?? null
   const autres = lignes.filter((ligne) => !ligne.moi).length
   const audible = Boolean(prise?.chemin_audio) && !prise?.audio_supprime_le
+  // A place is a place once a vote exists; before that the first line is only the first person
+  // who spoke, and a crown on it would be a ranking nobody made.
+  const votes = lignes.some((ligne) => ligne.votes > 0)
   const votesOuverts = parle && prise.statut === 'publiee' && autres >= 2
   const dureeMienne = dureeCourte(mienne?.duree_s)
 
@@ -346,13 +349,18 @@ function Sujet() {
 
       {lignes.length > 0 ? (
         <View style={styles.section}>
-          <Titre niveau="section">{t('arene.classement')}</Titre>
+          {/* Nobody has been voted for yet: the order is the order of arrival, so the list is
+              what it is, the passages of the week. Crowns and places come with the votes. */}
+          <Titre niveau="section">
+            {votes ? t('arene.classement') : t('arene.passagesSemaine')}
+          </Titre>
           <Carte style={styles.liste}>
             {lignes.map((ligne, index) => (
               <LigneClassementVue
                 key={ligne.prise_id}
                 ligne={ligne}
                 premiere={index === 0}
+                classe={votes}
                 ecoute={ecoute}
                 onEcouter={
                   ligne.chemin_audio
@@ -374,11 +382,14 @@ function Sujet() {
 function LigneClassementVue({
   ligne,
   premiere,
+  classe,
   ecoute,
   onEcouter,
 }: {
   ligne: LigneClassement
   premiere: boolean
+  /** True once a vote exists: the line then carries its place and its count. */
+  classe: boolean
   ecoute: Ecoute
   onEcouter: (() => void) | null
 }) {
@@ -386,7 +397,11 @@ function LigneClassementVue({
   const enLecture = ecoute?.prise === ligne.prise_id
   const duree = dureeCourte(ligne.duree_s)
   const detail = [
-    ligne.votes === 1 ? t('arene.voteUn') : t('arene.votes', { votes: ligne.votes }),
+    classe
+      ? ligne.votes === 1
+        ? t('arene.voteUn')
+        : t('arene.votes', { votes: ligne.votes })
+      : null,
     duree,
   ]
     .filter(Boolean)
@@ -399,7 +414,7 @@ function LigneClassementVue({
         !premiere && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.bordure },
       ]}
     >
-      <Rang rang={ligne.rang} />
+      {classe ? <Rang rang={ligne.rang} /> : null}
       <Avatar
         prenom={ligne.pseudonyme ? null : ligne.nom}
         uri={urlAvatar(ligne.avatar)}

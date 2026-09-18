@@ -1105,6 +1105,60 @@ everything above and the face-à-face start fix of the other session (3423e6d). 
 on a phone, which need the build; the e-mail to an anonymous invitee, which needs the next real
 duel by link. Next build number: 29.
 
+## Le duel est privé, et un passage n'est pas une voix (2026-09-18)
+
+Roch answered his duel on build 28 and still could not hear Rebecca: « Écouter sa réponse » ended
+on « La lecture n'a pas démarré ». Read from the rows, not guessed: her passage sat in
+`signalee`. The automatic screening had flagged it, the storage policy refuses a take that is not
+`publiee` to anyone but its author, and `cote_duel` handed the path out anyway. Two faults, both
+mine, and the first one is a product rule I never chose out loud.
+
+- **Only an Arena passage is ever held.** Chapter 11 asks for a control « léger sur ce qui reste
+  privé et strict sur ce qui devient public », and names the entries that become public: the
+  Arena's passages, the face-à-face thesis. A duel take is read by one person, the one who was
+  challenged. Holding it breaks the duel for both, and nobody reviews a duel flag. A duel take is
+  now screened for the record (the verdict stays on `analyses.moderation` if the duel is ever
+  reported) and never held. Rebecca's passage is published by the migration; Roch can hear her on
+  build 28 as it stands.
+- **A side of a duel hands out a path only where the storage allows it**, and says `retenue` when
+  the take exists and nobody may play it, so the seat says « Son enregistrement n'est plus
+  disponible. » instead of a control that fails.
+- **The rule that you hear the other after answering is now read on the control**, not explained
+  in a sentence: while their answer is in and yours is not, the seat carries a closed row with a
+  lock and « Après ta réponse », the card above says « Tu entendras la réponse de Rebecca après la
+  tienne », and the creation screen states the shape of a duel once: « Chacun répond de son côté,
+  en 48 h. Vous vous écoutez quand vous avez répondu tou·te·s les deux. » Roch had no way to know
+  it, and he was right that a caption is not the answer.
+- **The measures card, rebuilt.** A name sat over each column and was truncated (« Rebecca li… »).
+  Who is who is said once, in a legend of two coloured dots; each measure is a row of two numbers
+  in those colours over a bar drawn to its share, so the comparison is read without reading the
+  figures.
+- **Your own seat carries your picture**, like the other one; it drew a generic mark.
+- **« Voix 2 · 2 voix ».** An anonymous passage was named « Voix N » while a vote is « une voix ».
+  A passage is « un passage », so the pseudonym is « Passage N ». Rule 15 of docs/STRINGS.md gets
+  its second instance.
+- **No place and no crown before the first vote.** Roch asked whether being first for having
+  spoken first was normal. It is not: the order is the order of arrival, so while every passage
+  has zero votes the list is titled « Les passages de la semaine » and carries neither rank nor
+  crown nor « 0 voix » on every line. Places appear with the votes.
+- **The name and the picture are chosen where the gesture is made.** The Réglages switch is now
+  also on the feedback screen, above « Publier dans l'Arène », and writes the same profile field.
+- **The duel's words, state by state**, read with `npm run ecrans`: a seat says « Réponse
+  envoyée » where every other line says « répondu », the empty seat is « Place libre », the list
+  says « à ton tour » rather than « à toi de parler » twice over, the invitation card no longer
+  tells the person to send the invitation right above the button that sends it, « Sans verdict »
+  is said once instead of twice, and the automatic-verdict footnote only shows while the duel is
+  open.
+
+Verified: pgTAP `arene.sql` 162 green against the hosted project with the migration inside one
+rolled-back transaction (a flagged duel take publishes, an Arena one still waits, a withdrawn
+take hands out no path and says it is held, the measures read beside mine, no passage named a
+voix); mobile 101 (a new suite walks the duel screen through seven states), server 119, web 34,
+domaine 50, moteur 33; strings, lint and format green. Deployed: migration
+`20260918020000_duel_prive_et_passages_nommes` on the hosted project, which also published the
+one duel take the filter had held. The worker needs no deploy: only its comment changed.
+**Build 29** below.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

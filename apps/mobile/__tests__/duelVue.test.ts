@@ -20,6 +20,7 @@ function cote(a_parle: boolean, extra: Partial<DuelVue['moi']> = {}): DuelVue['m
     a_parle,
     prise_id: a_parle ? 'p' : null,
     chemin_audio: null,
+    retenue: false,
     duree_s: null,
     mesures: null,
     ...extra,
@@ -63,7 +64,7 @@ describe('the time left', () => {
 describe('the line under a duel', () => {
   it('names the other side, or the empty seat', () => {
     expect(titreLigne(duel())).toBe('Contre Rebecca')
-    expect(titreLigne(duel({ adversaire: null }))).toBe("En attente d'un·e adversaire")
+    expect(titreLigne(duel({ adversaire: null }))).toBe('Place libre')
     expect(nomAdversaire(duel({ adversaire: { prenom: null, avatar: null } }))).toBe(
       'Ton adversaire',
     )
@@ -73,9 +74,9 @@ describe('the line under a duel', () => {
     expect(ligneEtat(duel({ adversaire: null }), MAINTENANT)).toBe(
       "Personne n'a encore rejoint · 41 h restantes",
     )
-    expect(ligneEtat(duel(), MAINTENANT)).toBe('À toi de parler · 41 h restantes')
+    expect(ligneEtat(duel(), MAINTENANT)).toBe('À toi de répondre · 41 h restantes')
     expect(ligneEtat(duel({ lui: cote(true) }), MAINTENANT)).toBe(
-      'Rebecca a répondu · à toi de parler · 41 h restantes',
+      'Rebecca a répondu · à ton tour · 41 h restantes',
     )
     expect(ligneEtat(duel({ moi: cote(true) }), MAINTENANT)).toBe(
       'En attente de Rebecca · 41 h restantes',

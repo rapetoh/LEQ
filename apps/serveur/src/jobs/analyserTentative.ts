@@ -257,8 +257,11 @@ export async function analyserTentative(
     })
     log.debug({ fournisseur: deps.transcripteur.nom }, 'transcription obtenue')
 
-    // The screening of chapter 11, on what will become public. Its verdict rides with the
-    // analysis; `publier_prise()` holds a flagged take for Rebecca and publishes any other.
+    // The screening of chapter 11. Its verdict rides with the analysis, and `publier_prise()`
+    // decides what to do with it: an Arena passage lives among the others, so a flagged one
+    // waits for Rebecca; a duel take is read by one person, the one who was challenged, so it is
+    // screened for the record and never held. Holding it broke the duel for both, and nobody
+    // reviews a duel flag (2026-09-18).
     let moderation: ModerationTranscription | null = null
     if (deps.moderateur && (tentative.type === 'arene' || tentative.type === 'duel')) {
       try {

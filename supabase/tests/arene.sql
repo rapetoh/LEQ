@@ -142,7 +142,7 @@ select tests_leq.connecter('66666666-6666-4666-8666-666666666666', false, 'utili
 select is((select count(*) from public.prises_publiques), 0::bigint, 'D has not spoken: sees nothing');
 select is((select (public.paire_a_voter()) ->> 'raison'), 'parle_d_abord', 'and is asked to speak first');
 reset role; select tests_leq.deconnecter();
-select is((select count(*) from public.prises_publiques where statut = 'publiee'), 3::bigint,
+select is((select count(*) from public.prises_publiques where statut = 'publiee' and sujet_id is not null), 3::bigint,
   'the three takes are live on send: nothing screened them, nobody had to approve them');
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
 select is((select count(*) from public.prises_publiques), 3::bigint, 'A has spoken and sees the three');
@@ -168,11 +168,17 @@ select isnt(
   (select l ->> 'nom' from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where not (l ->> 'moi')::boolean limit 1),
   'Camille', 'the others are not named');
+-- « Voix 2 » beside « 2 voix » was the same word for a passage and for a vote (2026-09-18):
+-- an anonymous passage is « Passage N », the word chapter 11 and the app already use.
 select ok(
-  (select bool_and((l ->> 'nom') like 'Voix %')
+  (select bool_and((l ->> 'nom') like 'Passage %')
      from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where not (l ->> 'moi')::boolean),
-  'the others stay anonymous, as Voix N');
+  'the others stay anonymous, as Passage N');
+select ok(
+  (select count(*) = 0 from jsonb_array_elements((public.classement_arene()) -> 'classement') l
+    where (l ->> 'nom') like 'Voix %'),
+  'and no passage is named a voix, which is what a vote is called');
 reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
 select is((select count(*) from public.votes), 0::bigint, 'B does not read A''s vote');
@@ -594,6 +600,56 @@ update public.duels set echeance = now() - interval '1 hour' where id = (select 
 select is(public.cloturer_duel((select id from duel_muet)), 'expire', 'an unanswered duel expires');
 select is((select count(*) from public.jobs where type = 'notifier_duel' and charge ->> 'evenement' = 'expire' and (charge ->> 'duel_id')::uuid = (select id from duel_muet)),
   1::bigint, 'and says so');
+
+-- le duel est privé, et un passage anonyme n'est pas une voix (2026-09-18) -------------------------
+-- Roch answered his duel and still could not hear the other side: the screening had held her
+-- take, and a duel is read by one person. Chapter 11 keeps the control light on what stays
+-- private, so only an Arena passage waits for Rebecca.
+delete from public.jobs where type = 'notifier_duel';
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+create temp table duel_filtre as select * from public.creer_duel('Un sujet que le filtre relève');
+grant select on duel_filtre to authenticated;
+reset role; select tests_leq.deconnecter();
+update public.duels set invite_id = (select b from ctx) where id = (select id from duel_filtre);
+create temp table prises_filtre as select
+  tests_leq.prise_analysee((select a from ctx), 'duel', (select id from duel_filtre), 22) as ta,
+  tests_leq.prise_analysee((select b from ctx), 'duel', (select id from duel_filtre), 26) as tb;
+grant select on prises_filtre to authenticated;
+insert into public.analyses (tentative_id, version_schema, mesures, transcription, fournisseur_transcription, moderation)
+values ((select tb from prises_filtre), 1,
+        '{"debit": {"mots_par_minute": 124}, "mots_bequilles": {"total": 1}, "silences": {"tenus": 7}}'::jsonb,
+        '{"texte": "une réponse que le filtre relève", "mots": []}'::jsonb, 'test',
+        '{"version": 1, "signalee": true, "categories": ["harcelement"], "fournisseur": "test", "evalue_le": "2026-09-18T00:00:00Z"}'::jsonb);
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tb from prises_filtre)) $$, 'the challenged person answers a duel the filter flagged');
+select is((select statut from public.prises_publiques where tentative_id = (select tb from prises_filtre)), 'publiee',
+  'a duel take is never held: the duel is private and nobody reviews a duel flag');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select ta from prises_filtre)) $$, 'and the inviter answers too');
+-- Both spoke: the other take is playable, and the screen reads its measures.
+select isnt((select l -> 'lui' ->> 'chemin_audio' from jsonb_array_elements(public.mes_duels()) l
+              where (l ->> 'id')::uuid = (select id from duel_filtre)), null,
+  'the other take is playable once the duel is closed');
+select is((select (l -> 'lui' ->> 'retenue')::boolean from jsonb_array_elements(public.mes_duels()) l
+            where (l ->> 'id')::uuid = (select id from duel_filtre)), false,
+  'and nothing says it is held');
+select is((select l -> 'lui' -> 'mesures' ->> 'mots_par_minute' from jsonb_array_elements(public.mes_duels()) l
+            where (l ->> 'id')::uuid = (select id from duel_filtre)), '124',
+  'its measures are read beside mine');
+reset role; select tests_leq.deconnecter();
+-- A take nobody may play is said to be held, and no path is handed out: the screen used to
+-- offer a control that failed on the storage policy.
+update public.prises_publiques set statut = 'retiree', retiree_par = 'admin'
+ where tentative_id = (select tb from prises_filtre);
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select is((select l -> 'lui' ->> 'chemin_audio' from jsonb_array_elements(public.mes_duels()) l
+            where (l ->> 'id')::uuid = (select id from duel_filtre)), null,
+  'a withdrawn take hands out no path');
+select is((select (l -> 'lui' ->> 'retenue')::boolean from jsonb_array_elements(public.mes_duels()) l
+            where (l ->> 'id')::uuid = (select id from duel_filtre)), true,
+  'and the side says it is held, so the screen can say what happened');
+reset role; select tests_leq.deconnecter();
 
 select * from finish();
 rollback;

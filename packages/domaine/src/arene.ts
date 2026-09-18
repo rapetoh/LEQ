@@ -134,6 +134,8 @@ export const CoteDuelSchema = z.object({
   a_parle: z.boolean(),
   prise_id: UuidSchema.nullable().default(null),
   chemin_audio: z.string().nullable().default(null),
+  /** The take exists and nobody may play it: withdrawn, held, or its audio already deleted. */
+  retenue: z.boolean().default(false),
   duree_s: z.number().nullable().default(null),
   mesures: MesuresDuelSchema.nullable().default(null),
 })
@@ -209,7 +211,7 @@ export const LigneClassementSchema = z.object({
   votes: z.int().min(0),
   moi: z.boolean(),
   nom: z.string(),
-  /** True when `nom` is « Voix N »: the phone then draws a neutral mark, not a letter. */
+  /** True when `nom` is « Passage N »: the phone then draws a neutral mark, not a letter. */
   pseudonyme: z.boolean().default(false),
   /** Path in the `avatars` bucket, only where the name is shown. */
   avatar: z.string().nullable().default(null),

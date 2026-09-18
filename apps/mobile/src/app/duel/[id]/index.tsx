@@ -19,6 +19,7 @@ import { dureeCourte, texteReste } from '@/services/delai'
 import { nomAdversaire } from '@/services/duelVue'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { urlAvatar } from '@/services/photo'
+import { useProfil } from '@/services/profil'
 import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
@@ -43,6 +44,7 @@ export default function EcranDuel() {
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
   const duels = useMesDuels()
+  const profil = useProfil()
   const [ecoute, setEcoute] = useState<Ecoute>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [revanche, setRevanche] = useState(false)
@@ -133,6 +135,8 @@ export default function EcranDuel() {
         <Siege
           moi
           nom={t('duel.toi')}
+          prenom={profil.data?.prenom ?? null}
+          avatar={urlAvatar(profil.data?.avatar_chemin)}
           cote={duel.moi}
           vainqueur={issue === 'gagne'}
           ecoute={ecoute}
@@ -145,6 +149,9 @@ export default function EcranDuel() {
           vide={!duel.adversaire}
           cote={duel.lui}
           vainqueur={issue === 'perdu'}
+          /* Their answer opens when mine is in: the seat carries a closed control, so the rule
+             is read on the thing itself instead of being explained in a sentence. */
+          verrouille={duel.lui.a_parle && !duel.moi.a_parle}
           ecoute={ecoute}
           onEcouter={() => void ecouter(duel.lui)}
         />
@@ -210,6 +217,7 @@ function Siege({
   vide = false,
   cote,
   vainqueur,
+  verrouille = false,
   ecoute,
   onEcouter,
 }: {
@@ -220,6 +228,8 @@ function Siege({
   vide?: boolean
   cote: CoteDuel
   vainqueur: boolean
+  /** Their answer is in and mine is not: the control is closed until I have answered. */
+  verrouille?: boolean
   ecoute: Ecoute
   onEcouter: () => void
 }) {
@@ -242,11 +252,7 @@ function Siege({
       ]}
     >
       <View style={styles.siegeEntete}>
-        {moi ? (
-          <View style={[styles.rondToi, { backgroundColor: couleurs.or }]}>
-            <Icone sf="person.fill" material="person" taille={18} couleur={couleurs.bleuNuit} />
-          </View>
-        ) : vide ? (
+        {vide ? (
           <View style={[styles.rondToi, { backgroundColor: theme.carteDouce }]}>
             <Icone
               sf="person.badge.plus"
@@ -272,6 +278,26 @@ function Siege({
           </View>
         ) : null}
       </View>
+      {!cote.chemin_audio && cote.a_parle ? (
+        <View
+          style={[
+            styles.ecoute,
+            { backgroundColor: sombre ? 'rgba(255, 255, 255, 0.08)' : theme.carteDouce },
+          ]}
+        >
+          <View style={[styles.rondLecture, { backgroundColor: 'transparent' }]}>
+            <Icone
+              sf={verrouille ? 'lock.fill' : 'speaker.slash.fill'}
+              material={verrouille ? 'lock' : 'volume-off'}
+              taille={16}
+              couleur={encreDouce}
+            />
+          </View>
+          <Text style={[styles.ecouteTexte, { color: encreDouce, flex: 1 }]} numberOfLines={2}>
+            {verrouille ? t('duel.apresTaReponse') : t('duel.reponseIndisponible')}
+          </Text>
+        </View>
+      ) : null}
       {cote.chemin_audio ? (
         <Pressable
           accessibilityRole="button"
@@ -399,22 +425,27 @@ function Verdict({ duel, nom }: { duel: DuelVue; nom: string }) {
   const mesures =
     duel.moi.mesures && duel.lui.mesures ? { moi: duel.moi.mesures, lui: duel.lui.mesures } : null
   return (
-    <Carte teinte="douce" style={styles.bloc}>
-      <Text style={[styles.etiquette, { color: theme.lien }]}>{t('duel.verdictTitre')}</Text>
-      <Text style={[phrase ? typographie.titreSection : typographie.corps, { color: theme.texte }]}>
-        {phrase ?? t('duel.sansVerdictCorps')}
-      </Text>
+    <>
+      <Carte teinte="douce" style={styles.bloc}>
+        <Text style={[styles.etiquette, { color: theme.lien }]}>
+          {phrase ? t('duel.verdictTitre') : t('duel.sansVerdictTitre')}
+        </Text>
+        <Text
+          style={[phrase ? typographie.titreSection : typographie.corps, { color: theme.texte }]}
+        >
+          {phrase ?? t('duel.sansVerdictCorps')}
+        </Text>
+      </Carte>
       {mesures ? (
-        <View style={styles.mesures}>
+        <Carte style={styles.bloc}>
           <Text style={[styles.etiquette, { color: theme.texteTertiaire }]}>
             {t('duel.mesuresTitre')}
           </Text>
-          <View style={styles.mesuresEntete}>
-            <View style={{ flex: 1 }} />
-            <Text style={[styles.colonne, { color: theme.texte }]}>{t('duel.toi')}</Text>
-            <Text style={[styles.colonne, { color: theme.texte }]} numberOfLines={1}>
-              {nom}
-            </Text>
+          {/* Who is who is said once, by colour, so no name sits over a column and nothing is
+              truncated to make room for it. */}
+          <View style={styles.legende}>
+            <Jeton couleur={theme.lien} libelle={t('duel.toi')} />
+            <Jeton couleur={couleurs.orange} libelle={nom} />
           </View>
           <Mesure
             libelle={t('duel.motsParMin')}
@@ -431,12 +462,29 @@ function Verdict({ duel, nom }: { duel: DuelVue; nom: string }) {
             moi={mesures.moi.silences_tenus}
             lui={mesures.lui.silences_tenus}
           />
-        </View>
+        </Carte>
       ) : null}
-    </Carte>
+    </>
   )
 }
 
+/** One side of the legend: a dot of its colour, and who it is. */
+function Jeton({ couleur, libelle }: { couleur: string; libelle: string }) {
+  const theme = useTheme()
+  return (
+    <View style={styles.jeton}>
+      <View style={[styles.pointLegende, { backgroundColor: couleur }]} />
+      <Text style={[styles.jetonTexte, { color: theme.texteSecondaire }]} numberOfLines={1}>
+        {libelle}
+      </Text>
+    </View>
+  )
+}
+
+/**
+ * One measure, the two sides on one row: the label, then each number in its own colour over a
+ * bar drawn to its share of the two, so the comparison is read without reading the figures.
+ */
 function Mesure({
   libelle,
   moi,
@@ -448,11 +496,31 @@ function Mesure({
 }) {
   const theme = useTheme()
   const texte = (valeur: number | null) => (valeur === null ? '·' : String(Math.round(valeur)))
+  const haut = Math.max(moi ?? 0, lui ?? 0, 1)
   return (
-    <View style={styles.mesureLigne}>
-      <Text style={[typographie.petit, { color: theme.texteSecondaire, flex: 1 }]}>{libelle}</Text>
-      <Text style={[styles.valeur, { color: theme.texte }]}>{texte(moi)}</Text>
-      <Text style={[styles.valeur, { color: theme.texte }]}>{texte(lui)}</Text>
+    <View style={styles.mesureBloc}>
+      <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{libelle}</Text>
+      <View style={styles.mesureLigne}>
+        <Cote valeur={texte(moi)} part={(moi ?? 0) / haut} couleur={theme.lien} />
+        <Cote valeur={texte(lui)} part={(lui ?? 0) / haut} couleur={couleurs.orange} />
+      </View>
+    </View>
+  )
+}
+
+function Cote({ valeur, part, couleur }: { valeur: string; part: number; couleur: string }) {
+  const theme = useTheme()
+  return (
+    <View style={styles.cote}>
+      <Text style={[styles.valeur, { color: couleur }]}>{valeur}</Text>
+      <View style={[styles.piste, { backgroundColor: theme.carteDouce }]}>
+        <View
+          style={[
+            styles.remplissage,
+            { backgroundColor: couleur, width: `${Math.max(6, Math.round(part * 100))}%` },
+          ]}
+        />
+      </View>
     </View>
   )
 }
@@ -531,21 +599,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.9,
     textTransform: 'uppercase',
   },
-  mesures: { gap: espaces.xs, paddingTop: espaces.xs },
-  mesuresEntete: { flexDirection: 'row', alignItems: 'center' },
-  colonne: {
-    width: 72,
-    textAlign: 'right',
-    fontFamily: polices.bold,
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  mesureLigne: { flexDirection: 'row', alignItems: 'center' },
-  valeur: {
-    width: 72,
-    textAlign: 'right',
-    fontFamily: polices.extraBold,
-    fontSize: 16,
-    lineHeight: 20,
-  },
+  legende: { flexDirection: 'row', flexWrap: 'wrap', gap: espaces.m, paddingBottom: espaces.xxs },
+  jeton: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '55%' },
+  pointLegende: { width: 9, height: 9, borderRadius: 5 },
+  jetonTexte: { fontFamily: polices.bold, fontSize: 12.5, lineHeight: 16 },
+  mesureBloc: { gap: 5 },
+  mesureLigne: { flexDirection: 'row', alignItems: 'flex-end', gap: espaces.m },
+  cote: { flex: 1, gap: 4 },
+  valeur: { fontFamily: polices.extraBold, fontSize: 20, lineHeight: 24 },
+  piste: { height: 6, borderRadius: 3, overflow: 'hidden' },
+  remplissage: { height: 6, borderRadius: 3 },
 })

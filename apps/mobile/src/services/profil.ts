@@ -9,7 +9,13 @@ import { supabase, useSession } from './supabase'
 
 export const CLE_PROFIL_LECTURE = ['profil_lecture'] as const
 
-export type ProfilLecture = { prenom: string | null; avatar_chemin: string | null; cree_le: string }
+export type ProfilLecture = {
+  prenom: string | null
+  avatar_chemin: string | null
+  cree_le: string
+  /** Réglages, and the moment of publishing: the name and the picture on a public passage. */
+  publier_sous_prenom: boolean
+}
 
 export function useProfil(): UseQueryResult<ProfilLecture | null> {
   const { pret, session } = useSession()
@@ -20,7 +26,7 @@ export function useProfil(): UseQueryResult<ProfilLecture | null> {
     queryFn: async (): Promise<ProfilLecture | null> => {
       const { data, error } = await supabase
         .from('profils')
-        .select('prenom, avatar_chemin, cree_le')
+        .select('prenom, avatar_chemin, cree_le, publier_sous_prenom')
         .eq('id', session?.user.id)
         .maybeSingle()
       if (error) throw new Error(error.message)
@@ -30,6 +36,18 @@ export function useProfil(): UseQueryResult<ProfilLecture | null> {
 }
 
 /** "juin 2026" for "Depuis juin 2026". */
+/** Writes the choice of publishing under one's first name and picture (Réglages, and C2). */
+export async function definirPublierSousPrenom(valeur: boolean): Promise<void> {
+  const { data: session } = await supabase.auth.getSession()
+  const uid = session.session?.user.id
+  if (!uid) throw new Error('not signed in')
+  const { error } = await supabase
+    .from('profils')
+    .update({ publier_sous_prenom: valeur })
+    .eq('id', uid)
+  if (error) throw new Error(error.message)
+}
+
 export function moisEtAnnee(iso: string): string {
   return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(new Date(iso))
 }

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Platform, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import { Platform, ScrollView, StyleSheet, Switch, Text, View, type ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -18,6 +18,7 @@ import {
   type Retour as DonneesRetour,
 } from '@/services/parcours'
 import { useCarte } from '@/services/parcours'
+import { CLE_PROFIL_LECTURE, definirPublierSousPrenom, useProfil } from '@/services/profil'
 import { fermeLActe } from '@/services/rythme'
 import { compter } from '@/services/usage'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -310,6 +311,7 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
       <View style={styles.actions}>
         {publique ? (
           <>
+            {retour.type === 'arene' ? <ChoixPrenom /> : null}
             {publication.erreur ? (
               <Text style={[typographie.corps, { color: theme.accent }]}>{publication.erreur}</Text>
             ) : null}
@@ -338,6 +340,44 @@ function ContenuRetour({ retour }: { retour: DonneesRetour }) {
         )}
       </View>
     </ScrollView>
+  )
+}
+
+/**
+ * C2, at the moment of publishing: under whose name the passage goes into the Arena. The switch
+ * of Réglages, offered where the choice is actually made, and written on the profile at once so
+ * the ranking and the podium read the same thing.
+ */
+function ChoixPrenom() {
+  const theme = useTheme()
+  const clientRequetes = useQueryClient()
+  const profil = useProfil()
+  const [enCours, setEnCours] = useState(false)
+  const valeur = profil.data?.publier_sous_prenom === true
+  if (!profil.data) return null
+  return (
+    <View style={[styles.choix, { backgroundColor: theme.carte, borderColor: theme.bordure }]}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[typographie.corpsFort, { color: theme.texte }]}>
+          {t('reglages.voix.publierPrenom')}
+        </Text>
+        <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+          {t('reglages.voix.publierPrenomDetail')}
+        </Text>
+      </View>
+      <Switch
+        value={valeur}
+        disabled={enCours}
+        onValueChange={(nouvelle) => {
+          setEnCours(true)
+          void definirPublierSousPrenom(nouvelle)
+            .then(() => clientRequetes.invalidateQueries({ queryKey: CLE_PROFIL_LECTURE }))
+            .catch((erreur: unknown) => console.warn('retour: choix du prénom', erreur))
+            .finally(() => setEnCours(false))
+        }}
+        trackColor={{ true: theme.lien, false: theme.bordure }}
+      />
+    </View>
   )
 }
 
@@ -385,6 +425,14 @@ export function formaterNombre(valeur: number): string {
 }
 
 const styles = StyleSheet.create({
+  choix: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espaces.m,
+    padding: espaces.m,
+    borderRadius: rayons.xl,
+    borderWidth: 1,
+  },
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: 14 },
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   texteCentre: { textAlign: 'center' },
