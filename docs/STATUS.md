@@ -1095,9 +1095,15 @@ the duel, the listening window); server 119 (the duel job: who hears what, the e
 outcome in words, the expiry from each side); web 34 (the inviter's name, the returning
 invitee's verdict with two players, the grid sentence); mobile 94 (the duel lines in every
 state, the hours left, what the home points at, the done-state card); strings and lint green.
-Migration `20260918010000_arene_ecoutable_duels_lisibles` pushed. Fly deploy and build 28
-below. Not verified on a device: the share sheet and the push on a phone, which need the build;
-the e-mail to an anonymous invitee, which needs the next real duel by link.
+Deployed: migration `20260918010000_arene_ecoutable_duels_lisibles` applied on the hosted
+project (00:20 UTC, the four functions, the column and the partial index checked there); Fly
+release v31 (00:29 UTC, the worker lists `notifier_duel`, the SMTP secrets staged and live). **Build
+28 is uploaded** (the released `Xcode.app`'s Organizer, 19:41 local, « Upload completed with
+warnings », the dSYM notes; the beta6 Organizer answered « No Accounts », docs/RUNBOOK.md) with
+everything above and the face-à-face start fix of the other session (3423e6d). The Organizer's
+« Done » sheet was left open on the Mac. Not verified on a device: the share sheet and the push
+on a phone, which need the build; the e-mail to an anonymous invitee, which needs the next real
+duel by link. Next build number: 29.
 
 ## Next
 
