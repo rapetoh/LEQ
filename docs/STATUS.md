@@ -1024,7 +1024,10 @@ user has no account and the debate screen sits behind one. The development-only 
 frames, one silent chunk queued as Rétor. On the simulator tonight: « face-à-face : audio démarré,
 14 trames de micro en 1,5 s, OK ». It runs before any build that touches audio.
 
-Build 27 carries the call. Mobile 88 tests, typecheck, lint green. The strings guard fails on three
+The server side was run the same night with `verif-face-a-face.mjs` against Fly: session opened,
+Rétor answered both turns (3.8 s then 1.5 s after the end of speech), his voice arrived, four turns
+written in order, closed as `terminee`, the month moved from 0 to 1 under the new counting rule,
+the debrief queued and written. **Build 27 is uploaded** (Organizer, 19:22 local, "Uploaded to Apple", archived from a clean worktree at 64c27df so another session's uncommitted Arena and duel edits stayed out). Mobile 88 tests, typecheck, lint green. Next build number: 28. The strings guard fails on three
 strings in `packages/domaine/src/notifications.ts` left uncommitted by another session at that
 moment; not this change.
 
