@@ -65,7 +65,7 @@ describe('the podium of a closed week', () => {
   it('tells the person their place, counted against the whole week', async () => {
     const ecran = await rendre([ligne(1), ligne(2, { moi: true }), ligne(3), ligne(4)])
     expect(ecran.getByText('2e sur 4')).toBeTruthy()
-    expect(ecran.getByText('8 voix pour toi')).toBeTruthy()
+    expect(ecran.getByText('8 votes pour toi')).toBeTruthy()
   })
 
   it('says "1re" rather than "1e" when the person won', async () => {
@@ -76,7 +76,7 @@ describe('the podium of a closed week', () => {
   it('does not leave someone with no votes without a sentence', async () => {
     const ecran = await rendre([ligne(1), ligne(2, { moi: true, votes: 0 })])
     expect(
-      ecran.getByText('Aucune voix cette fois. Un nouveau sujet ouvre la semaine prochaine.'),
+      ecran.getByText('Aucun vote cette fois. Un nouveau sujet ouvre la semaine prochaine.'),
     ).toBeTruthy()
   })
 

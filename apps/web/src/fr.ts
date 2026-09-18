@@ -83,11 +83,13 @@ export const fr = {
     introuvable: 'Ce lien ne mène à aucun duel.',
     introuvableDetail: "Demande un nouveau lien à la personne qui t'a défié·e.",
     closTitre: 'Ce duel est terminé.',
-    closDetail: 'Les réponses ne sont plus acceptées.',
+    closDetail:
+      "Si tu as répondu, le résultat est parti par e-mail. Les deux réponses s'écoutent en rouvrant ce lien sur l'appareil où tu as enregistré.",
     expireTitre: 'Le délai est passé.',
-    expireDetail: "Les 48 h sont écoulées, ce duel s'est fermé sans verdict.",
-    completTitre: "Quelqu'un a déjà répondu.",
-    completDetail: 'Ce duel est complet.',
+    expireDetail: "Les 48 h sont écoulées, ce duel s'est fermé sans vainqueur.",
+    completTitre: 'Ce duel a déjà sa réponse.',
+    completDetail:
+      "Si c'est toi qui as répondu, rouvre ce lien sur l'appareil où tu as enregistré.",
     surSoiTitre: "C'est ton propre duel.",
     surSoiDetail: 'Ouvre LEQ pour suivre les réponses de la personne que tu as défiée.',
     erreur: "Ça n'a pas marché. L'erreur vient de chez nous.",

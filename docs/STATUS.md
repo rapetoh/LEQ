@@ -1198,6 +1198,48 @@ of build 28's upload had been left open for nine hours and had stopped answering
 keystrokes; Xcode had to be restarted. A sheet is dismissed in the same session as its upload
 from now on.
 
+## Le vote se voit, la lecture se suit, et le duel sait qui revient (2026-09-18)
+
+Roch's six points, in order.
+
+- **Le lien d'invitation, une fois utilisé.** Walked through every way a person can come back to
+  it. Answering then reopening on the same device lands on the wait, or on the verdict with both
+  answers to hear, and that already worked. Two cases lied. On another device the anonymous
+  session cannot be recognised, and the page said « Quelqu'un a déjà répondu », which is a
+  stranger's sentence to the person who answered: it says « Ce duel a déjà sa réponse » and tells
+  them to reopen the link where they recorded. A closed duel said only that answers were no
+  longer accepted: it now says the result went out by e-mail and where the two answers can be
+  heard. Three cases are covered by tests on the page.
+- **« voix » devient « votes ».** A vote is a vote. The word was doing two jobs since the
+  ranking also named people « Voix N », and even after that label became « Anonyme », counting
+  votes in « voix » made the number harder than it needs to be. The mockup's « 62 VOIX SUR 148 »
+  is corrected in docs/STRINGS.md.
+- **La lecture se suit.** One control now plays every recording in the app, on the Arena's
+  ranking, on one's own passage, on the two seats of a duel and on the vote screen: a ring fills
+  as the voice plays, so a person always knows where they are in something they cannot see. The
+  share is computed from the take's own length, which every row already carries.
+- **Les votes se voient.** They were a grey line of text under a name. The count is now a number
+  in its own column, with its label under it, and one's own passage carries it in gold on the
+  hero card.
+- **Le classement avant le premier vote.** Roch asked twice whether being first for having
+  spoken first made sense. It does not, and hiding the crowns was not enough: the order itself
+  said « ranking ». While no passage has a vote the list is a feed, newest first, titled « Les
+  passages de la semaine ». The number in « Anonyme N » is now the order of arrival, so a label
+  never moves when the votes move, and a person can tell the voice they have heard from a new
+  one.
+- **L'écran de vote, refait.** It was a title, two letters and two buttons. It carries the day's
+  listening as a bar against the allowance (`prises_ecoutees_par_jour`, the six Rebecca asked
+  for, read from the database rather than written into the sentence), the subject on a gradient
+  hero with « Anonymes jusqu'à ton vote », then two cards: a letter in a coloured disc, « Voix
+  A » or « Voix B », the length as a chip, a 76 point play control with its progress ring, and
+  the choice. Between them, a rule with « ou », as the mockup draws it.
+
+Verified: pgTAP `arene.sql` 163 green with the migration (the arrival number holds when the
+votes move); mobile 102, web 37 (three new cases on the invitation page), server 119, domaine 50,
+moteur 33; strings, lint and format green. Deployed: migration
+`20260918040000_numero_stable_et_ecoute_du_jour` on the hosted project. **Build 31** carries the
+screens.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

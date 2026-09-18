@@ -8,6 +8,7 @@ import { Avatar, AvatarsDuel } from '@/components/Avatar'
 import { PorteCompte } from '@/components/PorteCompte'
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
+import { ControleLecture } from '@/components/ControleLecture'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -30,7 +31,7 @@ import { useActualisation } from '@/services/actualisation'
 import { useEstAnonyme, versCompte } from '@/services/compte'
 import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
-import { dureeCourte } from '@/services/delai'
+import { dureeCourte, maintenant } from '@/services/delai'
 import { badgeDuel, ligneEtat, nomAdversaire } from '@/services/duelVue'
 import { minutesDe } from '@/services/rythme'
 import { lecteur, urlSignee } from '@/services/lecture'
@@ -145,7 +146,7 @@ export default function Arene() {
   )
 }
 
-type Ecoute = { prise: string; etat: 'chargement' | 'lecture' } | null
+type Ecoute = { prise: string; etat: 'chargement' | 'lecture'; depuis?: number } | null
 
 /** C1, C2, C3: the subject, then what you can do with it depending on whether you have spoken. */
 function Sujet() {
@@ -174,7 +175,7 @@ function Sujet() {
     setEcoute({ prise: priseId, etat: 'chargement' })
     try {
       await lecteur.jouer(await urlSignee(chemin), () => setEcoute(null))
-      setEcoute({ prise: priseId, etat: 'lecture' })
+      setEcoute({ prise: priseId, etat: 'lecture', depuis: maintenant() })
     } catch (erreur) {
       console.warn('arène: lecture impossible', erreur)
       setEcoute(null)
@@ -395,18 +396,8 @@ function LigneClassementVue({
   onEcouter: (() => void) | null
 }) {
   const theme = useTheme()
-  const enLecture = ecoute?.prise === ligne.prise_id
+  const etat = ecoute?.prise === ligne.prise_id ? ecoute.etat : 'inactif'
   const duree = dureeCourte(ligne.duree_s)
-  const detail = [
-    classe
-      ? ligne.votes === 1
-        ? t('arene.voteUn')
-        : t('arene.votes', { votes: ligne.votes })
-      : null,
-    duree,
-  ]
-    .filter(Boolean)
-    .join(' · ')
   return (
     <View
       style={[
@@ -425,35 +416,27 @@ function LigneClassementVue({
         <Text style={[styles.nomLigne, { color: theme.texte }]} numberOfLines={1}>
           {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
         </Text>
-        <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{detail}</Text>
+        {duree ? (
+          <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>{duree}</Text>
+        ) : null}
       </View>
+      {classe ? (
+        <View style={styles.compteur}>
+          <Text style={[styles.compteurNombre, { color: theme.lien }]}>{ligne.votes}</Text>
+          <Text style={[styles.compteurLibelle, { color: theme.texteTertiaire }]}>
+            {ligne.votes === 1 ? t('arene.voteLibelle') : t('arene.votesLibelle')}
+          </Text>
+        </View>
+      ) : null}
       {onEcouter ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={
-            enLecture
-              ? t('arene.arreter')
-              : ligne.moi
-                ? t('arene.ecouterMonPassage')
-                : t('arene.ecouterPassage')
-          }
-          accessibilityState={{ busy: enLecture && ecoute?.etat === 'chargement' }}
+        <ControleLecture
+          etat={etat}
+          depuis={ecoute?.prise === ligne.prise_id ? (ecoute.depuis ?? null) : null}
+          dureeS={ligne.duree_s}
           onPress={onEcouter}
-          hitSlop={8}
-          style={({ pressed }) => [
-            styles.lecture,
-            { backgroundColor: enLecture ? theme.texte : theme.lien },
-            pressed && { opacity: 0.85 },
-            enLecture && ecoute?.etat === 'chargement' && { opacity: 0.6 },
-          ]}
-        >
-          <Icone
-            sf={enLecture && ecoute?.etat === 'lecture' ? 'stop.fill' : 'play.fill'}
-            material={enLecture && ecoute?.etat === 'lecture' ? 'stop' : 'play-arrow'}
-            taille={enLecture ? 14 : 16}
-            couleur={couleurs.blanc}
-          />
-        </Pressable>
+          diametre={42}
+          libelle={ligne.moi ? t('arene.ecouterMonPassage') : t('arene.ecouterPassage')}
+        />
       ) : null}
     </View>
   )
@@ -717,12 +700,14 @@ const styles = StyleSheet.create({
   rangTexte: { fontFamily: polices.extraBold, fontSize: 14, lineHeight: 18 },
   ligneTexte: { flex: 1, gap: 1 },
   nomLigne: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
-  lecture: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+  compteur: { alignItems: 'flex-end', minWidth: 42 },
+  compteurNombre: { fontFamily: polices.extraBold, fontSize: 19, lineHeight: 23 },
+  compteurLibelle: {
+    fontFamily: polices.bold,
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
   },
   majuscules: { textTransform: 'uppercase', letterSpacing: 1 },
   pastille: {
@@ -791,6 +776,21 @@ const styles = StyleSheet.create({
   },
   heroCorps: { fontFamily: polices.medium, fontSize: 14, lineHeight: 21 },
   heroDuree: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18, color: couleurs.encre3 },
+  heroVotes: { alignItems: 'flex-end' },
+  heroVotesNombre: {
+    fontFamily: polices.extraBold,
+    fontSize: 24,
+    lineHeight: 27,
+    color: couleurs.or,
+  },
+  heroVotesLibelle: {
+    fontFamily: polices.bold,
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: couleurs.encre3,
+  },
   heroNote: {
     fontFamily: polices.semiBold,
     fontSize: 11.5,

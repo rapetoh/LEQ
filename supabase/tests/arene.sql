@@ -176,6 +176,13 @@ select ok(
      from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where not (l ->> 'moi')::boolean),
   'a line with no name reads « Anonyme N »');
+-- The number is the order of arrival, not the place: it must still name the same voice when the
+-- votes move, or a person cannot tell the passage they have heard from one they have not.
+select is(
+  (select l ->> 'nom' from jsonb_array_elements((public.classement_arene()) -> 'classement') l
+    where (l ->> 'rang')::int = 1),
+  'Anonyme 2',
+  'the first place is held by the second voice to have spoken, and keeps its own number');
 select ok(
   (select count(*) = 0 from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where (l ->> 'nom') like 'Voix %' or (l ->> 'nom') like 'Passage %'),

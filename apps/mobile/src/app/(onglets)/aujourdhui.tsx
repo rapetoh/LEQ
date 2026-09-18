@@ -194,8 +194,8 @@ export default function Aujourdhui() {
                         t('aujourdhui.sujetParle'),
                         mienne
                           ? mienne.votes === 1
-                            ? t('aujourdhui.sujetVoixUne')
-                            : t('aujourdhui.sujetVoix', { votes: mienne.votes })
+                            ? t('aujourdhui.sujetVoteUn')
+                            : t('aujourdhui.sujetVotes', { votes: mienne.votes })
                           : null,
                       ]
                         .filter(Boolean)

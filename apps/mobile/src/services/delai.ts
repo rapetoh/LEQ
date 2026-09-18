@@ -2,6 +2,11 @@
 // roughly how much. Written from fr.ts strings: Hermes on iOS has no Intl.RelativeTimeFormat.
 import { t } from '@/i18n/fr'
 
+/** The clock, read in one place: a screen stamps the start of a playback with it. */
+export function maintenant(): number {
+  return Date.now()
+}
+
 export type Reste = { etat: 'heures'; heures: number } | { etat: 'court' } | { etat: 'passe' }
 
 export function resteAvant(echeance: string, maintenant: Date = new Date()): Reste {

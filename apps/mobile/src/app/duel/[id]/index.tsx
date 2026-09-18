@@ -3,10 +3,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, Share, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Avatar, AvatarsDuel } from '@/components/Avatar'
+import { ControleLecture } from '@/components/ControleLecture'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -15,7 +16,7 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useActualisation } from '@/services/actualisation'
 import { creerDuel, invaliderArene, messageRefus, useMesDuels } from '@/services/arene'
-import { dureeCourte, texteReste } from '@/services/delai'
+import { dureeCourte, maintenant, texteReste } from '@/services/delai'
 import { badgeDuel, nomAdversaire } from '@/services/duelVue'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { urlAvatar } from '@/services/photo'
@@ -33,7 +34,7 @@ import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 // Where the public pages live. Phase 9 points EXPO_PUBLIC_LIEN_DUEL at the real domain.
 const BASE_LIEN = process.env.EXPO_PUBLIC_LIEN_DUEL ?? 'https://leq-serveur.fly.dev'
 
-type Ecoute = { prise: string; etat: 'chargement' | 'lecture' } | null
+type Ecoute = { prise: string; etat: 'chargement' | 'lecture'; depuis?: number } | null
 
 export default function EcranDuel() {
   const params = useLocalSearchParams<{ id?: string }>()
@@ -72,7 +73,7 @@ export default function EcranDuel() {
     setEcoute({ prise: cote.prise_id, etat: 'chargement' })
     try {
       await lecteur.jouer(await urlSignee(cote.chemin_audio), () => setEcoute(null))
-      setEcoute({ prise: cote.prise_id, etat: 'lecture' })
+      setEcoute({ prise: cote.prise_id, etat: 'lecture', depuis: maintenant() })
     } catch (erreur) {
       console.warn('duel: lecture impossible', erreur)
       setEcoute(null)
@@ -338,34 +339,22 @@ function Siege({
         </View>
       ) : null}
       {cote.chemin_audio ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={
-            enLecture
-              ? t('duel.arreter')
-              : moi
-                ? t('duel.ecouterMaReponse')
-                : t('duel.ecouterSaReponse')
-          }
-          accessibilityState={{ busy: enLecture && ecoute?.etat === 'chargement' }}
-          onPress={onEcouter}
-          style={({ pressed }) => [
+        <View
+          style={[
             styles.ecoute,
             { backgroundColor: sombre ? 'rgba(255, 255, 255, 0.12)' : theme.carteDouce },
-            pressed && { opacity: 0.85 },
           ]}
         >
-          <View
-            style={[styles.rondLecture, { backgroundColor: enLecture ? couleurs.or : theme.lien }]}
-          >
-            <Icone
-              sf={enLecture && ecoute?.etat === 'lecture' ? 'stop.fill' : 'play.fill'}
-              material={enLecture && ecoute?.etat === 'lecture' ? 'stop' : 'play-arrow'}
-              taille={14}
-              couleur={enLecture ? couleurs.bleuNuit : couleurs.blanc}
-            />
-          </View>
-          <Text style={[styles.ecouteTexte, { color: encre }]}>
+          <ControleLecture
+            etat={enLecture ? (ecoute?.etat ?? 'inactif') : 'inactif'}
+            depuis={enLecture ? (ecoute?.depuis ?? null) : null}
+            dureeS={cote.duree_s}
+            onPress={onEcouter}
+            diametre={38}
+            surFondSombre={sombre}
+            libelle={moi ? t('duel.ecouterMaReponse') : t('duel.ecouterSaReponse')}
+          />
+          <Text style={[styles.ecouteTexte, { color: encre, flex: 1 }]} numberOfLines={1}>
             {enLecture && ecoute?.etat === 'chargement'
               ? t('commun.chargement')
               : enLecture
@@ -374,7 +363,7 @@ function Siege({
                   ? t('duel.ecouterMaReponse')
                   : t('duel.ecouterSaReponse')}
           </Text>
-        </Pressable>
+        </View>
       ) : null}
     </View>
   )

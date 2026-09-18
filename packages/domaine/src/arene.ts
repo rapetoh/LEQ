@@ -190,15 +190,26 @@ export const RaisonPaireSchema = z.enum(RAISONS_PAIRE)
 export type RaisonPaire = z.infer<typeof RaisonPaireSchema>
 
 /** What `paire_a_voter()` answers: two takes to compare, or why there is nothing to compare. */
+/** Where the person stands in the day's listening: `prises_ecoutees_par_jour` is the allowance. */
+const EcouteDuJour = {
+  ecoutees: z.int().min(0).default(0),
+  plafond: z.int().min(0).default(0),
+}
+
 export const PaireAVoterSchema = z.discriminatedUnion('raison', [
   z.object({ raison: z.literal('aucun_sujet') }),
   z.object({ raison: z.literal('parle_d_abord') }),
   /** `autres`: how many other published voices there are at all (0, 1, or every pair voted). */
-  z.object({ raison: z.literal('rien_a_comparer'), autres: z.int().min(0).default(0) }),
-  z.object({ raison: z.literal('assez_ecoute') }),
+  z.object({
+    raison: z.literal('rien_a_comparer'),
+    autres: z.int().min(0).default(0),
+    ...EcouteDuJour,
+  }),
+  z.object({ raison: z.literal('assez_ecoute'), ...EcouteDuJour }),
   z.object({
     raison: z.literal('ok'),
     sujet: z.object({ id: UuidSchema, texte: z.string(), consigne: z.string().nullable() }),
+    ...EcouteDuJour,
     a: z.object({ id: UuidSchema, duree_s: z.number().nullable().default(null) }),
     b: z.object({ id: UuidSchema, duree_s: z.number().nullable().default(null) }),
   }),

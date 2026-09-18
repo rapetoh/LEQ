@@ -181,6 +181,67 @@ describe('the duel invitation page', () => {
     expect(await screen.findByText(fr.duel.completTitre)).toBeInTheDocument()
   })
 
+  it('tells someone coming back on another device where their answer is', async () => {
+    // The seat is claimed by an anonymous session, which lives in one browser. Opening the link
+    // elsewhere cannot recognise them, so the page says what to do instead of accusing a stranger.
+    lireInvitation.mockResolvedValue({ ...INVITATION, deja_repondu: true, c_est_moi: false })
+    afficher()
+
+    expect(await screen.findByText('Ce duel a déjà sa réponse.')).toBeInTheDocument()
+    expect(screen.getByText(/rouvre ce lien sur l'appareil/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: fr.duel.commencer })).not.toBeInTheDocument()
+  })
+
+  it('keeps a closed duel readable for whoever answered it', async () => {
+    lireInvitation.mockResolvedValue({
+      ...INVITATION,
+      statut: 'clos',
+      deja_repondu: true,
+      c_est_moi: false,
+    })
+    afficher()
+
+    expect(await screen.findByText(fr.duel.closTitre)).toBeInTheDocument()
+    expect(screen.getByText(/le résultat est parti par e-mail/)).toBeInTheDocument()
+  })
+
+  it('takes the person who already answered straight back to the wait', async () => {
+    lireInvitation.mockResolvedValue({ ...INVITATION, deja_repondu: true, c_est_moi: true })
+    lireMonDuel.mockResolvedValue({
+      id: INVITATION.id,
+      sujet: INVITATION.sujet,
+      statut: 'ouvert',
+      verdict: null,
+      echeance: DANS_DEUX_JOURS,
+      cree_le: DANS_DEUX_JOURS,
+      clos_le: null,
+      duree_max_s: 90,
+      role: 'invite',
+      jeton: null,
+      adversaire: { prenom: 'Roch', avatar: null },
+      moi: {
+        a_parle: true,
+        prise_id: 'p1',
+        chemin_audio: null,
+        retenue: false,
+        duree_s: 58,
+        mesures: null,
+      },
+      lui: {
+        a_parle: false,
+        prise_id: null,
+        chemin_audio: null,
+        retenue: false,
+        duree_s: null,
+        mesures: null,
+      },
+    })
+    afficher()
+
+    expect(await screen.findByText(fr.duel.attenteTitre)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: fr.duel.commencer })).not.toBeInTheDocument()
+  })
+
   it('explains a link that leads nowhere', async () => {
     lireInvitation.mockResolvedValue({ raison: 'introuvable' })
     afficher()
