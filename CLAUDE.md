@@ -16,6 +16,17 @@ correction table of `docs/STRINGS.md` for a string, `docs/OPEN-INPUTS.md` for a 
 `docs/DESIGN-PASS.md` for a screen. Whoever writes the code owns the result, and a citation is
 never a defence.
 
+Overruling one is not free. It takes a reason that is **clear** (one sentence naming what is
+wrong for the person reading the screen), **logical** (it follows from what the product does, not
+from what is quicker to build) and **sustainable** (it still holds on the next screen and the
+next feature, so the same decision is not reopened every week). A reason that only fits the
+screen in front of you is not a reason, it is a patch.
+
+And Roch is told, in the message that reports the work, every time a document is overruled: what
+the document said, what ships instead, and the reason in one sentence. He decides what stands; he
+cannot decide what he never hears about. The doc entry is the durable record, the line to him is
+the notice.
+
 ## The rule about writing, which applies to every string, now and later
 
 Every word a person can read in LEQ is French, and it has to read like the French a real consumer
