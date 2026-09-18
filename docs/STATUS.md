@@ -1159,6 +1159,35 @@ domaine 50, moteur 33; strings, lint and format green. Deployed: migration
 one duel take the filter had held. The worker needs no deploy: only its comment changed.
 **Build 29** below.
 
+## Anonyme, VS, et la fin du duel portée comme un état (2026-09-18)
+
+Roch's four questions on the duels and the Arena, answered before touching anything, then built.
+
+- **« Anonyme N »** replaces « Passage N », which had replaced « Voix N » this morning. A vote is
+  « une voix », so that was a collision; naming the line after the recording was my repair and he
+  turned it down, rightly, because it reads as a name for something that has none. He picked
+  « Anonyme » out of five candidates. The number stays so two lines are told apart.
+- **Whose name appears is the person's to set**, and it now sits in both places it belongs:
+  Réglages, as before, and on the feedback screen at the moment the passage is sent.
+- **« VS » instead of « Contre ».** His question, and he is right: it is the common mark of a
+  head-to-head and it is shorter, which also ends the truncation on a long name.
+- **The two faces overlap on a diagonal**, the other person in front, the empty seat as a dashed
+  ring. The « R » he saw was Rebecca's initial, drawn because she has no profile photo; his own
+  seat drew a generic mark and now carries his picture.
+- **The end of a duel is a badge**, a check in green for a duel that was played out and a clock
+  for one nobody answered, with the outcome on the line beside it. « Terminé · tu gagnes » said
+  the state twice, once in the badge's place and once in words; the line now says « Tu gagnes ».
+
+Departures from the mockup, recorded in docs/OPEN-INPUTS.md: it draws « Contre Karim » and a
+plain grey status line, and it labels an anonymous take « Passage 12 ». The reason is the same
+for all three: what a person reads on the card should say who they are facing, how the duel
+stands, and whether a name exists, at a glance.
+
+Verified: pgTAP `arene.sql` 162 green with the migration; mobile 102, server 119, web 34,
+domaine 50, moteur 33; strings, lint and format green. Deployed: migration
+`20260918030000_anonyme_dans_l_arene` on the hosted project, so the label is already « Anonyme »
+on build 28. **Build 30** carries the rest.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { Avatar } from '@/components/Avatar'
+import { Avatar, AvatarsDuel } from '@/components/Avatar'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -16,7 +16,7 @@ import { t } from '@/i18n/fr'
 import { useActualisation } from '@/services/actualisation'
 import { creerDuel, invaliderArene, messageRefus, useMesDuels } from '@/services/arene'
 import { dureeCourte, texteReste } from '@/services/delai'
-import { nomAdversaire } from '@/services/duelVue'
+import { badgeDuel, nomAdversaire } from '@/services/duelVue'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { urlAvatar } from '@/services/photo'
 import { useProfil } from '@/services/profil'
@@ -108,10 +108,7 @@ export default function EcranDuel() {
     }
   }
 
-  const surtitre = [
-    duel.adversaire ? t('duel.contre', { nom }) : t('duel.surtitre'),
-    duel.statut === 'ouvert' ? t('duel.ouvert') : t('duel.termine'),
-  ].join(' · ')
+  const badge = badgeDuel(duel)
 
   return (
     <ScrollView
@@ -128,7 +125,29 @@ export default function EcranDuel() {
         { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xl },
       ]}
     >
-      <Text style={[styles.surtitre, { color: theme.accent }]}>{surtitre}</Text>
+      <View style={styles.entete}>
+        <AvatarsDuel
+          moi={{ prenom: profil.data?.prenom ?? null, uri: urlAvatar(profil.data?.avatar_chemin) }}
+          lui={
+            duel.adversaire
+              ? { prenom: duel.adversaire.prenom, uri: urlAvatar(duel.adversaire.avatar) }
+              : null
+          }
+        />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={[styles.surtitre, { color: theme.texte }]} numberOfLines={1}>
+            {duel.adversaire ? (
+              <>
+                <Text style={{ color: couleurs.orange }}>{t('duel.vsSigle')}</Text>
+                {` ${nom}`}
+              </>
+            ) : (
+              t('duel.sansAdversaire')
+            )}
+          </Text>
+          {badge ? <Badge badge={badge} /> : null}
+        </View>
+      </View>
       <Titre niveau="ecran">{duel.sujet}</Titre>
 
       <View style={styles.sieges}>
@@ -205,6 +224,26 @@ export default function EcranDuel() {
         <Bouton libelle={t('commun.retour')} variante="texte" onPress={() => router.back()} />
       </View>
     </ScrollView>
+  )
+}
+
+/** The end of a duel, worn as a state: a check when it was played out, a slash when nobody came. */
+function Badge({ badge }: { badge: 'termine' | 'expire' }) {
+  const theme = useTheme()
+  const fini = badge === 'termine'
+  const couleur = fini ? theme.succes : theme.texteTertiaire
+  return (
+    <View style={[styles.badge, { borderColor: couleur }]}>
+      <Icone
+        sf={fini ? 'checkmark.circle.fill' : 'clock.badge.xmark'}
+        material={fini ? 'check-circle' : 'schedule'}
+        taille={13}
+        couleur={couleur}
+      />
+      <Text style={[styles.badgeTexte, { color: couleur }]}>
+        {fini ? t('duel.termine') : t('duel.ligne.expire')}
+      </Text>
+    </View>
   )
 }
 
@@ -527,11 +566,23 @@ function Cote({ valeur, part, couleur }: { valeur: string; part: number; couleur
 
 const styles = StyleSheet.create({
   contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.m },
-  surtitre: {
-    fontFamily: polices.bold,
-    fontSize: 11,
+  entete: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  surtitre: { fontFamily: polices.extraBold, fontSize: 17, lineHeight: 22 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: rayons.pilule,
+    borderWidth: 1.5,
+  },
+  badgeTexte: {
+    fontFamily: polices.extraBold,
+    fontSize: 10.5,
     lineHeight: 14,
-    letterSpacing: 1.1,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   bloc: { gap: espaces.s },

@@ -168,17 +168,18 @@ select isnt(
   (select l ->> 'nom' from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where not (l ->> 'moi')::boolean limit 1),
   'Camille', 'the others are not named');
--- « Voix 2 » beside « 2 voix » was the same word for a passage and for a vote (2026-09-18):
--- an anonymous passage is « Passage N », the word chapter 11 and the app already use.
+-- « Voix 2 » beside « 2 voix » was the same word for a passage and for a vote (2026-09-18).
+-- A line that has no name says so: « Anonyme N », and « passage » keeps its one meaning, the
+-- recording itself.
 select ok(
-  (select bool_and((l ->> 'nom') like 'Passage %')
+  (select bool_and((l ->> 'nom') like 'Anonyme %')
      from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where not (l ->> 'moi')::boolean),
-  'the others stay anonymous, as Passage N');
+  'a line with no name reads « Anonyme N »');
 select ok(
   (select count(*) = 0 from jsonb_array_elements((public.classement_arene()) -> 'classement') l
-    where (l ->> 'nom') like 'Voix %'),
-  'and no passage is named a voix, which is what a vote is called');
+    where (l ->> 'nom') like 'Voix %' or (l ->> 'nom') like 'Passage %'),
+  'and never « Voix N », which is what a vote is called, nor a name made of the word passage');
 reset role; select tests_leq.deconnecter();
 select tests_leq.connecter('22222222-2222-4222-8222-222222222222', false, 'utilisateur');
 select is((select count(*) from public.votes), 0::bigint, 'B does not read A''s vote');

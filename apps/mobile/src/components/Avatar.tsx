@@ -80,8 +80,73 @@ export function Avatar({
   )
 }
 
+/**
+ * Two people facing each other, drawn the way a head-to-head is drawn everywhere: the two
+ * pictures overlapping on a diagonal, the other person in front. The letter or the neutral mark
+ * stands in for whoever has no photo yet.
+ */
+export function AvatarsDuel({
+  moi,
+  lui,
+  taille = 34,
+}: {
+  moi: { prenom: string | null; uri: string | null }
+  /** Null while nobody has joined: the empty seat is drawn as a dotted ring. */
+  lui: { prenom: string | null; uri: string | null } | null
+  taille?: number
+}) {
+  const theme = useTheme()
+  const recouvrement = Math.round(taille * 0.34)
+  const largeur = taille * 2 - recouvrement
+  const decalage = Math.round(taille * 0.16)
+  return (
+    <View style={{ width: largeur, height: taille + decalage }} accessible={false}>
+      <View style={[styles.face, { top: decalage, left: 0 }]}>
+        <View style={[styles.liseré, { borderColor: theme.carte, borderRadius: taille }]}>
+          <Avatar prenom={moi.prenom} uri={moi.uri} taille={taille} />
+        </View>
+      </View>
+      <View style={[styles.face, { top: 0, left: taille - recouvrement }]}>
+        <View style={[styles.liseré, { borderColor: theme.carte, borderRadius: taille }]}>
+          {lui ? (
+            <Avatar prenom={lui.prenom} uri={lui.uri} taille={taille} />
+          ) : (
+            <View
+              style={[
+                styles.libre,
+                {
+                  width: taille,
+                  height: taille,
+                  borderRadius: taille / 2,
+                  borderColor: theme.bordure,
+                  backgroundColor: theme.carteDouce,
+                },
+              ]}
+            >
+              <Icone
+                sf="person.badge.plus"
+                material="person-add"
+                taille={Math.round(taille * 0.5)}
+                couleur={theme.texteTertiaire}
+              />
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
   rond: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  face: { position: 'absolute' },
+  liseré: { borderWidth: 2.5, overflow: 'hidden' },
+  libre: {
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   lettre: { fontFamily: polices.extraBold, color: couleurs.blanc },
   badge: {
     position: 'absolute',

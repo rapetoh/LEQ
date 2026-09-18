@@ -87,7 +87,7 @@ async function rendre(duel: Partial<DuelVue> = {}) {
 describe('le duel, écran par état', () => {
   it('names the empty seat and offers the invitation while nobody has joined', async () => {
     const ecran = await rendre({ adversaire: null })
-    expect(ecran.getByText('Place libre')).toBeTruthy()
+    expect(ecran.getAllByText('Place libre').length).toBeGreaterThan(0)
     expect(ecran.getByText("Personne n'a encore rejoint le duel.")).toBeTruthy()
     expect(ecran.getByText("Envoyer l'invitation")).toBeTruthy()
   })
@@ -127,6 +127,9 @@ describe('le duel, écran par état', () => {
     expect(ecran.getByText('Écouter sa réponse')).toBeTruthy()
     expect(ecran.getByText('Tu gagnes.')).toBeTruthy()
     expect(ecran.getByText('Vainqueur')).toBeTruthy()
+    // The head-to-head is read in the header: VS, the name, and the end state as a badge.
+    expect(ecran.getByText('VS')).toBeTruthy()
+    expect(ecran.getByText('Terminé')).toBeTruthy()
     // The two sides are named once, in the legend; never as a column header over the numbers.
     expect(ecran.getByText('Ce qui se mesure')).toBeTruthy()
     expect(ecran.getByText('76')).toBeTruthy()

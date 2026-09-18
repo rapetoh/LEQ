@@ -11,14 +11,19 @@ export function nomAdversaire(duel: Pick<DuelVue, 'adversaire'>): string {
   return duel.adversaire?.prenom?.trim() || t('duel.adversaireSansNom')
 }
 
-/** « Contre Rebecca », or the empty seat. */
-export function titreLigne(duel: Pick<DuelVue, 'adversaire'>): string {
-  return duel.adversaire ? t('duel.contre', { nom: nomAdversaire(duel) }) : t('duel.sansAdversaire')
+export type BadgeDuel = 'termine' | 'expire' | null
+
+/** The end of a duel is a state, so it is worn as a badge and not written into the status line. */
+export function badgeDuel(duel: Pick<DuelVue, 'statut'>): BadgeDuel {
+  if (duel.statut === 'clos') return 'termine'
+  if (duel.statut === 'expire') return 'expire'
+  return null
 }
 
 /** The status line of a duel in the list, with what is left of the 48 h while it is open. */
 export function ligneEtat(duel: DuelVue, maintenant: Date = new Date()): string {
   const nom = nomAdversaire(duel)
+  // A finished duel wears its badge; the line under it says the outcome, never « Terminé » again.
   if (duel.statut === 'expire') return t('duel.ligne.expire')
   if (duel.statut === 'clos') {
     switch (issueDuel(duel)) {

@@ -34,7 +34,7 @@ function ligne(rang: number, options: Record<string, unknown> = {}) {
     prise_id: `p${rang}`,
     votes: 10 - rang,
     moi: false,
-    nom: `Voix ${rang}`,
+    nom: `Anonyme ${rang}`,
     ...options,
   }
 }
@@ -89,7 +89,7 @@ describe('the podium of a closed week', () => {
   it('lists everyone below the podium under their own heading', async () => {
     const ecran = await rendre([ligne(1), ligne(2), ligne(3), ligne(4), ligne(5)])
     expect(ecran.getByText('Le reste du classement')).toBeTruthy()
-    expect(ecran.getByText('Voix 4')).toBeTruthy()
+    expect(ecran.getByText('Anonyme 4')).toBeTruthy()
   })
 
   it('shows no "rest of the ranking" when the week fits on the podium', async () => {

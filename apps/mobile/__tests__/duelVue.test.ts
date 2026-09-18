@@ -3,10 +3,10 @@ import type { DuelVue } from '@leq/domaine'
 import { dureeCourte, resteAvant, texteReste } from '@/services/delai'
 import {
   attentionDuel,
+  badgeDuel,
   duelAMettreEnAvant,
   ligneEtat,
   nomAdversaire,
-  titreLigne,
 } from '@/services/duelVue'
 
 jest.mock('@/services/supabase', () => ({ supabase: {}, useSession: jest.fn() }))
@@ -62,12 +62,17 @@ describe('the time left', () => {
 })
 
 describe('the line under a duel', () => {
-  it('names the other side, or the empty seat', () => {
-    expect(titreLigne(duel())).toBe('Contre Rebecca')
-    expect(titreLigne(duel({ adversaire: null }))).toBe('Place libre')
+  it('names the other side, or says nobody is in it', () => {
+    expect(nomAdversaire(duel())).toBe('Rebecca')
     expect(nomAdversaire(duel({ adversaire: { prenom: null, avatar: null } }))).toBe(
       'Ton adversaire',
     )
+  })
+
+  it('wears the end of a duel as a badge, so the line never says « Terminé » twice', () => {
+    expect(badgeDuel(duel())).toBeNull()
+    expect(badgeDuel(duel({ statut: 'clos' }))).toBe('termine')
+    expect(badgeDuel(duel({ statut: 'expire' }))).toBe('expire')
   })
 
   it('says whose turn it is while the duel is open, with the time left', () => {
@@ -83,27 +88,21 @@ describe('the line under a duel', () => {
     )
   })
 
-  it('says how it ended, from this side', () => {
+  it('says how it ended, from this side, with no « Terminé » the badge already carries', () => {
     const clos = {
       statut: 'clos' as const,
       moi: cote(true),
       lui: cote(true),
       clos_le: '2026-09-18T09:00:00Z',
     }
-    expect(ligneEtat(duel({ ...clos, verdict: 'inviteur' }), MAINTENANT)).toBe(
-      'Terminé · tu gagnes',
-    )
-    expect(ligneEtat(duel({ ...clos, verdict: 'invite' }), MAINTENANT)).toBe(
-      'Terminé · Rebecca gagne',
-    )
+    expect(ligneEtat(duel({ ...clos, verdict: 'inviteur' }), MAINTENANT)).toBe('Tu gagnes')
+    expect(ligneEtat(duel({ ...clos, verdict: 'invite' }), MAINTENANT)).toBe('Rebecca gagne')
     expect(ligneEtat(duel({ ...clos, verdict: 'inviteur', role: 'invite' }), MAINTENANT)).toBe(
-      'Terminé · Rebecca gagne',
+      'Rebecca gagne',
     )
-    expect(ligneEtat(duel({ ...clos, verdict: 'egalite' }), MAINTENANT)).toBe('Terminé · égalité')
-    expect(ligneEtat(duel({ ...clos, verdict: 'sans_verdict' }), MAINTENANT)).toBe(
-      'Terminé · sans verdict',
-    )
-    expect(ligneEtat(duel({ statut: 'expire' }), MAINTENANT)).toBe('Expiré')
+    expect(ligneEtat(duel({ ...clos, verdict: 'egalite' }), MAINTENANT)).toBe('Égalité')
+    expect(ligneEtat(duel({ ...clos, verdict: 'sans_verdict' }), MAINTENANT)).toBe('Sans verdict')
+    expect(ligneEtat(duel({ statut: 'expire' }), MAINTENANT)).toBe("Personne n'a répondu à temps")
   })
 })
 

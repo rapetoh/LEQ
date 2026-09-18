@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 
-import { Avatar } from '@/components/Avatar'
+import { Avatar, AvatarsDuel } from '@/components/Avatar'
 import { PorteCompte } from '@/components/PorteCompte'
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
@@ -31,10 +31,11 @@ import { useEstAnonyme, versCompte } from '@/services/compte'
 import { useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { dureeCourte } from '@/services/delai'
-import { ligneEtat, titreLigne } from '@/services/duelVue'
+import { badgeDuel, ligneEtat, nomAdversaire } from '@/services/duelVue'
 import { minutesDe } from '@/services/rythme'
 import { lecteur, urlSignee } from '@/services/lecture'
 import { urlAvatar } from '@/services/photo'
+import { useProfil } from '@/services/profil'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
@@ -599,11 +600,14 @@ function ListeDuels({ titre, duels }: { titre: string; duels: DuelVue[] }) {
 function LigneDuel({ duel, premiere }: { duel: DuelVue; premiere: boolean }) {
   const theme = useTheme()
   const router = useRouter()
+  const profil = useProfil()
   const aToi = duel.statut === 'ouvert' && duel.adversaire !== null && !duel.moi.a_parle
-  const termine = duel.statut !== 'ouvert'
+  const badge = badgeDuel(duel)
+  const nom = nomAdversaire(duel)
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={duel.adversaire ? t('duel.vs', { nom }) : t('duel.sansAdversaire')}
       onPress={() => router.push(`/duel/${duel.id}`)}
       style={({ pressed }) => [pressed && { opacity: 0.8 }]}
     >
@@ -614,38 +618,63 @@ function LigneDuel({ duel, premiere }: { duel: DuelVue; premiere: boolean }) {
           !premiere && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.bordure },
         ]}
       >
-        {duel.adversaire ? (
-          <Avatar
-            prenom={duel.adversaire.prenom}
-            uri={urlAvatar(duel.adversaire.avatar)}
-            taille={40}
-          />
-        ) : (
-          <View style={[styles.siegeVide, { backgroundColor: theme.carteDouce }]}>
-            <Icone
-              sf="person.badge.plus"
-              material="person-add"
-              taille={18}
-              couleur={theme.texteTertiaire}
-            />
-          </View>
-        )}
+        <AvatarsDuel
+          moi={{ prenom: profil.data?.prenom ?? null, uri: urlAvatar(profil.data?.avatar_chemin) }}
+          lui={
+            duel.adversaire
+              ? { prenom: duel.adversaire.prenom, uri: urlAvatar(duel.adversaire.avatar) }
+              : null
+          }
+          taille={32}
+        />
         <View style={styles.ligneTexte}>
           <Text style={[styles.nomLigne, { color: theme.texte }]} numberOfLines={1}>
-            {titreLigne(duel)}
+            {duel.adversaire ? (
+              <>
+                <Text style={{ color: couleurs.orange }}>{t('duel.vsSigle')}</Text>
+                {` ${nom}`}
+              </>
+            ) : (
+              t('duel.sansAdversaire')
+            )}
           </Text>
           <Text style={[typographie.petit, { color: theme.texteSecondaire }]} numberOfLines={2}>
             {duel.sujet}
           </Text>
-          <Text
-            style={[
-              styles.etatDuel,
-              { color: aToi || (termine && duel.verdict) ? couleurs.rouge : theme.texteTertiaire },
-            ]}
-            numberOfLines={1}
-          >
-            {ligneEtat(duel)}
-          </Text>
+          <View style={styles.etatLigne}>
+            {badge ? (
+              <View
+                style={[
+                  styles.badge,
+                  { borderColor: badge === 'termine' ? theme.succes : theme.texteTertiaire },
+                ]}
+              >
+                <Icone
+                  sf={badge === 'termine' ? 'checkmark.circle.fill' : 'clock.badge.xmark'}
+                  material={badge === 'termine' ? 'check-circle' : 'schedule'}
+                  taille={12}
+                  couleur={badge === 'termine' ? theme.succes : theme.texteTertiaire}
+                />
+                <Text
+                  style={[
+                    styles.badgeTexte,
+                    { color: badge === 'termine' ? theme.succes : theme.texteTertiaire },
+                  ]}
+                >
+                  {badge === 'termine' ? t('duel.termine') : t('duel.ligne.expire')}
+                </Text>
+              </View>
+            ) : null}
+            <Text
+              style={[
+                styles.etatDuel,
+                { color: aToi ? couleurs.rouge : theme.texteTertiaire, flex: 1 },
+              ]}
+              numberOfLines={1}
+            >
+              {ligneEtat(duel)}
+            </Text>
+          </View>
         </View>
         <View
           style={[
@@ -788,14 +817,24 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     paddingTop: espaces.m,
   },
-  siegeVide: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  etatLigne: { flexDirection: 'row', alignItems: 'center', gap: espaces.xs, marginTop: 3 },
+  etatDuel: { fontFamily: polices.semiBold, fontSize: 12.5, lineHeight: 16 },
+  badge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: rayons.pilule,
+    borderWidth: 1.5,
   },
-  etatDuel: { fontFamily: polices.semiBold, fontSize: 12.5, lineHeight: 16, marginTop: 2 },
+  badgeTexte: {
+    fontFamily: polices.extraBold,
+    fontSize: 10,
+    lineHeight: 13,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
   piluleVoir: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: rayons.pilule },
   piluleVoirTexte: { fontFamily: polices.extraBold, fontSize: 12, lineHeight: 16 },
 })

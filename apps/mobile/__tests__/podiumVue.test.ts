@@ -8,7 +8,7 @@ function ligne(rang: number, options: Partial<LigneClassement> = {}): LigneClass
     prise_id: `p${rang}`,
     votes: Math.max(0, 10 - rang),
     moi: false,
-    nom: `Voix ${rang}`,
+    nom: `Anonyme ${rang}`,
     pseudonyme: true,
     avatar: null,
     duree_s: null,
