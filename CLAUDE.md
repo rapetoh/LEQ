@@ -3,6 +3,19 @@
 A French mobile application that trains public speaking. Read `README.md` for the layout and
 `docs/STATUS.md` for where the build stands before changing anything.
 
+## The documents are a floor, never a justification
+
+The cahier, the mockup and everything under `docs/` exist to start this project and to keep it
+coherent. They are a baseline, not a bible. Nothing in them is a reason to ship something bad:
+« the mockup draws it this way » and « the cahier uses that word » are not answers to « is this
+good for the person reading the screen ». Judge the rendered screen first, then use the cahier
+for the product's intent (what the app may claim: chapter 2 on the voice, chapter 11 on the
+automatic verdict, the privacy promises) and the mockup as a level to equal or beat. When a
+document's own wording or layout turns out to be the weak part, change it and record why: the
+correction table of `docs/STRINGS.md` for a string, `docs/OPEN-INPUTS.md` for a product rule,
+`docs/DESIGN-PASS.md` for a screen. Whoever writes the code owns the result, and a citation is
+never a defence.
+
 ## The rule about writing, which applies to every string, now and later
 
 Every word a person can read in LEQ is French, and it has to read like the French a real consumer
