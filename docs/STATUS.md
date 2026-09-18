@@ -1186,7 +1186,17 @@ stands, and whether a name exists, at a glance.
 Verified: pgTAP `arene.sql` 162 green with the migration; mobile 102, server 119, web 34,
 domaine 50, moteur 33; strings, lint and format green. Deployed: migration
 `20260918030000_anonyme_dans_l_arene` on the hosted project, so the label is already « Anonyme »
-on build 28. **Build 30** carries the rest.
+on build 28. **Build 30 is uploaded** (04:37 local, « Upload completed with warnings », the usual
+dSYM notes) with everything above; build 29 was archived and never sent, superseded by 30 the
+same hour. Next build number: 31.
+
+The upload taught the Organizer something worth keeping (docs/RUNBOOK.md): its buttons are
+driven through the accessibility API (`osascript`, System Events, `click button "Distribute App"
+of window "Archives"`), with no coordinates, no dependency on which display is attached, and no
+need for Roch to be away from the Mac. The mouse route failed this time because the result sheet
+of build 28's upload had been left open for nine hours and had stopped answering clicks and
+keystrokes; Xcode had to be restarted. A sheet is dismissed in the same session as its upload
+from now on.
 
 ## Next
 
