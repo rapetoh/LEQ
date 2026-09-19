@@ -69,3 +69,17 @@ export function depuisBase64(texte: string): Uint8Array {
   }
   return octets
 }
+
+/**
+ * The loudness of one frame, in dBFS, the way the recording screens read it: silence at the
+ * floor, speech near the top. The debate feeds its wave with this, so a person always sees that
+ * the microphone hears them.
+ */
+export function niveauDbfs(echantillons: Float32Array): number {
+  if (echantillons.length === 0) return -100
+  let somme = 0
+  for (let i = 0; i < echantillons.length; i += 1) somme += echantillons[i]! * echantillons[i]!
+  const rms = Math.sqrt(somme / echantillons.length)
+  if (rms <= 0) return -100
+  return Math.max(-100, Math.min(0, 20 * Math.log10(rms)))
+}

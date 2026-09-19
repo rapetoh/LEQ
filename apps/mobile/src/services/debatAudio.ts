@@ -26,6 +26,7 @@ import {
   depuisBase64,
   depuisInt16,
   enBase64,
+  niveauDbfs,
   FREQUENCE_DEBAT_HZ,
   FREQUENCE_VOIX_HZ,
   TRAME_DEBAT,
@@ -114,7 +115,7 @@ export class AudioDebat {
         const echantillons = evenement.buffer.getChannelData(0)
         // The same frames drive the wave on screen. A person speaking into a microphone has to
         // see that it hears them, or they are talking into an object.
-        if (surNiveau) surNiveau(dbfs(echantillons))
+        if (surNiveau) surNiveau(niveauDbfs(echantillons))
         surTrame(enBase64(versInt16(echantillons)))
       },
     )
@@ -219,16 +220,6 @@ export class AudioDebat {
     }
     this.reclamation = null
   }
-}
-
-/** The loudness of one frame, as the recording screens read it: dBFS, floored at silence. */
-function dbfs(echantillons: Float32Array): number {
-  if (echantillons.length === 0) return -100
-  let somme = 0
-  for (let i = 0; i < echantillons.length; i += 1) somme += echantillons[i]! * echantillons[i]!
-  const rms = Math.sqrt(somme / echantillons.length)
-  if (rms <= 0) return -100
-  return Math.max(-100, Math.min(0, 20 * Math.log10(rms)))
 }
 
 function messageDe(erreur: unknown): string {

@@ -1,4 +1,4 @@
-import { depuisBase64, depuisInt16, enBase64, versInt16 } from '@/services/pcm'
+import { depuisBase64, depuisInt16, enBase64, versInt16, niveauDbfs } from '@/services/pcm'
 
 // The conversions on the debate's audio path. They are pure, they run on every 100 ms frame,
 // and a sign or endianness mistake here is inaudible until the transcription is nonsense.
@@ -70,5 +70,19 @@ describe('depuisInt16', () => {
 
   it('answers nothing for nothing', () => {
     expect(depuisInt16(new Uint8Array([])).length).toBe(0)
+  })
+})
+
+describe('niveauDbfs', () => {
+  it('reads silence as the floor', () => {
+    expect(niveauDbfs(new Float32Array(160))).toBe(-100)
+    expect(niveauDbfs(new Float32Array(0))).toBe(-100)
+  })
+
+  it('reads a full-scale tone as the ceiling, and a quiet one well below it', () => {
+    const plein = Float32Array.from({ length: 160 }, (_, i) => (i % 2 === 0 ? 1 : -1))
+    expect(niveauDbfs(plein)).toBe(0)
+    const faible = Float32Array.from({ length: 160 }, (_, i) => (i % 2 === 0 ? 0.01 : -0.01))
+    expect(Math.round(niveauDbfs(faible))).toBe(-40)
   })
 })
