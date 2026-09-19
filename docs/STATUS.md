@@ -1357,6 +1357,14 @@ paid nothing: `recompenser_podium_arene` was called once by hand on that subject
 podium now reads « Nounoush 2 votes +100 pts, Roch 1 vote +50 pts, Senyo 0 vote » with nothing paid
 to the third, which is the rule. A second call added no row.
 
+One sentence of the home tile was false and the build that carries the round found it: the tile
+showed « Tes points commencent à ton premier défi relevé. » to anyone whose last seven days paid
+nothing, including someone sitting on three hundred points. A week with nothing in it is not an
+account with nothing in it, so the two states are told apart in `services/pointsVue.ts`
+(`etatSemaine`, three tests): the gain, « Rien gagné cette semaine. », and the invitation, which
+only an account that has never been paid reads. `pointsSolde` and `pointsSemaine` were left over
+from the previous tile and are gone.
+
 **Build 35 is uploaded** (13:16 local, « Upload succeeded » from the command line: the account was
 visible in the build tools today, so no Organizer and no clicks). It is 35 and not 34 because App
 Store Connect refused 34 with « The bundle version must be higher than the previously uploaded

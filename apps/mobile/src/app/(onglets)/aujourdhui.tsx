@@ -19,6 +19,7 @@ import { duelAMettreEnAvant, nomAdversaire } from '@/services/duelVue'
 import { nomFormule, useFormules } from '@/services/formules'
 import { useEtapeDuJour, useRetour, useCarte } from '@/services/parcours'
 import { useDerniereMesure, useProfil } from '@/services/profil'
+import { etatSemaine } from '@/services/pointsVue'
 import { usePoints, useSerie } from '@/services/progres'
 import { useAteliers } from '@/services/rebecca'
 import { etatAujourdhui, minutesDe, positionDefi, rythmeDeFormule } from '@/services/rythme'
@@ -59,6 +60,7 @@ export default function Aujourdhui() {
   const enAvant = duelsActifs ? duelAMettreEnAvant(duels.data ?? []) : null
   const serie = useSerie()
   const points = usePoints()
+  const semaine = etatSemaine(points.data)
   const ateliers = useAteliers()
   const prochainAtelier = ateliers.data?.[0] ?? null
   const espaceBarre = useEspaceBarreOnglets()
@@ -178,7 +180,7 @@ export default function Aujourdhui() {
             <View style={[styles.disque, { backgroundColor: theme.voixDoux }]}>
               <Icone sf="bolt.fill" material="bolt" taille={17} couleur={couleurs.orange} />
             </View>
-            {points.data && points.data.cette_semaine > 0 ? (
+            {semaine === 'gain' && points.data ? (
               <>
                 <Text style={[styles.pointsValeur, { color: theme.texte }]}>
                   {`+${formaterEntier(points.data.cette_semaine)}`}
@@ -191,7 +193,7 @@ export default function Aujourdhui() {
               <Text
                 style={[typographie.petit, styles.pointsVide, { color: theme.texteSecondaire }]}
               >
-                {t('aujourdhui.pointsAucun')}
+                {t(semaine === 'vide' ? 'aujourdhui.pointsSemaineVide' : 'aujourdhui.pointsAucun')}
               </Text>
             )}
           </Carte>

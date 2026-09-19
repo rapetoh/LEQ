@@ -17,7 +17,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "usesAppleSignIn": true,
-      "buildNumber": "35"
+      "buildNumber": "36"
     },
     "android": {
       "package": "com.leqapp.mobile",
