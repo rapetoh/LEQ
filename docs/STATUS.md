@@ -1306,7 +1306,9 @@ whatever they chose, the fourth line keeping « Anonyme N », nothing named whil
 open); mobile 108 (the podium suite rewritten around the new screen), server 119, web 37,
 domaine 50, moteur 33; strings, lint and format green. Deployed: migration
 `20260919000000_le_podium_nomme_ses_trois` on the hosted project, so the closed week already
-reads « Nounoush, Roch, Senyo ». **Build 33** carries the screen.
+reads « Nounoush, Roch, Senyo ». **Build 33 is uploaded** (« Upload completed with warnings »,
+its `Distributions.uploadEvent` record clean), driven through the accessibility interface with no
+mouse. Next build number: 34.
 
 ## Next
 
