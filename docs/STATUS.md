@@ -1426,7 +1426,9 @@ qu'entre deux tours, donc elle restait figée pendant tout un argument, et le pl
 ne tombait qu'à la fin d'un tour, si long soit-il. Le serveur compte maintenant la parole à la
 trame et envoie le temps chaque seconde ; quand le plafond tombe au milieu, le tour se ferme là et
 l'écran dit pourquoi. Vérifié contre Fly : six points d'horloge, de 179 à 173,4 s, pendant que la
-personne parlait. **Build 38 est parti** avec la ligne qui le dit à l'écran. Prochain numéro : 39.
+personne parlait. **Build 38 est parti** (18:34, « Upload succeeded ») avec la ligne qui le dit à l'écran ; les
+chaînes neuves ont été relues dans le paquet archivé, en UTF-16 comme Hermes range tout ce qui
+porte un accent. Prochain numéro : 39.
 
 ## Next
 
