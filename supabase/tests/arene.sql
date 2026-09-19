@@ -659,5 +659,75 @@ select is((select (l -> 'lui' ->> 'retenue')::boolean from jsonb_array_elements(
   'and the side says it is held, so the screen can say what happened');
 reset role; select tests_leq.deconnecter();
 
+-- le podium d'une semaine fermée nomme ses trois premiers (2026-09-19) -----------------------------
+-- Roch: whoever won has to be named. The recordings are gone by then, the votes are closed, so
+-- nothing chapter 11 protects is at stake; a result nobody can be named in is not a result.
+delete from public.impressions;
+delete from public.votes;
+delete from public.prises_publiques where sujet_id is not null;
+update public.sujets_arene set actif_le = null, ferme_le = null;
+update public.sujets_arene set actif_le = now() - interval '9 days' where cle = 'sujet_un';
+update public.profils set publier_sous_prenom = false, prenom = 'Alice' where id = (select a from ctx);
+update public.profils set publier_sous_prenom = false, prenom = 'Bob' where id = (select b from ctx);
+update public.profils set publier_sous_prenom = false, prenom = 'Chloé' where id = (select c from ctx);
+create temp table semaine as select
+  tests_leq.prise_analysee((select a from ctx), 'arene', null, 20) as ta,
+  tests_leq.prise_analysee((select b from ctx), 'arene', null, 18) as tb,
+  tests_leq.prise_analysee((select c from ctx), 'arene', null, 25) as tc;
+grant select on semaine to authenticated;
+select tests_leq.connecter((select a from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select ta from semaine)) $$, 'A speaks that week');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select b from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tb from semaine)) $$, 'B too');
+reset role; select tests_leq.deconnecter();
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select tc from semaine)) $$, 'and C');
+reset role; select tests_leq.deconnecter();
+-- While the week is open nothing is named but one's own line.
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select is(
+  (select count(*) from jsonb_array_elements((public.classement_arene()) -> 'classement') l
+    where (l ->> 'nom') like 'Anonyme %'),
+  2::bigint, 'while the votes are open the others stay anonymous');
+reset role; select tests_leq.deconnecter();
+-- The week closes; the audio goes; the three are named.
+update public.sujets_arene set ferme_le = now() where cle = 'sujet_un';
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select is(
+  (select count(*) from jsonb_array_elements(
+      (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
+    where (l ->> 'nom') like 'Anonyme %'),
+  0::bigint, 'the podium of a closed week names its three, whatever each of them chose');
+select isnt(
+  (select l ->> 'nom' from jsonb_array_elements(
+      (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
+    where (l ->> 'rang')::int = 1),
+  null, 'the first place has a name');
+select is(
+  (select (l ->> 'pseudonyme')::boolean from jsonb_array_elements(
+      (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
+    where (l ->> 'rang')::int = 1),
+  false, 'and says it is a real one, so the screen draws the picture');
+reset role; select tests_leq.deconnecter();
+-- A fourth voice on a closed week keeps its label: only the podium is named.
+create temp table quatrieme as select
+  tests_leq.prise_analysee('66666666-6666-4666-8666-666666666666', 'arene', null, 12) as t;
+grant select on quatrieme to authenticated;
+update public.sujets_arene set ferme_le = null where cle = 'sujet_un';
+select tests_leq.connecter('66666666-6666-4666-8666-666666666666', false, 'utilisateur');
+select lives_ok($$ select public.publier_prise((select t from quatrieme)) $$, 'a fourth voice speaks');
+reset role; select tests_leq.deconnecter();
+update public.sujets_arene set ferme_le = now() where cle = 'sujet_un';
+update public.profils set prenom = 'Dine', publier_sous_prenom = false
+ where id = '66666666-6666-4666-8666-666666666666';
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select is(
+  (select l ->> 'nom' from jsonb_array_elements(
+      (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
+    where (l ->> 'rang')::int = 4),
+  'Anonyme 4', 'below the podium a line that chose anonymity keeps it');
+reset role; select tests_leq.deconnecter();
+
 select * from finish();
 rollback;

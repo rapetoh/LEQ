@@ -1274,6 +1274,40 @@ them, and they kept it. **Build 32 is uploaded** (« Upload completed with warni
 dSYM notes, its `Distributions.uploadEvent` record clean), driven through the accessibility
 interface with no mouse. Next build number: 33.
 
+## Le podium, refait : trois noms, trois médailles, un seul écran (2026-09-19)
+
+Roch rated the podium two out of ten, asked for the winner to be named even without the opt-in,
+and asked that the screen hold to one phone without scrolling.
+
+- **The three of a closed week are named**, with their picture, whatever they chose. The plan's
+  rule was « anonymity during the votes, names on the podium only for those who opted in ». The
+  half that matters is the first: chapter 11 wants the vote anonymous so a week is not a
+  popularity contest between people who know each other, and that concern lives entirely inside
+  the open week. Once it closes, no vote can be swayed and there is nothing left to hear, so a
+  name takes nothing away and gives the result its meaning. Below the podium, a line that chose
+  anonymity keeps it. The switch of Réglages and of the publishing screen now says this before
+  the person speaks, which is the part that makes it honest rather than a surprise.
+- **It holds to one screen**, at 874 points and at 667. The result is centred in the space it
+  has instead of hanging under the title, the rest of the ranking is one tap away rather than
+  below the fold, and the sizes step down under 760 points (`serre`): title, avatars and
+  pedestals. Checked by drawing the layout at both heights before writing it.
+- **The screen itself.** Three steps standing on a gold ground, each carrying the person's
+  picture inside a ring of their metal with a drawn medal on the corner, their name, their
+  votes, and a pedestal whose height says the place; the winner's step glows the way the app's
+  hero cards do; the title celebrates the person when they carried the week (« Tu as gagné la
+  semaine. »), and the subject is quoted under it. An empty step stays empty rather than moving
+  someone up.
+- **The medal is drawn** (`components/Medaille.tsx`), not picked from an icon set: a disc with
+  its own gradient, a rim and a highlight across the top, in gold, silver or bronze with the
+  place in the metal's ink. The Arena's entry row wears the gold one in place of its flat crown.
+
+Verified: pgTAP `arene.sql` 172 green with the migration (the three of a closed week named
+whatever they chose, the fourth line keeping « Anonyme N », nothing named while the votes are
+open); mobile 108 (the podium suite rewritten around the new screen), server 119, web 37,
+domaine 50, moteur 33; strings, lint and format green. Deployed: migration
+`20260919000000_le_podium_nomme_ses_trois` on the hosted project, so the closed week already
+reads « Nounoush, Roch, Senyo ». **Build 33** carries the screen.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

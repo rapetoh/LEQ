@@ -194,7 +194,8 @@ export const fr = {
       texte:
         "Chaque prise est analysée puis effacée, seuls tes résultats restent. Exception : une prise d'Arène ou de duel, le temps du concours.",
       publierPrenom: 'Publier sous mon prénom et ma photo',
-      publierPrenomDetail: "Sans cela, tes passages restent anonymes dans l'Arène",
+      publierPrenomDetail:
+        'Sans cela, tes passages restent anonymes pendant les votes. Le podium nomme les trois premiers de la semaine.',
       export: 'Recevoir une copie de mes données',
       exportEnvoye:
         'Ta demande est envoyée. Tu recevras une copie de tes données par e-mail, sous quelques jours.',
@@ -535,6 +536,7 @@ export const fr = {
 
     // C8 · Le podium de fin de semaine.
     podiumTitre: 'La semaine est finie.',
+    podiumGagne: 'Tu as gagné la semaine.',
     podiumSousTitre: 'Les votes sont comptés.',
     podiumSurtitre: 'Le podium',
     podiumSujet: 'Le sujet de la semaine',
@@ -548,6 +550,7 @@ export const fr = {
     podiumPasParleCorps: 'Le sujet suivant est déjà ouvert.',
     podiumVide: "Personne n'a parlé cette semaine.",
     podiumSuite: 'Le reste du classement',
+    podiumMasquerSuite: 'Masquer le classement',
     podiumSemaineDerniere: 'Le podium de la semaine dernière',
     podiumAucun: "Aucune semaine terminée pour l'instant.",
     podiumAudio: 'Les enregistrements de la semaine ont été supprimés. Le classement est conservé.',

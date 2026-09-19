@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react-native'
+import { fireEvent, render } from '@testing-library/react-native'
 
 import Podium from '@/app/arene/podium/[sujetId]'
 import { usePodium } from '@/services/arene'
@@ -58,23 +58,42 @@ async function rendre(
 describe('the podium of a closed week', () => {
   it('shows the subject of the week it is about', async () => {
     const ecran = await rendre([ligne(1), ligne(2), ligne(3)])
-    expect(ecran.getByText('Faut-il encore apprendre par cœur ?')).toBeTruthy()
+    expect(ecran.getByText('« Faut-il encore apprendre par cœur ? »')).toBeTruthy()
     expect(ecran.getByText('Le podium')).toBeTruthy()
   })
 
-  it('tells the person their place, counted against the whole week', async () => {
-    const ecran = await rendre([ligne(1), ligne(2, { moi: true }), ligne(3), ligne(4)])
-    expect(ecran.getByText('2e sur 4')).toBeTruthy()
-    expect(ecran.getByText('8 votes pour toi')).toBeTruthy()
+  it('names the three of the podium and counts their votes', async () => {
+    const ecran = await rendre([
+      ligne(1, { nom: 'Alice', pseudonyme: false }),
+      ligne(2, { nom: 'Bob', pseudonyme: false }),
+      ligne(3, { nom: 'Chloé', pseudonyme: false }),
+    ])
+    expect(ecran.getByText('Alice')).toBeTruthy()
+    expect(ecran.getByText('Bob')).toBeTruthy()
+    expect(ecran.getByText('Chloé')).toBeTruthy()
+    expect(ecran.getByText('9 votes')).toBeTruthy()
   })
 
-  it('says "1re" rather than "1e" when the person won', async () => {
-    const ecran = await rendre([ligne(1, { moi: true }), ligne(2)])
-    expect(ecran.getByText('1re sur 2')).toBeTruthy()
+  it('celebrates the person who carried the week, on the step and in the title', async () => {
+    const ecran = await rendre([ligne(1, { moi: true, nom: 'Roch', pseudonyme: false }), ligne(2)])
+    expect(ecran.getByText('Tu as gagné la semaine.')).toBeTruthy()
+    expect(ecran.getByText('Roch (toi)')).toBeTruthy()
+  })
+
+  it('says the week is over when the person did not carry it', async () => {
+    const ecran = await rendre([ligne(1), ligne(2, { moi: true })])
+    expect(ecran.getByText('La semaine est finie.')).toBeTruthy()
+  })
+
+  it('tells the person their place when it is below the podium', async () => {
+    const ecran = await rendre([ligne(1), ligne(2), ligne(3), ligne(4, { moi: true }), ligne(5)])
+    expect(ecran.getByText('Ta place')).toBeTruthy()
+    expect(ecran.getByText('4e sur 5')).toBeTruthy()
+    expect(ecran.getByText('6 votes pour toi')).toBeTruthy()
   })
 
   it('does not leave someone with no votes without a sentence', async () => {
-    const ecran = await rendre([ligne(1), ligne(2, { moi: true, votes: 0 })])
+    const ecran = await rendre([ligne(1), ligne(2), ligne(3), ligne(4, { moi: true, votes: 0 })])
     expect(
       ecran.getByText('Aucun vote cette fois. Un nouveau sujet ouvre la semaine prochaine.'),
     ).toBeTruthy()
@@ -86,10 +105,13 @@ describe('the podium of a closed week', () => {
     expect(ecran.getByText('Le sujet suivant est déjà ouvert.')).toBeTruthy()
   })
 
-  it('lists everyone below the podium under their own heading', async () => {
+  it('keeps the rest of the ranking one tap away instead of below the fold', async () => {
     const ecran = await rendre([ligne(1), ligne(2), ligne(3), ligne(4), ligne(5)])
     expect(ecran.getByText('Le reste du classement')).toBeTruthy()
-    expect(ecran.getByText('Anonyme 4')).toBeTruthy()
+    expect(ecran.queryByText('Anonyme 4')).toBeNull()
+    fireEvent.press(ecran.getByText('Le reste du classement'))
+    expect(await ecran.findByText('Anonyme 4')).toBeTruthy()
+    expect(ecran.getByText('Masquer le classement')).toBeTruthy()
   })
 
   it('shows no "rest of the ranking" when the week fits on the podium', async () => {
