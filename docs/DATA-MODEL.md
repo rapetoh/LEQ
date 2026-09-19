@@ -44,6 +44,9 @@ Typed key/value edited by Rebecca, read by the app at startup.
 | ---------------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------- |
 | points_par_defi              | nombre | 25       | Points gagnés pour un défi réussi                                                                                      |
 | points_par_vote              | nombre | 5        | Points gagnés pour un vote dans l'Arène                                                                                |
+| points_podium_arene_1        | nombre | 100      | Points gagnés en finissant premier d'une semaine de l'Arène                                                            |
+| points_podium_arene_2        | nombre | 50       | Points gagnés en finissant deuxième d'une semaine de l'Arène                                                           |
+| points_podium_arene_3        | nombre | 25       | Points gagnés en finissant troisième d'une semaine de l'Arène                                                          |
 | duree_diagnostic_min_s       | nombre | 60       | Durée minimale de la prise de diagnostic                                                                               |
 | duree_diagnostic_max_s       | nombre | 90       | Durée maximale de la prise de diagnostic                                                                               |
 | etapes_par_jour_gratuit      | nombre | 1        | Étapes validables par jour en formule Gratuit                                                                          |
@@ -362,7 +365,7 @@ The streak, the points and the shop (cahier chapters 6 and 7), as ledgers, never
 
 ### mouvements_points
 
-- `id uuid pk`, `utilisateur_id uuid fk profils on delete cascade`, `montant integer not null <> 0`, `motif text in (defi_valide, vote, echange, remboursement, ajustement)`, `reference text`, `cree_le`; `unique (motif, reference)` makes every credit idempotent (the attempt id for a défi, the exchange id for a spend or a refund).
+- `id uuid pk`, `utilisateur_id uuid fk profils on delete cascade`, `montant integer not null <> 0`, `motif text in (defi_valide, vote, podium_arene, echange, remboursement, ajustement)`, `reference text`, `cree_le`; `unique (motif, reference)` makes every credit idempotent (the attempt id for a défi, the exchange id for a spend or a refund, `sujet:utilisateur` for a place on a podium, so a rotation that runs twice pays once).
 - Written only by security definer functions (`appliquer_resultat` credits `defis.points` on validation; `echanger_recompense` debits; `traiter_echange` refunds). RLS: own rows or admin, read only.
 
 ### recuperations_serie
@@ -517,7 +520,7 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 
 ### classement_arene()
 
-- Lines `{rang, prise_id, votes, moi, nom, pseudonyme, avatar, duree_s, chemin_audio}`. `nom` is the first name for a person who opted in, for the caller's own line (they know who they are), and **for the first three of a week that has closed**, whatever those three chose (2026-09-19: the votes are counted and the recordings are gone, so nothing chapter 11 protects is at stake, and a result nobody can be named in is not a result; the Réglages switch says it before the person speaks). « Anonyme N » otherwise (2026-09-18: it was « Voix N », and a vote was also « une voix », so the ranking read « Voix 2 · 2 voix »; the line says what it is, and its number is **the order of arrival**, `row_number() over (order by cree_le)`, not the rank, so a voice keeps its label when the votes move and a person can tell what they have already heard); `pseudonyme` says which; `avatar` is the picture's path only where the name is a real one. `chemin_audio` (2026-09-18) is the path in `audio-public` only where the caller may hear the passage: their own always, the others' once they have spoken on that subject (`a_parle_sur()`), never once the audio is deleted; `duree_s` is the take's length. The phone draws a crown in gold, silver and bronze on the first three, a play or stop control on every line it may hear, and « (toi) » after the caller's name.
+- Lines `{rang, prise_id, votes, moi, nom, pseudonyme, avatar, duree_s, chemin_audio, points}`. `nom` is the first name for a person who opted in, for the caller's own line (they know who they are), and **for the first three of a week that has closed**, whatever those three chose (2026-09-19: the votes are counted and the recordings are gone, so nothing chapter 11 protects is at stake, and a result nobody can be named in is not a result; the Réglages switch says it before the person speaks). « Anonyme N » otherwise (2026-09-18: it was « Voix N », and a vote was also « une voix », so the ranking read « Voix 2 · 2 voix »; the line says what it is, and its number is **the order of arrival**, `row_number() over (order by cree_le)`, not the rank, so a voice keeps its label when the votes move and a person can tell what they have already heard); `pseudonyme` says which; `avatar` is the picture's path only where the name is a real one. `chemin_audio` (2026-09-18) is the path in `audio-public` only where the caller may hear the passage: their own always, the others' once they have spoken on that subject (`a_parle_sur()`), never once the audio is deleted; `duree_s` is the take's length. `points` (2026-09-19) is what that place was paid when the week closed, read from `mouvements_points` at the key `sujet:utilisateur`, and 0 while the week is open or where nothing was paid; the podium shows it as « +100 pts » on the step. The phone draws a crown on the first place and a medal in silver and bronze on the next two, a play or stop control on every line it may hear, and « (toi) » after the caller's name.
 
 ### moderations
 
@@ -526,6 +529,7 @@ The Arena and duels of cahier chapter 11, shipped off: nothing is visible in the
 ### roter_sujet_arene()
 
 - Service role, called by the weekly job: closes the current subject once its `duree_sujet_arene_jours` are past, marks every take of that week for deletion (the ranking rows stay, chapter 2), and activates the next subject of the bank by `ordre`. An empty bank is a handled state: nothing is activated.
+- **Closing pays the podium (2026-09-19).** Before it deletes anything, the rotation calls `recompenser_podium_arene(sujet)`, which credits `points_podium_arene_1/2/3` (100, 50, 25) to the first three of that week through the ledger, at motif `podium_arene` and reference `<sujet>:<utilisateur>`. A place with zero votes is paid nothing: the week ranks whoever spoke, and being alone on a subject is not winning it. Running the rotation twice pays once, by the unique key. Chapter 6 gives points for a défi and for a vote and says nothing about the Arena, so this is a decision of mine, listed in `docs/OPEN-INPUTS.md` as three configuration values Rebecca can move.
 
 ## Later phases (names reserved)
 

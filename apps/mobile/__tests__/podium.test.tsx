@@ -35,6 +35,11 @@ function ligne(rang: number, options: Record<string, unknown> = {}) {
     votes: 10 - rang,
     moi: false,
     nom: `Anonyme ${rang}`,
+    pseudonyme: true,
+    avatar: null,
+    duree_s: null,
+    chemin_audio: null,
+    points: 0,
     ...options,
   }
 }
@@ -81,6 +86,14 @@ describe('the podium of a closed week', () => {
   })
 
   it('says the week is over when the person did not carry it', async () => {
+    const ecran = await rendre([
+      ligne(1, { nom: 'Nounoush', pseudonyme: false }),
+      ligne(2, { moi: true }),
+    ])
+    expect(ecran.getByText('Nounoush gagne la semaine.')).toBeTruthy()
+  })
+
+  it('keeps the plain headline when the winner has no name at all', async () => {
     const ecran = await rendre([ligne(1), ligne(2, { moi: true })])
     expect(ecran.getByText('La semaine est finie.')).toBeTruthy()
   })
@@ -124,12 +137,23 @@ describe('the podium of a closed week', () => {
     expect(ecran.getByText("Personne n'a parlé cette semaine.")).toBeTruthy()
   })
 
-  it('says the recordings are gone and the ranking stays (chapter 2)', async () => {
+  it('names the winner in the headline, and pays what the week paid', async () => {
+    const ecran = await rendre([
+      ligne(1, { nom: 'Nounoush', pseudonyme: false, votes: 4, points: 100 }),
+      ligne(2, { votes: 1, points: 50 }),
+    ])
+    expect(ecran.getByText('Nounoush gagne la semaine.')).toBeTruthy()
+    expect(ecran.getByText('+100 pts')).toBeTruthy()
+    expect(ecran.getByText('+50 pts')).toBeTruthy()
+  })
+
+  it('does not crown a first line that carried no vote', async () => {
+    const ecran = await rendre([ligne(1, { votes: 0 }), ligne(2, { votes: 0 })])
+    expect(ecran.getByText('La semaine est finie.')).toBeTruthy()
+  })
+
+  it('says nothing about the recordings, since the promise is made before speaking', async () => {
     const ecran = await rendre([ligne(1)])
-    expect(
-      ecran.getByText(
-        'Les enregistrements de la semaine ont été supprimés. Le classement est conservé.',
-      ),
-    ).toBeTruthy()
+    expect(ecran.queryByText(/enregistrements de la semaine/)).toBeNull()
   })
 })

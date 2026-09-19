@@ -230,6 +230,8 @@ export const LigneClassementSchema = z.object({
   duree_s: z.number().nullable().default(null),
   /** Path in `audio-public`, only when the caller may hear it: their own, the others' once they have spoken. */
   chemin_audio: z.string().nullable().default(null),
+  /** Points this place was paid when the week closed, read from the ledger; 0 when none. */
+  points: z.int().min(0).default(0),
 })
 export type LigneClassement = z.output<typeof LigneClassementSchema>
 

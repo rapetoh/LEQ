@@ -9,7 +9,7 @@ import { PorteCompte } from '@/components/PorteCompte'
 import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { ControleLecture } from '@/components/ControleLecture'
-import { Medaille } from '@/components/Medaille'
+import { Couronne } from '@/components/Couronne'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -489,7 +489,7 @@ function PodiumPasse() {
       style={({ pressed }) => [pressed && { opacity: 0.85 }]}
     >
       <Carte teinte="sombre" style={styles.podium}>
-        <Medaille place={1} taille={40} />
+        <Couronne taille={38} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={[styles.podiumSurtitre, { color: theme.voix }]}>
             {t('arene.podiumSemaineDerniere')}

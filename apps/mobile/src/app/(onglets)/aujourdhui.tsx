@@ -93,37 +93,61 @@ export default function Aujourdhui() {
             {prenom ? t('aujourdhui.salutation', { prenom }) : t('aujourdhui.salutationSansPrenom')}
           </Text>
         </View>
-        {serie.data ? (
-          <View
-            accessibilityLabel={`${serie.data.courante} ${t('aujourdhui.serieLibelle')}`}
-            style={[
-              styles.serie,
-              {
-                backgroundColor:
-                  serie.data.courante > 0
-                    ? theme.sombre
-                      ? theme.carteDouce
-                      : couleurs.orangeDoux
-                    : theme.carteDouce,
-              },
-            ]}
-          >
-            <Icone
-              sf="flame.fill"
-              material="local-fire-department"
-              taille={16}
-              couleur={serie.data.courante > 0 ? couleurs.orange : theme.texteTertiaire}
-            />
-            <Text
-              style={[
-                styles.serieNombre,
-                { color: serie.data.courante > 0 ? couleurs.rouge : theme.texteSecondaire },
+        <View style={styles.compteurs}>
+          {points.data ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('aujourdhui.pointsTotal', {
+                points: formaterEntier(points.data.solde),
+              })}
+              onPress={() => router.push('/recompenses')}
+              style={({ pressed }) => [
+                styles.compteur,
+                { backgroundColor: theme.sombre ? theme.carteDouce : couleurs.bleuDoux },
+                pressed && styles.presse,
               ]}
             >
-              {t('aujourdhui.serieJours', { jours: serie.data.courante })}
-            </Text>
-          </View>
-        ) : null}
+              <Icone sf="bolt.fill" material="bolt" taille={15} couleur={theme.lien} />
+              <Text style={[styles.compteurNombre, { color: theme.lien }]}>
+                {formaterEntier(points.data.solde)}
+              </Text>
+            </Pressable>
+          ) : null}
+          {serie.data ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${serie.data.courante} ${t('aujourdhui.serieLibelle')}`}
+              onPress={() => router.push('/(onglets)/progres')}
+              style={({ pressed }) => [
+                styles.compteur,
+                {
+                  backgroundColor:
+                    serie.data.courante > 0
+                      ? theme.sombre
+                        ? theme.carteDouce
+                        : couleurs.orangeDoux
+                      : theme.carteDouce,
+                },
+                pressed && styles.presse,
+              ]}
+            >
+              <Icone
+                sf="flame.fill"
+                material="local-fire-department"
+                taille={16}
+                couleur={serie.data.courante > 0 ? couleurs.orange : theme.texteTertiaire}
+              />
+              <Text
+                style={[
+                  styles.compteurNombre,
+                  { color: serie.data.courante > 0 ? couleurs.rouge : theme.texteSecondaire },
+                ]}
+              >
+                {t('aujourdhui.serieJours', { jours: serie.data.courante })}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <CarteDuJour />
@@ -151,21 +175,25 @@ export default function Aujourdhui() {
           style={axes.length > 0 ? styles.tuilePoints : { flex: 1 }}
         >
           <Carte style={[styles.points, axes.length === 0 && styles.pointsLarge]}>
-            <Text style={[styles.pointsValeur, { color: theme.lien }]}>
-              {points.data ? formaterEntier(points.data.solde) : '·'}
-            </Text>
-            <Text style={[styles.pointsLibelle, { color: theme.texteSecondaire }]}>
-              {t('aujourdhui.pointsLibelle')}
-            </Text>
-            {axes.length === 0 && points.data ? (
-              <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
-                {points.data.cette_semaine > 0
-                  ? t('aujourdhui.pointsSemaine', {
-                      points: formaterEntier(points.data.cette_semaine),
-                    })
-                  : t('aujourdhui.pointsAucun')}
+            <View style={[styles.disque, { backgroundColor: theme.voixDoux }]}>
+              <Icone sf="bolt.fill" material="bolt" taille={17} couleur={couleurs.orange} />
+            </View>
+            {points.data && points.data.cette_semaine > 0 ? (
+              <>
+                <Text style={[styles.pointsValeur, { color: theme.texte }]}>
+                  {`+${formaterEntier(points.data.cette_semaine)}`}
+                </Text>
+                <Text style={[styles.pointsLibelle, { color: theme.texteSecondaire }]}>
+                  {t('aujourdhui.cetteSemaine')}
+                </Text>
+              </>
+            ) : (
+              <Text
+                style={[typographie.petit, styles.pointsVide, { color: theme.texteSecondaire }]}
+              >
+                {t('aujourdhui.pointsAucun')}
               </Text>
-            ) : null}
+            )}
           </Carte>
         </Pressable>
       </View>
@@ -557,15 +585,23 @@ const styles = StyleSheet.create({
   entete: { flexDirection: 'row', alignItems: 'center', gap: espaces.s, marginBottom: 2 },
   date: { fontFamily: polices.semiBold, fontSize: 12, lineHeight: 16 },
   salut: { fontFamily: polices.extraBold, fontSize: 27, lineHeight: 32, letterSpacing: -0.75 },
-  serie: {
+  compteurs: { flexDirection: 'row', alignItems: 'center', gap: espaces.xs },
+  compteur: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 13,
+    gap: 5,
+    paddingHorizontal: 12,
     paddingVertical: espaces.xs,
     borderRadius: rayons.pilule,
   },
-  serieNombre: { fontFamily: polices.extraBold, fontSize: 14, lineHeight: 18 },
+  compteurNombre: { fontFamily: polices.extraBold, fontSize: 14, lineHeight: 18 },
+  disque: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   // The hero card of the day.
   // The glow sits on an outer view: a clipped view clips its own shadow on iOS.
   heroOmbre: {
@@ -675,7 +711,9 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 12,
     letterSpacing: 0.76,
+    textAlign: 'center',
   },
+  pointsVide: { textAlign: 'center' },
   sujetOmbre: {
     borderRadius: rayons.hero,
     shadowColor: couleurs.bleu,

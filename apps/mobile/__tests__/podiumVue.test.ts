@@ -13,6 +13,7 @@ function ligne(rang: number, options: Partial<LigneClassement> = {}): LigneClass
     avatar: null,
     duree_s: null,
     chemin_audio: null,
+    points: 0,
     ...options,
   }
 }

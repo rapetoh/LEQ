@@ -136,6 +136,15 @@ is not restated three ways on one screen: repetition reads as anxiety, not as tr
 sentences are in `fr.reglages.voix` and in `apps/web` under `legal`, and they are the ones a lawyer
 reviews.
 
+**And it is made before the thing happens, not after.** The podium carried « Les enregistrements de
+la semaine ont été supprimés. Le classement est conservé. » under the three steps. It was true, and
+it was the third time a person had read it: the publishing screen says it, Réglages says it, and
+both say it before the person speaks, which is when it can still change what they do. On a result
+screen the same sentence is a receipt for a decision already taken, in the place where the week is
+being celebrated. Gone (2026-09-19, Roch: « We don't need to know that. Like who does that in real
+and big apps? »). The rule it gives: a promise belongs where it is still actionable, and a screen
+that announces an outcome carries the outcome and nothing else.
+
 ### What this is not
 
 The target is plain, not cold. Verbs in the first person kept from the mockup ("Je me lance", "Je

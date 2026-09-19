@@ -62,7 +62,12 @@ export default function Podium() {
   const sujet = podium.data?.sujet ?? null
   const mienne = maLigne(classement)
   const suite = reste(classement)
-  const gagne = mienne?.rang === 1
+  const premier = classement.find((ligne) => ligne.rang === 1) ?? null
+  // A first place with no vote is only the first to have spoken: nobody carried that week.
+  // A line with no name cannot carry the headline: the podium of a closed week names its three,
+  // so a pseudonym here means a person who never set a first name at all.
+  const gagnant = premier && premier.votes > 0 && !premier.pseudonyme ? premier : null
+  const gagne = gagnant?.moi === true
 
   return (
     <FondSombre>
@@ -87,7 +92,11 @@ export default function Podium() {
         <View style={styles.entete}>
           <Text style={[styles.surtitre, { color: theme.voix }]}>{t('arene.podiumSurtitre')}</Text>
           <Text style={[styles.titre, serre && styles.titreSerre]} numberOfLines={2}>
-            {gagne ? t('arene.podiumGagne') : t('arene.podiumTitre')}
+            {gagne
+              ? t('arene.podiumGagne')
+              : gagnant
+                ? t('arene.podiumGagnant', { nom: gagnant.nom })
+                : t('arene.podiumTitre')}
           </Text>
           {sujet ? (
             <Text style={[styles.sujet, { color: couleurs.encre3 }]} numberOfLines={2}>
@@ -130,11 +139,18 @@ export default function Podium() {
                 ) : null}
               </View>
               {mienne.votes > 0 ? (
-                <Text style={[styles.mesVotes, { color: couleurs.or }]}>
-                  {mienne.votes === 1
-                    ? t('arene.podiumVotesUn')
-                    : t('arene.podiumVotes', { votes: mienne.votes })}
-                </Text>
+                <View style={styles.mesGains}>
+                  <Text style={[styles.mesVotes, { color: couleurs.or }]}>
+                    {mienne.votes === 1
+                      ? t('arene.podiumVotesUn')
+                      : t('arene.podiumVotes', { votes: mienne.votes })}
+                  </Text>
+                  {mienne.points > 0 ? (
+                    <Text style={[styles.gainTexte, { color: couleurs.encre3 }]}>
+                      {t('arene.podiumPoints', { points: mienne.points })}
+                    </Text>
+                  ) : null}
+                </View>
               ) : null}
             </View>
           ) : !mienne && classement.length > 0 ? (
@@ -176,10 +192,9 @@ export default function Podium() {
           ) : null}
         </View>
 
+        {/* The promise about the voice is made once, before recording (C1) and in Réglages;
+            saying it again after the week is over is noise on a result. */}
         <View style={styles.pied}>
-          <Text style={[typographie.petit, styles.centre, { color: couleurs.encre2 }]}>
-            {t('arene.podiumAudio')}
-          </Text>
           <Bouton
             libelle={t('commun.retour')}
             variante="secondaire"
@@ -228,6 +243,13 @@ function MarchePodium({ marche, serre }: { marche: Marche; serre: boolean }) {
           <Text style={[styles.votesMarche, { color: metal.clair }]} numberOfLines={1}>
             {ligne.votes === 1 ? t('arene.voteUn') : t('arene.votes', { votes: ligne.votes })}
           </Text>
+          {ligne.points > 0 ? (
+            <View style={styles.gain}>
+              <Text style={[styles.gainTexte, { color: couleurs.or }]}>
+                {t('arene.podiumPoints', { points: ligne.points })}
+              </Text>
+            </View>
+          ) : null}
         </>
       ) : (
         <Text style={[styles.votesMarche, { color: theme.heroTexteSecondaire }]}>·</Text>
@@ -310,8 +332,9 @@ const styles = StyleSheet.create({
   ligneCarte: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
   maPlace: { fontFamily: polices.extraBold, fontSize: 20, lineHeight: 25, color: couleurs.blanc },
   mesVotes: { fontFamily: polices.extraBold, fontSize: 15, lineHeight: 20 },
+  mesGains: { alignItems: 'flex-end', gap: 2 },
   coeur: { flex: 1, justifyContent: 'center', gap: espaces.m },
-  podium: { flexDirection: 'row', alignItems: 'flex-end', gap: espaces.xs },
+  podium: { flexDirection: 'row', alignItems: 'flex-end', gap: espaces.xs, paddingTop: 26 },
   sol: { height: 3, borderRadius: 2, opacity: 0.85 },
   marche: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   // The metal reads against the avatar's own gold only with a dark gap between the two.
@@ -322,6 +345,14 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   medaille: { position: 'absolute', right: -6, bottom: -4 },
+  couronne: { position: 'absolute', alignSelf: 'center', top: -26 },
+  gain: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: rayons.pilule,
+    backgroundColor: 'rgba(255, 189, 89, 0.18)',
+  },
+  gainTexte: { fontFamily: polices.extraBold, fontSize: 11, lineHeight: 15 },
   nomMarche: { fontFamily: polices.bold, fontSize: 13, lineHeight: 17, maxWidth: '100%' },
   nomPremier: { fontFamily: polices.extraBold, fontSize: 15, lineHeight: 19 },
   votesMarche: { fontFamily: polices.bold, fontSize: 11.5, lineHeight: 15 },

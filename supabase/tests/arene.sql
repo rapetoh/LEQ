@@ -180,9 +180,10 @@ select ok(
 -- votes move, or a person cannot tell the passage they have heard from one they have not.
 select is(
   (select l ->> 'nom' from jsonb_array_elements((public.classement_arene()) -> 'classement') l
-    where (l ->> 'rang')::int = 1),
+    where (l ->> 'prise_id')::uuid
+          = (select id from public.prises_publiques where tentative_id = (select tb from prises))),
   'Anonyme 2',
-  'the first place is held by the second voice to have spoken, and keeps its own number');
+  'the second voice to have spoken keeps its own number, whatever place the votes give it');
 select ok(
   (select count(*) = 0 from jsonb_array_elements((public.classement_arene()) -> 'classement') l
     where (l ->> 'nom') like 'Voix %' or (l ->> 'nom') like 'Passage %'),
@@ -727,6 +728,59 @@ select is(
       (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
     where (l ->> 'rang')::int = 4),
   'Anonyme 4', 'below the podium a line that chose anonymity keeps it');
+reset role; select tests_leq.deconnecter();
+
+-- la semaine paie ses trois places (2026-09-19) -----------------------------------------------------
+-- Roch: carrying a week has to be worth something. Nothing said what, so the three places pay
+-- from configuration rows, only where a vote was cast, once per week and person.
+delete from public.mouvements_points where motif = 'podium_arene';
+update public.sujets_arene set ferme_le = null where cle = 'sujet_un';
+-- Two votes for C, one for A: the ranking is C, A, B, and B carried none.
+insert into public.impressions (votant_id, prise_id)
+select (select b from ctx), id from public.prises_publiques where sujet_id is not null
+on conflict do nothing;
+insert into public.votes (votant_id, sujet_id, gagnante_id, perdante_id, paire)
+select (select b from ctx), (select id from public.sujets_arene where cle = 'sujet_un'),
+       g.id, p.id, public.cle_paire(g.id, p.id)
+  from public.prises_publiques g, public.prises_publiques p
+ where g.utilisateur_id = (select c from ctx) and p.utilisateur_id = (select a from ctx)
+on conflict do nothing;
+update public.prises_publiques set votes_recus = 2 where utilisateur_id = (select c from ctx) and sujet_id is not null;
+update public.prises_publiques set votes_recus = 1 where utilisateur_id = (select a from ctx) and sujet_id is not null;
+update public.prises_publiques set votes_recus = 0
+ where sujet_id is not null and utilisateur_id not in ((select a from ctx), (select c from ctx));
+-- The week is over, so the rotation closes it and pays.
+update public.sujets_arene set actif_le = now() - interval '9 days' where cle = 'sujet_un';
+select is((public.roter_sujet_arene()) ->> 'ferme',
+  (select id from public.sujets_arene where cle = 'sujet_un')::text,
+  'the rotation closes the week that is over');
+select is((select montant from public.mouvements_points
+            where motif = 'podium_arene'
+              and reference = (select id from public.sujets_arene where cle = 'sujet_un')::text
+                              || ':' || (select c from ctx)::text), 100,
+  'the first place is paid what configuration says');
+select is((select montant from public.mouvements_points
+            where motif = 'podium_arene'
+              and reference = (select id from public.sujets_arene where cle = 'sujet_un')::text
+                              || ':' || (select a from ctx)::text), 50,
+  'and the second place its own amount');
+select is((select count(*) from public.mouvements_points where motif = 'podium_arene'
+             and reference like (select id from public.sujets_arene where cle = 'sujet_un')::text || ':%'), 2::bigint,
+  'a place with no vote is paid nothing: the first line of a week nobody voted in is only the first to have spoken');
+select is(public.recompenser_podium_arene((select id from public.sujets_arene where cle = 'sujet_un')), 0,
+  'paying the same week twice pays nothing more');
+-- The podium reads the ledger rather than recomputing the amounts.
+select tests_leq.connecter((select c from ctx), false, 'utilisateur');
+select is(
+  (select (l ->> 'points')::int from jsonb_array_elements(
+      (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
+    where (l ->> 'rang')::int = 1),
+  100, 'the ranking carries what the first place was actually paid');
+select is(
+  (select (l ->> 'points')::int from jsonb_array_elements(
+      (public.classement_arene((select id from public.sujets_arene where cle = 'sujet_un'))) -> 'classement') l
+    where (l ->> 'rang')::int = 3),
+  0, 'and nothing where nothing was paid');
 reset role; select tests_leq.deconnecter();
 
 select * from finish();

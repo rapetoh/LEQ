@@ -1310,6 +1310,48 @@ reads « Nounoush, Roch, Senyo ». **Build 33 is uploaded** (« Upload completed
 its `Distributions.uploadEvent` record clean), driven through the accessibility interface with no
 mouse. Next build number: 34.
 
+## La couronne, les points de la semaine, et l'accueil qui compte juste (2026-09-19)
+
+Six points from Roch, all on the same screen family: the podium's entry card, the winner, the line
+about the deleted recordings, the reward for a week, and the home's points.
+
+- **The crown came back on the Arena's entry card.** The previous round had replaced it with the
+  gold medal bearing « 1 », for consistency with the steps. Roch: « can we be for real here? » He
+  is right and the reasoning was backwards: on the podium the medals carry the place because three
+  of them sit side by side, but that card is a door to a result, and a crown reads as « someone
+  won » with nothing to decode. `components/Couronne.tsx` draws it: a gold gradient, a highlight
+  along the band and three stones, so it is the app's own object rather than an emoji or an icon
+  set's glyph.
+- **The winner is named and crowned on the podium.** The same crown stands over the first step,
+  and the headline says who carried the week (« Nounoush gagne la semaine. », « Tu as gagné la
+  semaine. » when it is the person reading). A week where nobody voted keeps the plain headline,
+  and so does the rare line of someone who never set a first name at all.
+- **Winning a week pays.** 100 points for the first place, 50 for the second, 25 for the third,
+  credited by `recompenser_podium_arene()` when the rotation closes the week, at motif
+  `podium_arene` and reference `<sujet>:<utilisateur>`, so a rotation that runs twice pays once. A
+  place with zero votes is paid nothing: being alone on a subject is not winning it. Chapter 6
+  pays a défi and a vote and says nothing about the Arena, so the three amounts are mine and live
+  in the configuration for Rebecca to move (`docs/OPEN-INPUTS.md`). The ranking line now carries
+  `points`, and each paid step shows « +100 pts ».
+- **The line about the deleted recordings is gone** from the podium. It was true and it was the
+  third telling: the publishing screen and Réglages both say it before the person speaks, which is
+  when it can still change what they do. On the screen that celebrates a result it was a receipt.
+  The rule is now written in `docs/STRINGS.md` under stacked reassurance.
+- **The home counts what it says it counts.** The points tile shows `cette_semaine` from
+  `mes_points()`, which is the sum of the positive ledger movements of the last seven days, not a
+  placeholder, with a gold bolt and « Pas encore de points cette semaine » when it is zero. The
+  header's two counters are now buttons: the total points, with a bolt, opens Récompenses, and the
+  streak, with its flame, opens Progrès.
+
+Verified: pgTAP `arene.sql` 179 green against the hosted project with the new migration (the
+podium pays 100, 50 and 25, a zero-vote place is paid nothing, a second rotation pays nothing
+more, and the ranking reads the amounts back). Mobile 111, server 119, web 37, domaine 50, moteur
+33; strings, lint, typecheck and format green. Two bugs were found by writing the tests first: an
+unqualified `utilisateur_id` in the ledger lookup bound to the ledger's own column and matched
+every row, and an assertion keyed on `rang = 1` was luck, because `paire_a_voter()` draws its pair
+with `random()`. Deployed: migration `20260919010000_la_semaine_recompense_ses_trois` on the
+hosted project.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

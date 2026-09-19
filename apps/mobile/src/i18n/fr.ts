@@ -408,6 +408,8 @@ export const fr = {
     jeMeLance: 'Je me lance',
     conseilDuJour: 'Le conseil du jour',
     pointsLibelle: 'points',
+    cetteSemaine: 'cette semaine',
+    pointsTotal: '{{points}} points',
     sujetSemaine: 'Sujet de la semaine',
     avecRebecca: 'Avec Rebecca, ce mois-ci',
     toutVoir: 'Tout voir',
@@ -537,6 +539,8 @@ export const fr = {
     // C8 · Le podium de fin de semaine.
     podiumTitre: 'La semaine est finie.',
     podiumGagne: 'Tu as gagné la semaine.',
+    podiumGagnant: '{{nom}} gagne la semaine.',
+    podiumPoints: '+{{points}} pts',
     podiumSousTitre: 'Les votes sont comptés.',
     podiumSurtitre: 'Le podium',
     podiumSujet: 'Le sujet de la semaine',
@@ -553,7 +557,6 @@ export const fr = {
     podiumMasquerSuite: 'Masquer le classement',
     podiumSemaineDerniere: 'Le podium de la semaine dernière',
     podiumAucun: "Aucune semaine terminée pour l'instant.",
-    podiumAudio: 'Les enregistrements de la semaine ont été supprimés. Le classement est conservé.',
   },
 
   // C4 à C6 · Les duels. Deux personnes, un sujet, 48 h, chacun parle seul de son côté.
