@@ -1352,6 +1352,11 @@ every row, and an assertion keyed on `rang = 1` was luck, because `paire_a_voter
 with `random()`. Deployed: migration `20260919010000_la_semaine_recompense_ses_trois` on the
 hosted project.
 
+The week that closed this morning at 06:05 closed before the function existed, so it had been
+paid nothing: `recompenser_podium_arene` was called once by hand on that subject, and the hosted
+podium now reads « Nounoush 2 votes +100 pts, Roch 1 vote +50 pts, Senyo 0 vote » with nothing paid
+to the third, which is the rule. A second call added no row.
+
 **Build 35 is uploaded** (13:16 local, « Upload succeeded » from the command line: the account was
 visible in the build tools today, so no Organizer and no clicks). It is 35 and not 34 because App
 Store Connect refused 34 with « The bundle version must be higher than the previously uploaded
