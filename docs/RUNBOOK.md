@@ -447,6 +447,16 @@ answers « AppleEvent timed out »), which looks exactly like a wedged Xcode and
 for the unlock is the whole fix: poll that value every thirty seconds in the background and run the
 export the moment it turns false, rather than asking Roch to announce himself.
 
+The account does not come back at the instant of the unlock, and that is the part worth knowing:
+a retry one second after `IOConsoleLocked` turned false still failed, and so did the Organizer four
+minutes later, whose sheet said « App Store Connect access for <name> is required. Ensure that your
+Apple Account usernames and passwords are correct in Accounts settings. » Meanwhile
+`DVTDeveloperAccountManagerAppleIDLists` read as an empty list. Eight minutes after the unlock, with
+Xcode running and nothing else done, the same command line answered « Upload succeeded » and the
+list carried an identifier again. So the sentence about the passwords is not about passwords, an
+empty account list is not proof that the account is gone, and a refusal within a few minutes of an
+unlock is worth one retry before concluding anything.
+
 Development builds for a device without Xcode on the tester's side: `npx eas-cli build --platform ios --profile development`, install through the link EAS prints.
 
 ## Read the screens as a person sees them

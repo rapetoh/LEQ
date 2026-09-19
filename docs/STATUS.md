@@ -1370,7 +1370,10 @@ visible in the build tools today, so no Organizer and no clicks). It is 35 and n
 Store Connect refused 34 with « The bundle version must be higher than the previously uploaded
 version: 34 »: a build carrying that number had already reached it from somewhere other than this
 Mac, whose archives stop at 33. So the number to trust is the one App Store Connect answers, not
-the one the local archives suggest. Next build number: 36.
+the one the local archives suggest. **Build 36 is uploaded** (13:44, « Upload succeeded » from the command line). It carries the crown
+on the podium's first step, which build 35 did not: the entry card had it and the podium still had
+the medal bearing « 1 », the very thing that had been refused a screen earlier. It also carries the
+home tile's two empty states. Next build number: 37.
 
 ## Next
 
