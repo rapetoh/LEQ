@@ -1352,6 +1352,13 @@ every row, and an assertion keyed on `rang = 1` was luck, because `paire_a_voter
 with `random()`. Deployed: migration `20260919010000_la_semaine_recompense_ses_trois` on the
 hosted project.
 
+**Build 35 is uploaded** (13:16 local, « Upload succeeded » from the command line: the account was
+visible in the build tools today, so no Organizer and no clicks). It is 35 and not 34 because App
+Store Connect refused 34 with « The bundle version must be higher than the previously uploaded
+version: 34 »: a build carrying that number had already reached it from somewhere other than this
+Mac, whose archives stop at 33. So the number to trust is the one App Store Connect answers, not
+the one the local archives suggest. Next build number: 36.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
