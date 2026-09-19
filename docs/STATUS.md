@@ -1430,6 +1430,13 @@ personne parlait. **Build 38 est parti** avec la ligne qui le dit à l'écran. P
 
 ## Next
 
+**À remettre avant la boutique (2026-09-19).** Les limites sont levées sur le projet hébergé pour
+que Roch puisse essayer l'application sans être arrêté au bout d'un défi et d'un débat : Gratuit
+et Complet sont à volonté (`formules.etapes_par_jour` = 0, `debats_par_mois` = 50), avec
+`essais_max_etape_par_jour` et `prises_ecoutees_par_jour` à 50. Une commande les remet toutes :
+`node supabase/tests/activer-essai.mjs --eteindre`. Tant que ce n'est pas fait, aucune formule ne
+veut dire ce qu'elle vend.
+
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
 inputs that were never ours to invent, and the accounts that gate the release.
 

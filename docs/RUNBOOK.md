@@ -337,9 +337,17 @@ created 2026-09-12 with the address exactly as given; `gmmail.com` looks like a 
 They ship off (cahier chapter 11): Rebecca switches them on from `/drapeaux` when there are
 enough people for a contest to be one. For a TestFlight build that Roch alone walks through,
 `node supabase/tests/activer-essai.mjs` does it in one transaction: the three flags on, the
-first Arena subject activated so the tab does not open on an empty room, and
-`quota_face_a_face_gratuit` set to 1 so the free plan can try one debate. `--eteindre` puts all
-three back. Every value it touches is one Rebecca owns and can change back in the admin.
+first Arena subject activated so the tab does not open on an empty room, and **every limit
+lifted** (2026-09-19) so a day of testing is not over after one challenge and one debate. It
+moves the rows of `formules` (`etapes_par_jour` to 0, which means no limit, `debats_par_mois` to 50) and the configuration keys `essais_max_etape_par_jour`, `prises_ecoutees_par_jour` and the two
+`quota_face_a_face_*`. The limits that run are the `formules` rows; the configuration keys of the
+same name only seeded them in September, and both are moved so a future reader is right either
+way.
+
+**`node supabase/tests/activer-essai.mjs --eteindre` puts every one of them back to what the
+application ships with, and it has to be run before the store**: Gratuit at one step a day and no
+debate, Complet at no daily limit and eight debates a month, three tries on a step, six passages
+listened to a day. Every value it touches is one Rebecca owns and can change back in the admin.
 
 The banks of Arena subjects and debate theses are seeded provisional (`provisoire = true`, shown
 with a badge in the admin), the same way the path and the shop are. They exist so the flows can
