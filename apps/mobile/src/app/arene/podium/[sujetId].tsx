@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Avatar } from '@/components/Avatar'
 import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
+import { Couronne } from '@/components/Couronne'
 import { Medaille, METAUX, type Place } from '@/components/Medaille'
 import { Bouton } from '@/components/ui/Bouton'
 import { Degrade } from '@/components/ui/Degrade'
@@ -223,6 +224,12 @@ function MarchePodium({ marche, serre }: { marche: Marche; serre: boolean }) {
       {ligne ? (
         <>
           <View style={{ width: taille, height: taille }}>
+            {/* The winner wears the crown; the other two wear their metal. One mark per step. */}
+            {premier ? (
+              <View style={styles.couronne} pointerEvents="none">
+                <Couronne taille={serre ? 30 : 36} />
+              </View>
+            ) : null}
             <View style={[styles.cadreAvatar, { borderColor: metal.clair, borderRadius: taille }]}>
               <Avatar
                 prenom={ligne.pseudonyme ? null : ligne.nom}
@@ -230,9 +237,11 @@ function MarchePodium({ marche, serre }: { marche: Marche; serre: boolean }) {
                 taille={taille - 10}
               />
             </View>
-            <View style={styles.medaille}>
-              <Medaille place={place} taille={premier ? 26 : 22} />
-            </View>
+            {premier ? null : (
+              <View style={styles.medaille}>
+                <Medaille place={place} taille={22} />
+              </View>
+            )}
           </View>
           <Text
             style={[styles.nomMarche, premier && styles.nomPremier, { color: couleurs.blanc }]}

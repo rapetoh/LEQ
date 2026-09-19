@@ -152,6 +152,14 @@ describe('the podium of a closed week', () => {
     expect(ecran.getByText('La semaine est finie.')).toBeTruthy()
   })
 
+  it('crowns the winner instead of numbering them, and keeps the metals below', async () => {
+    const ecran = await rendre([ligne(1), ligne(2), ligne(3)])
+    // The numbers are the medals' own ink: the first step wears the crown, so it carries none.
+    expect(ecran.queryByText('1')).toBeNull()
+    expect(ecran.getByText('2')).toBeTruthy()
+    expect(ecran.getByText('3')).toBeTruthy()
+  })
+
   it('says nothing about the recordings, since the promise is made before speaking', async () => {
     const ecran = await rendre([ligne(1)])
     expect(ecran.queryByText(/enregistrements de la semaine/)).toBeNull()
