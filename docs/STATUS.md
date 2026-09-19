@@ -1418,7 +1418,8 @@ que c'est le silence ; Rétor répond 1,6 s après la fin de parole ; lui couper
 voix et rend la main ; quatre tours écrits dans l'ordre, session close, mois décompté d'une, débrief
 écrit. Tests : serveur 49 sur le face-à-face (dont dix sur la seule question de qui a la parole),
 mobile 125 (dont dix sur l'écran), plus typecheck, lint, strings et format. Déployé : migration
-`20260919020000_le_silence_qui_donne_la_parole` et Fly.
+`20260919020000_le_silence_qui_donne_la_parole` et Fly. **Build 37 est parti** (18:22, « Upload
+succeeded » en ligne de commande). Prochain numéro : 38.
 
 ## Next
 
