@@ -1419,7 +1419,14 @@ voix et rend la main ; quatre tours écrits dans l'ordre, session close, mois d�
 écrit. Tests : serveur 49 sur le face-à-face (dont dix sur la seule question de qui a la parole),
 mobile 125 (dont dix sur l'écran), plus typecheck, lint, strings et format. Déployé : migration
 `20260919020000_le_silence_qui_donne_la_parole` et Fly. **Build 37 est parti** (18:22, « Upload
-succeeded » en ligne de commande). Prochain numéro : 38.
+succeeded » en ligne de commande).
+
+Une dernière chose, trouvée en relisant les cas : l'horloge du temps de parole ne bougeait
+qu'entre deux tours, donc elle restait figée pendant tout un argument, et le plafond d'une session
+ne tombait qu'à la fin d'un tour, si long soit-il. Le serveur compte maintenant la parole à la
+trame et envoie le temps chaque seconde ; quand le plafond tombe au milieu, le tour se ferme là et
+l'écran dit pourquoi. Vérifié contre Fly : six points d'horloge, de 179 à 173,4 s, pendant que la
+personne parlait. **Build 38 est parti** avec la ligne qui le dit à l'écran. Prochain numéro : 39.
 
 ## Next
 

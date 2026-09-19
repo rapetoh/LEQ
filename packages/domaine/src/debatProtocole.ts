@@ -33,8 +33,11 @@ export interface MessageBonjour {
   depuis_tour?: number
 }
 
-/** Why a turn ended: the silence ran out, the person said so, or the microphone went. */
-export type RaisonFinTour = 'silence' | 'bouton' | 'micro'
+/**
+ * Why a turn ended: the silence ran out, the person said so, the microphone went, or their
+ * speaking time for the session did.
+ */
+export type RaisonFinTour = 'silence' | 'bouton' | 'micro' | 'plafond'
 
 export interface MessageAudio {
   type: 'audio'

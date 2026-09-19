@@ -172,6 +172,10 @@ export class Conduite {
   private dernierMotMs = 0
   /** The room's own level, so a noisy place does not read as someone speaking. */
   private bruitDeFond = 120
+  /** Milliseconds of speech in the turn being spoken, for the clock the person watches. */
+  private msParoleDuTour = 0
+  /** The last whole second of speech already sent to the app, so the clock ticks once a second. */
+  private secondeAnnoncee = 0
   /** The silence that ends a turn, counting down. A word stops it, the button beats it. */
   private minuteurSilence: ReturnType<typeof setTimeout> | null = null
   /** Set when the person takes the floor back: Rétor's voice stops where it is. */
@@ -367,10 +371,15 @@ export class Conduite {
     if (niveau >= seuil) {
       this.dernierMotMs = instant
       this.aParle = true
-      if (this.enParole) return
-      this.enParole = true
-      this.arreterLeSilence()
-      this.canal.envoyer({ type: 'parole', actif: true })
+      // 16 kHz, 16-bit, mono: 32 bytes a millisecond. The cap counts speech, so only frames
+      // with a voice in them advance the clock the person is watching.
+      this.msParoleDuTour += octets.byteLength / 32
+      if (!this.enParole) {
+        this.enParole = true
+        this.arreterLeSilence()
+        this.canal.envoyer({ type: 'parole', actif: true })
+      }
+      this.direLeTemps()
       return
     }
     // A quiet frame: the room's own level follows it, slowly, so the threshold sits above the
@@ -389,6 +398,25 @@ export class Conduite {
       this.enfiler(() => this.fermerLeTour())
     }, restant)
     this.minuteurSilence.unref?.()
+  }
+
+  /**
+   * The speaking time left, while it is being spent. It used to be sent between turns only, so
+   * a person watched a frozen clock for the whole of a long argument, and a session could run
+   * minutes past its cap before anything noticed.
+   */
+  private direLeTemps(): void {
+    const seconde = Math.floor(this.msParoleDuTour / 1000)
+    if (seconde === this.secondeAnnoncee) return
+    this.secondeAnnoncee = seconde
+    const parlees = Math.round((this.etat.secondesParlees + this.msParoleDuTour / 1000) * 100) / 100
+    const restantes = Math.max(0, Math.round((this.etat.dureeMaxS - parlees) * 100) / 100)
+    this.canal.envoyer({ type: 'temps', secondes_parlees: parlees, secondes_restantes: restantes })
+    // The cap is reached in the middle of the turn: it ends here, and the session closes on the
+    // turn that was written, as chapter 10 asks.
+    if (restantes > 0) return
+    if (!this.passerLaParole('plafond')) return
+    this.enfiler(() => this.fermerLeTour())
   }
 
   /**
@@ -413,6 +441,8 @@ export class Conduite {
     this.aParle = false
     this.enParole = false
     this.dernierMotMs = 0
+    this.msParoleDuTour = 0
+    this.secondeAnnoncee = 0
     this.octetsDuTour = 0
     this.canal.envoyer({ type: 'a_toi' })
   }

@@ -445,7 +445,11 @@ class VoixLente implements Voix {
 
 const pause = (ms: number) => new Promise((resoudre) => setTimeout(resoudre, ms))
 
-function monterAvecPilote(silenceMs = 60, voix: Voix = new VoixStub()) {
+function monterAvecPilote(
+  silenceMs = 60,
+  voix: Voix = new VoixStub(),
+  debat: Partial<DebatOuvert> = {},
+) {
   const envoyes: MessageSortant[] = []
   const ecrits: Array<{ locuteur: string; texte: string }> = []
   const transcripteur = new TranscripteurPilote()
@@ -453,7 +457,7 @@ function monterAvecPilote(silenceMs = 60, voix: Voix = new VoixStub()) {
     {
       depot: {
         utilisateurDuJeton: async () => 'u1',
-        lireDebat: async () => ({ ...DEBAT, silence_fin_tour_ms: silenceMs }),
+        lireDebat: async () => ({ ...DEBAT, silence_fin_tour_ms: silenceMs, ...debat }),
         lireTours: async () => [],
         prendreSession: async () => 's1',
         ecrireTour: async (_id, _numero, locuteur, texte) => {
@@ -621,5 +625,30 @@ describe('la parole', () => {
       texte: "D'abord ceci. Ensuite cela. Et pour finir ce dernier point.",
     })
     expect(transcripteur.terminaisons).toBe(1)
+  })
+})
+
+describe('le temps de parole', () => {
+  it('avance pendant que la personne parle, et pas seulement entre deux tours', async () => {
+    const { conduite, envoyes } = monterAvecPilote(2000)
+    await conduite.recevoir(BONJOUR)
+    await pendant(conduite, 1400, AUDIO)
+    await conduite.attendre()
+    const temps = envoyes.filter((message) => message.type === 'temps')
+    expect(temps.length).toBeGreaterThan(0)
+    expect(temps.at(-1)).toMatchObject({ secondes_restantes: expect.any(Number) })
+    const dernier = temps.at(-1) as { secondes_restantes: number }
+    expect(dernier.secondes_restantes).toBeLessThan(180)
+  })
+
+  it('ferme le tour quand le plafond tombe au milieu, et dit que c’est le plafond', async () => {
+    const { conduite, envoyes } = monterAvecPilote(5000, new VoixStub(), { duree_max_s: 1 })
+    await conduite.recevoir(BONJOUR)
+    await pendant(conduite, 1500, AUDIO)
+    await conduite.attendre()
+    expect(envoyes.find((message) => message.type === 'a_retor')).toMatchObject({
+      raison: 'plafond',
+    })
+    expect(envoyes.some((message) => message.type === 'termine')).toBe(true)
   })
 })

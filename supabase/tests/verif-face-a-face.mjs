@@ -202,6 +202,13 @@ try {
       "le tour écrit garde les deux moitiés, celle d'avant la pause et celle d'après",
       monTour?.texte.slice(0, 110) ?? 'aucun tour',
     )
+    // The clock the person watches has to move while they are speaking, not only between turns.
+    const horloge = depuis(avantUn, 'temps')
+    verifier(
+      horloge.length >= 2 && horloge[0].secondes_restantes > horloge.at(-1).secondes_restantes,
+      'le temps de parole descend pendant que la personne parle',
+      `${horloge.length} points, de ${horloge[0]?.secondes_restantes} à ${horloge.at(-1)?.secondes_restantes} s`,
+    )
     await attendre('a_toi', avantUn)
 
     // Tour 2 : on se tait, et le silence donne la parole tout seul.

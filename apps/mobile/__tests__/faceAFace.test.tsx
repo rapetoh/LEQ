@@ -175,6 +175,12 @@ describe("l'écran du face-à-face", () => {
     expect(mockAudio.ecouter).toHaveBeenLastCalledWith(true)
   })
 
+  it('dit que le temps de parole est fini quand c’est ça qui a coupé le tour', async () => {
+    const ecran = await ouvrir({ type: 'a_toi' })
+    await act(async () => mockRecevoir?.({ type: 'a_retor', raison: 'plafond' }))
+    expect(ecran.getByText('Ton temps de parole est écoulé.')).toBeTruthy()
+  })
+
   it('dit le temps de parole qui reste', async () => {
     const ecran = await ouvrir({ type: 'a_toi' })
     expect(ecran.getByText('3:00')).toBeTruthy()

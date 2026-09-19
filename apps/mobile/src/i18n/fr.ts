@@ -683,6 +683,7 @@ export const fr = {
     reprendreParole: 'Reprendre la parole',
     microCoupe: 'Le micro a été coupé. Reconnexion en cours.',
     microCoupeTour: "Ton micro a coupé. Rétor répond à ce qu'il a entendu.",
+    tempsEpuise: 'Ton temps de parole est écoulé.',
     jaiFini: "J'ai fini",
     terminer: 'Terminer le débat',
     terminerTitre: 'Terminer le face-à-face ?',

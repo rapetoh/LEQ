@@ -22,6 +22,8 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Icone } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import type { RaisonFinTour } from '@leq/domaine'
+
 import { ClientDebat, invaliderDebats, type MessageSortant } from '@/services/debat'
 import { AudioDebat } from '@/services/debatAudio'
 import { maintenant } from '@/services/delai'
@@ -81,7 +83,8 @@ export default function FaceAFace() {
   const [silenceDepuis, setSilenceDepuis] = useState<number | null>(null)
   /** What the server said was left of that silence when it announced it. */
   const [silenceRestant, setSilenceRestant] = useState<number | null>(null)
-  const [coupeParMicro, setCoupeParMicro] = useState(false)
+  /** Why the last turn ended, so the panel says what happened instead of « Rétor réfléchit ». */
+  const [raisonFin, setRaisonFin] = useState<RaisonFinTour | null>(null)
   // The server runs on stubs until the providers are wired. A stubbed transcript reads exactly
   // like a broken one, so the screen says which it is.
   const [provisoire, setProvisoire] = useState(false)
@@ -103,7 +106,7 @@ export default function FaceAFace() {
       case 'a_toi':
         setPhase('a_toi')
         setSilenceDepuis(null)
-        setCoupeParMicro(false)
+        setRaisonFin(null)
         setPartiel('')
         audio.current.taire()
         audio.current.ecouter(true)
@@ -118,7 +121,7 @@ export default function FaceAFace() {
       case 'a_retor':
         audio.current.ecouter(false)
         setSilenceDepuis(null)
-        setCoupeParMicro(message.raison === 'micro')
+        setRaisonFin(message.raison)
         setPhase('reflexion')
         return
       case 'transcription':
@@ -236,7 +239,11 @@ export default function FaceAFace() {
   useEffect(() => {
     const abonnement = AppState.addEventListener('change', (etat) => {
       if (etat === 'active') {
-        if (phase === 'a_toi') audio.current.ecouter(true)
+        if (phase !== 'a_toi') return
+        // Whatever the countdown showed when the app went away is stale: the server heard no
+        // audio while it was gone, so nothing was running.
+        setSilenceDepuis(null)
+        audio.current.ecouter(true)
         return
       }
       audio.current.ecouter(false)
@@ -426,7 +433,7 @@ export default function FaceAFace() {
           silenceDepuis={silenceDepuis}
           silenceMs={silenceRestant ?? silenceMs}
           microCoupe={microCoupe}
-          coupeParMicro={coupeParMicro}
+          raisonFin={raisonFin}
           serre={serre}
           onFini={finirMonTour}
           onReprendre={reprendreLaParole}
@@ -483,7 +490,7 @@ function PanneauParole({
   silenceDepuis,
   silenceMs,
   microCoupe,
-  coupeParMicro,
+  raisonFin,
   serre,
   onFini,
   onReprendre,
@@ -494,7 +501,7 @@ function PanneauParole({
   silenceDepuis: number | null
   silenceMs: number
   microCoupe: boolean
-  coupeParMicro: boolean
+  raisonFin: RaisonFinTour | null
   serre: boolean
   onFini: () => void
   onReprendre: () => void
@@ -546,7 +553,11 @@ function PanneauParole({
           <View style={styles.etat}>
             <Bulle taille="minuscule" visage="attend" calme />
             <Text style={[styles.etatTexte, { color: theme.heroTexteSecondaire }]}>
-              {coupeParMicro ? t('debat.microCoupeTour') : t('debat.retorReflechit')}
+              {raisonFin === 'micro'
+                ? t('debat.microCoupeTour')
+                : raisonFin === 'plafond'
+                  ? t('debat.tempsEpuise')
+                  : t('debat.retorReflechit')}
             </Text>
           </View>
           <PointsQuiRespirent />
