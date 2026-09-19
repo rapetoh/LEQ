@@ -32,6 +32,7 @@ export const CLES_CONFIGURATION = [
   'duree_face_a_face_gratuit_s',
   'duree_face_a_face_complet_s',
   'reprise_debat_minutes',
+  'silence_fin_tour_debat_ms',
 ] as const
 export type CleConfiguration = (typeof CLES_CONFIGURATION)[number]
 export const CleConfigurationSchema = z.enum(CLES_CONFIGURATION)
@@ -121,6 +122,10 @@ export const DEFINITIONS_CONFIGURATION = {
   duree_face_a_face_gratuit_s: nombre(180, "Durée maximale d'un face-à-face (Gratuit)"),
   duree_face_a_face_complet_s: nombre(480, "Durée maximale d'un face-à-face (Complet)"),
   reprise_debat_minutes: nombre(30, "Fenêtre de reprise d'un débat interrompu"),
+  silence_fin_tour_debat_ms: nombre(
+    2200,
+    'Silence qui donne la parole à Rétor dans un face-à-face, en millisecondes',
+  ),
 } as const satisfies Record<CleConfiguration, DefinitionConfiguration>
 
 /** The typed object the app works with. */

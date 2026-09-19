@@ -647,6 +647,10 @@ export const fr = {
     sessionsRestantes: 'Il te reste {{restantes}} sessions ce mois-ci.',
     sessionRestante: 'Il te reste 1 session ce mois-ci.',
     aucuneSession: 'Tu as utilisé tes sessions du mois.',
+    sessionsCourt: '{{restantes}} sessions',
+    sessionUneCourt: '1 session',
+    sessionAucuneCourt: 'Aucune session',
+    reprendreCourt: 'Reprendre',
     reserveComplet: 'Le face-à-face fait partie de la formule Complet.',
 
     // E2 · Préparer.
@@ -670,12 +674,21 @@ export const fr = {
     // E3 · Le débat.
     provisoire: "Rétor n'est pas encore disponible. Ses réponses sont provisoires.",
     connexion: 'Connexion en cours',
-    aToiDeParler: 'À toi de parler',
-    retorRepond: 'Rétor répond',
-    retorParle: 'Rétor parle',
+    theseDeRetor: 'Rétor défend',
+    premierMot: 'Contredis la thèse. Rétor te répondra.',
+    jeTEcoute: "Je t'écoute",
+    retorVaRepondre: 'Rétor va répondre',
+    retorReflechit: 'Rétor réfléchit',
+    retorParle: 'Rétor te répond',
+    reprendreParole: 'Reprendre la parole',
     microCoupe: 'Le micro a été coupé. Reconnexion en cours.',
-    jaiFini: "J'ai fini de parler",
+    microCoupeTour: "Ton micro a coupé. Rétor répond à ce qu'il a entendu.",
+    jaiFini: "J'ai fini",
     terminer: 'Terminer le débat',
+    terminerTitre: 'Terminer le face-à-face ?',
+    terminerCorps: 'Le débrief arrive juste après.',
+    terminerOui: 'Terminer',
+    terminerContinuer: 'Continuer',
     tempsRestant: '{{temps}} de parole restante',
     toi: 'Toi',
     retor: 'Rétor',
@@ -700,6 +713,9 @@ export const fr = {
     debriefProvisoire:
       "Rétor n'est pas encore disponible. Le débrief arrivera avec ses vraies réponses.",
     debriefSource: "Écrit à partir du texte du débat. Ta voix n'a pas été conservée.",
+    debriefRelire: 'Relire le débat',
+    debriefMasquer: 'Masquer le débat',
+    debriefAutre: 'Un autre débat',
     voirDebrief: 'Voir le débrief',
 
     // Refus.

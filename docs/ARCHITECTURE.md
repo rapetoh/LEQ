@@ -206,4 +206,4 @@ The process is selected by `PROCESS` (falls back to Fly's `FLY_PROCESS_GROUP`). 
 ## Later phases in one line each
 
 - Arena (Phase 7): a subject bank, one active subject derived lazily from activation and closure dates, hidden takes until you have spoken, pair voting with balanced sampling and impression tracking, one `prises_publiques` table for subject and duel takes, anonymity during votes, deletion at closing, `apps/web` for the invitee.
-- Face-à-face (Phase 8): streaming STT with endpointing while the user speaks, streamed Claude, sentence-chunked TTS, per-turn persistence, resume window from `reprise_debat_minutes`, session ledger with outcome, debrief from the transcript.
+- Face-à-face (Phase 8): streaming STT while the user speaks, the floor decided by the server alone (its own silence detection on the frames, announced to the app as it runs), streamed Claude, sentence-chunked TTS, per-turn persistence, resume window from `reprise_debat_minutes`, session ledger with outcome, debrief from the transcript.

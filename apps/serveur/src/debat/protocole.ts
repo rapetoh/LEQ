@@ -11,8 +11,13 @@ export type {
   MessageEntrant,
   MessageErreur,
   MessageFinTour,
+  MessageAToi,
+  MessageARetor,
   MessageInterrompu,
+  MessageMonTour,
+  MessageParole,
   MessagePret,
+  MessageReprendreParole,
   MessageReponseAudio,
   MessageReponseTexte,
   MessageSortant,
@@ -21,6 +26,7 @@ export type {
   MessageTerminer,
   MessageTranscription,
   RaisonFin,
+  RaisonFinTour,
   TourPublie,
 } from '@leq/domaine'
 export { CODES_ERREUR_DEBAT, MESSAGES_ERREUR_DEBAT, VERSION_PROTOCOLE } from '@leq/domaine'
@@ -62,8 +68,14 @@ export function lireMessageEntrant(brut: string): MessageEntrant | null {
       const donnees = valeur['donnees']
       return typeof donnees === 'string' ? { type: 'audio', donnees } : null
     }
-    case 'fin_tour':
-      return { type: 'fin_tour' }
+    case 'fin_tour': {
+      const raison = valeur['raison']
+      return raison === 'micro' || raison === 'bouton'
+        ? { type: 'fin_tour', raison }
+        : { type: 'fin_tour' }
+    }
+    case 'reprendre_parole':
+      return { type: 'reprendre_parole' }
     case 'terminer':
       return { type: 'terminer' }
     default:

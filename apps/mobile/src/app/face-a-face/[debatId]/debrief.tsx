@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Bulle } from '@/components/Bulle'
@@ -9,14 +10,19 @@ import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
-import { messageRefus, useDebat } from '@/services/debat'
+import { chargerTranscription, messageRefus, useDebat } from '@/services/debat'
+import { Icone } from '@/components/ui/Icone'
 import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { FondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
-import { espaces, typographie } from '@/theme/tokens'
+import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
 // E4 · Le débrief. Written from the text of the debate and never from its sound, because there
 // is no sound kept anywhere (chapter 2). The screen says so, at the bottom, in one line.
+//
+// The note names moments of the debate, so the debate itself is one tap below it: a person who
+// reads « tu as lâché sur la deuxième objection » wants to see that objection again, and the
+// text is all that is kept of it.
 
 /** The worker writes the note a moment after the debate ends; the screen waits for it. */
 const INTERVALLE_MS = 4000
@@ -33,7 +39,14 @@ export default function Debrief() {
   const debrief = debat.data?.debrief ?? null
 
   const [essais, setEssais] = useState(0)
+  const [relire, setRelire] = useState(false)
   const rafraichir = debat.refetch
+  const transcription = useQuery({
+    queryKey: ['transcription_debat', debatId],
+    queryFn: () => chargerTranscription(debatId),
+    enabled: debatId !== '' && relire,
+    staleTime: 60_000,
+  })
 
   useEffect(() => {
     if (debrief !== null || debat.isError || essais >= ESSAIS_MAX) return
@@ -108,10 +121,54 @@ export default function Debrief() {
           </>
         )}
 
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setRelire((ouvert) => !ouvert)}
+          style={({ pressed }) => [styles.relire, pressed && { opacity: 0.85 }]}
+        >
+          <Text style={[typographie.corpsFort, { color: theme.voix }]}>
+            {relire ? t('debat.debriefMasquer') : t('debat.debriefRelire')}
+          </Text>
+          <Icone
+            sf={relire ? 'chevron.up' : 'chevron.down'}
+            material={relire ? 'expand-less' : 'expand-more'}
+            taille={16}
+            couleur={theme.voix}
+          />
+        </Pressable>
+
+        {relire
+          ? (transcription.data ?? []).map((tour) => (
+              <View
+                key={tour.numero}
+                style={[
+                  styles.tour,
+                  tour.locuteur === 'retor'
+                    ? { borderColor: theme.heroBordure }
+                    : { borderColor: 'transparent', backgroundColor: 'rgba(255, 189, 89, 0.14)' },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.locuteur,
+                    { color: tour.locuteur === 'retor' ? couleurs.or : couleurs.encre3 },
+                  ]}
+                >
+                  {tour.locuteur === 'retor' ? t('debat.retor') : t('debat.toi')}
+                </Text>
+                <Text style={[typographie.corps, { color: couleurs.blanc }]}>{tour.texte}</Text>
+              </View>
+            ))
+          : null}
+
         <View style={styles.actions}>
           <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
             {t('debat.debriefSource')}
           </Text>
+          <Bouton
+            libelle={t('debat.debriefAutre')}
+            onPress={() => router.replace('/face-a-face')}
+          />
           <Bouton
             libelle={t('commun.retour')}
             variante="secondaire"
@@ -129,5 +186,26 @@ const styles = StyleSheet.create({
   centre: { textAlign: 'center' },
   majuscules: { textTransform: 'uppercase' },
   bloc: { gap: espaces.xxs },
+  relire: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: espaces.s,
+  },
+  tour: {
+    borderWidth: 1,
+    borderRadius: rayons.l,
+    paddingHorizontal: espaces.m,
+    paddingVertical: espaces.s,
+    gap: 3,
+  },
+  locuteur: {
+    fontFamily: polices.extraBold,
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+  },
   actions: { marginTop: 'auto', paddingTop: espaces.l, gap: espaces.s },
 })

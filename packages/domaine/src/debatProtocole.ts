@@ -4,17 +4,20 @@
  * listens to it, and neither may drift from the other.
  *
  * The hard part of this feature is not the arguing, it is the waiting: past a few seconds of
- * silence the exchange is dead. So the protocol is built to let the app show something at every
- * stage instead of a spinner. The text of the answer is sent as soon as it exists, before the
- * voice that says it, and the transcription is sent while the person is still speaking.
+ * silence the exchange is dead. So the text of the answer is sent as soon as it exists, before
+ * the voice that says it, and the transcription is sent while the person is still speaking.
  *
- * The hard part of this feature is not the arguing, it is the waiting: past a few seconds of
- * silence the exchange is dead. So the protocol is built to let the app show something at every
- * stage instead of a spinner. The text of the answer is sent as soon as it exists, before the
- * voice that says it, and the transcription is sent while the person is still speaking.
+ * **Who holds the floor is said out loud, in one message, and the server is the only one who
+ * decides it** (version 2). Version 1 had two deciders and no announcement: the transcription
+ * provider ended a turn after 700 ms of silence, and the app was never told. A person pausing to
+ * think was answered mid-argument, everything they said next went into a turn the server had
+ * already closed, and the screen still read « À toi de parler ». So the floor now moves on
+ * `a_toi` and `a_retor` and on nothing else; the app draws what those two say. A silence long
+ * enough to pass the floor is announced before it passes (`parole`), so the person sees it
+ * coming and can keep the floor by speaking.
  */
 
-export const VERSION_PROTOCOLE = 1
+export const VERSION_PROTOCOLE = 2
 
 // --------------------------------------------------------------------------------------------
 // App to server
@@ -30,22 +33,33 @@ export interface MessageBonjour {
   depuis_tour?: number
 }
 
+/** Why a turn ended: the silence ran out, the person said so, or the microphone went. */
+export type RaisonFinTour = 'silence' | 'bouton' | 'micro'
+
 export interface MessageAudio {
   type: 'audio'
   /** One chunk of microphone PCM or Opus, base64. */
   donnees: string
 }
 
-/** The person stopped talking. The server also detects this itself; whichever comes first wins. */
+/** The person says they have finished: the floor passes now, without waiting for the silence. */
 export interface MessageFinTour {
   type: 'fin_tour'
+  /** Why. A microphone taken by a call ends the turn too, and the screen says which it was. */
+  raison?: RaisonFinTour
+}
+
+/** The person takes the floor back while Rétor is speaking. His voice stops where it is. */
+export interface MessageReprendreParole {
+  type: 'reprendre_parole'
 }
 
 export interface MessageTerminer {
   type: 'terminer'
 }
 
-export type MessageEntrant = MessageBonjour | MessageAudio | MessageFinTour | MessageTerminer
+export type MessageEntrant =
+  MessageBonjour | MessageAudio | MessageFinTour | MessageReprendreParole | MessageTerminer
 
 // --------------------------------------------------------------------------------------------
 // Server to app
@@ -69,6 +83,11 @@ export interface MessagePret {
   /** Everything said so far. Empty on a fresh session, the whole debate on a resume. */
   tours: TourPublie[]
   /**
+   * How long a silence lasts before the floor passes to Rétor, in milliseconds. The app draws
+   * the countdown with this number, so the person watches the same clock as the server.
+   */
+  silence_fin_tour_ms: number
+  /**
    * True while the server runs on stubs: the transcription counts chunks and Rétor answers with
    * a placeholder. The screen has to say so, because a stubbed transcript looks exactly like a
    * broken one.
@@ -79,8 +98,41 @@ export interface MessagePret {
 /** What the server hears, as it hears it. `partiel` means it may still change. */
 export interface MessageTranscription {
   type: 'transcription'
+  /** The whole turn so far, pauses included, not only the piece being said. */
   texte: string
   partiel: boolean
+}
+
+/**
+ * The server hears speech, or hears silence. The app cancels or starts its countdown on it:
+ * the silence that passes the floor is visible from its first second.
+ */
+export interface MessageParole {
+  type: 'parole'
+  actif: boolean
+  /** With `actif: false`, how long the floor still has to run. The app draws that countdown. */
+  restant_ms?: number
+}
+
+/** The floor is the person's: Rétor has finished, or they took it back. */
+export interface MessageAToi {
+  type: 'a_toi'
+}
+
+/** The floor is Rétor's. Nothing the microphone captures from here is part of the turn. */
+export interface MessageARetor {
+  type: 'a_retor'
+  raison: RaisonFinTour
+}
+
+/**
+ * The person's own turn, as it was written down. The app showed their words only while they
+ * were being said and then dropped them, so the thread was Rétor talking to himself.
+ */
+export interface MessageMonTour {
+  type: 'mon_tour'
+  numero: number
+  texte: string
 }
 
 /** Rétor's answer as text, sent before the voice so the app can show it at once. */
@@ -125,6 +177,10 @@ export interface MessageErreur {
 export type MessageSortant =
   | MessagePret
   | MessageTranscription
+  | MessageParole
+  | MessageAToi
+  | MessageARetor
+  | MessageMonTour
   | MessageReponseTexte
   | MessageReponseAudio
   | MessageTemps

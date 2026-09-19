@@ -991,6 +991,8 @@ export interface DebatOuvertLigne {
   duree_max_s: number
   secondes_parlees: number
   statut: string
+  /** Rebecca's silence, in milliseconds: how long before the floor passes to Rétor. */
+  silence_fin_tour_ms?: number
 }
 
 /** The session, read as its owner: a debate belongs to one person and to nobody else. */
@@ -1007,6 +1009,9 @@ export async function lireDebatOuvert(
   )
   const ligne = rows[0]
   if (!ligne) return null
+  // How long a silence gives the floor to Rétor. Read with the session rather than at start-up:
+  // Rebecca changes it in the admin, and the next debate uses the new value.
+  const silenceMs = await lireConfigurationNombre(ex, 'silence_fin_tour_debat_ms', 2200)
   return {
     id: String(ligne['id']),
     these_texte: String(ligne['these_texte']),
@@ -1014,6 +1019,7 @@ export async function lireDebatOuvert(
     duree_max_s: Number(ligne['duree_max_s']),
     secondes_parlees: Number(ligne['secondes_parlees']),
     statut: String(ligne['statut']),
+    silence_fin_tour_ms: silenceMs,
   }
 }
 
@@ -1083,6 +1089,7 @@ export async function reprendreDebat(
     duree_max_s: Number(ligne['duree_max_s']),
     secondes_parlees: Number(ligne['secondes_parlees']),
     statut: String(ligne['statut']),
+    silence_fin_tour_ms: await lireConfigurationNombre(ex, 'silence_fin_tour_debat_ms', 2200),
   }
 }
 

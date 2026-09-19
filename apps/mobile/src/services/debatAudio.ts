@@ -7,9 +7,11 @@
  * so Rétor starts speaking before the whole answer has been synthesised. Most of the two-second
  * budget of chapter 10 is bought right there.
  *
- * Turn taking is half duplex in v1: while Rétor speaks, the microphone keeps running but its
- * frames are not sent. Stopping the recorder instead would flip the audio session on every
- * turn, and interrupting Rétor needs echo cancellation that is not dependable on both platforms.
+ * Turn taking is half duplex: while Rétor speaks, the microphone keeps running but its frames
+ * are not sent. Stopping the recorder instead would flip the audio session on every turn, and
+ * hearing the person over Rétor's own voice needs echo cancellation that is not dependable on
+ * both platforms. Cutting him off is a button rather than a word for the same reason: it is
+ * certain, on every phone, with any speaker volume.
  */
 import { lecteur } from './lecture'
 import {
@@ -51,6 +53,8 @@ export class ErreurDebatAudio extends Error {
 }
 
 export type EcouteurTrame = (donneesBase64: string) => void
+/** How loud the microphone is, in dBFS, once per captured frame. */
+export type EcouteurNiveau = (dbfs: number) => void
 /** Why the microphone stopped feeding the debate, and whether it came back. */
 export type EtatMicro = 'coupe' | 'revenu'
 export type EcouteurInterruption = (etat: EtatMicro) => void
@@ -75,7 +79,11 @@ export class AudioDebat {
   private surInterruption: EcouteurInterruption | null = null
   private reclamation: ReclamationAudio | null = null
 
-  async demarrer(surTrame: EcouteurTrame, surInterruption: EcouteurInterruption): Promise<void> {
+  async demarrer(
+    surTrame: EcouteurTrame,
+    surInterruption: EcouteurInterruption,
+    surNiveau?: EcouteurNiveau,
+  ): Promise<void> {
     if (this.ouvert) return
     // Whatever the take player still holds goes first: one audio session, one owner at a time.
     lecteur.arreter()
@@ -103,7 +111,11 @@ export class AudioDebat {
       { sampleRate: FREQUENCE_DEBAT_HZ, bufferLength: TRAME_DEBAT, channelCount: 1 },
       (evenement) => {
         if (!this.envoiActif) return
-        surTrame(enBase64(versInt16(evenement.buffer.getChannelData(0))))
+        const echantillons = evenement.buffer.getChannelData(0)
+        // The same frames drive the wave on screen. A person speaking into a microphone has to
+        // see that it hears them, or they are talking into an object.
+        if (surNiveau) surNiveau(dbfs(echantillons))
+        surTrame(enBase64(versInt16(echantillons)))
       },
     )
     recorder.onError((erreur) => {
@@ -207,6 +219,16 @@ export class AudioDebat {
     }
     this.reclamation = null
   }
+}
+
+/** The loudness of one frame, as the recording screens read it: dBFS, floored at silence. */
+function dbfs(echantillons: Float32Array): number {
+  if (echantillons.length === 0) return -100
+  let somme = 0
+  for (let i = 0; i < echantillons.length; i += 1) somme += echantillons[i]! * echantillons[i]!
+  const rms = Math.sqrt(somme / echantillons.length)
+  if (rms <= 0) return -100
+  return Math.max(-100, Math.min(0, 20 * Math.log10(rms)))
 }
 
 function messageDe(erreur: unknown): string {

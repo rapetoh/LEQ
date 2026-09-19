@@ -136,7 +136,12 @@ try {
     })
 
   const pret = await attendre('pret')
-  verifier(pret.version === 1, 'le serveur annonce le protocole', `version ${pret.version}`)
+  verifier(pret.version === 2, 'le serveur annonce le protocole', `version ${pret.version}`)
+  verifier(
+    typeof pret.silence_fin_tour_ms === 'number' && pret.silence_fin_tour_ms >= 1000,
+    'et dit combien de silence donne la parole',
+    `${pret.silence_fin_tour_ms} ms`,
+  )
   verifier(pret.these === THESE, 'et la thèse que la personne a écrite')
   verifier(
     typeof pret.provisoire === 'boolean',
@@ -144,50 +149,87 @@ try {
     pret.provisoire ? 'bouchons' : 'vrais fournisseurs',
   )
 
-  // Two turns of real speech, 100 ms chunks as the phone sends them. With the real providers
-  // this is the whole loop: transcription while speaking, Rétor's answer, Rétor's voice.
+  // What this checks is the floor, because that is what was broken: a pause inside a turn used
+  // to end it at 700 ms, Rétor answered half an argument, and the rest went into a turn that no
+  // longer existed. Real speech, real silences, the real providers.
   const dossier = mkdtempSync(join(tmpdir(), 'leq-debat-'))
-  const phrases = [
-    "Je ne suis pas d'accord. Une vérification de bout en bout coûte du temps, et une relecture attentive attrape la plupart des erreurs pour bien moins cher.",
-    "Et puis une relecture se fait à deux, ce qui apprend quelque chose aux deux personnes. Une vérification automatique n'apprend rien à personne.",
-  ]
-  try {
-    for (let tour = 1; tour <= 2; tour += 1) {
-      const avantTour = recus.length
-      const octets = parlerPcm(dossier, `t${tour}`, phrases[tour - 1])
-      const debutTour = Date.now()
-      for (let i = 0; i < octets.length; i += 3200) {
-        socket.send(
-          JSON.stringify({
-            type: 'audio',
-            donnees: octets.subarray(i, i + 3200).toString('base64'),
-          }),
-        )
-        await new Promise((r) => setTimeout(r, 100))
-      }
-      const finParole = Date.now()
-      socket.send(JSON.stringify({ type: 'fin_tour' }))
-      const reponse = await attendre('reponse_texte', avantTour)
-      const latence = Date.now() - finParole
-      verifier(
-        typeof reponse.texte === 'string' && reponse.texte.length > 0,
-        `Rétor répond au tour ${tour}`,
-        `${latence} ms après la fin de parole · « ${reponse.texte.slice(0, 90)} »`,
+  /** Sends PCM the way the phone does: 100 ms of audio every 100 ms. */
+  const dire = async (octets) => {
+    for (let i = 0; i < octets.length; i += 3200) {
+      socket.send(
+        JSON.stringify({ type: 'audio', donnees: octets.subarray(i, i + 3200).toString('base64') }),
       )
-      verifier(!/[—–’]/.test(reponse.texte), 'sans tiret cadratin ni apostrophe courbe')
-      const transcrit = recus
-        .slice(avantTour)
-        .filter((m) => m.type === 'transcription' && !m.partiel)
-        .at(-1)
-      verifier(
-        transcrit !== undefined && /relecture/i.test(transcrit.texte),
-        `et a entendu ce qui a été dit au tour ${tour}`,
-        transcrit?.texte.slice(0, 80) ?? 'aucune transcription définitive',
-      )
-      const audio = await attendre('reponse_audio', avantTour)
-      verifier(audio.fin === true || audio.donnees.length > 0, 'et sa voix arrive')
-      void debutTour
+      await new Promise((r) => setTimeout(r, 100))
     }
+  }
+  /** A real silence, sent as silence: zeros, at the same rate. */
+  const seTaire = async (ms) => {
+    const vide = Buffer.alloc(3200)
+    for (let i = 0; i < Math.round(ms / 100); i += 1) {
+      socket.send(JSON.stringify({ type: 'audio', donnees: vide.toString('base64') }))
+      await new Promise((r) => setTimeout(r, 100))
+    }
+  }
+  const depuis = (index, type) => recus.slice(index).filter((m) => m.type === type)
+
+  try {
+    // Tour 1 : une pause de 1,5 s au milieu de l'argument.
+    const avantUn = recus.length
+    await dire(parlerPcm(dossier, 't1a', "Je ne suis pas d'accord du tout avec cette idée."))
+    // A second of silence, and the phrases themselves carry their own padding: what the server
+    // measures is the whole quiet stretch, which is the honest thing to measure.
+    await seTaire(1000)
+    verifier(
+      depuis(avantUn, 'a_retor').length === 0,
+      'une pause pour réfléchir ne donne pas la parole à Rétor',
+      '1 s de silence au milieu du tour',
+    )
+    await dire(parlerPcm(dossier, 't1b', 'Une relecture attentive attrape la plupart des erreurs.'))
+    const finParole = Date.now()
+    socket.send(JSON.stringify({ type: 'fin_tour', raison: 'bouton' }))
+    const passage = await attendre('a_retor', avantUn)
+    verifier(passage.raison === 'bouton', 'et le bouton la donne quand la personne le décide')
+    const reponse = await attendre('reponse_texte', avantUn)
+    verifier(
+      typeof reponse.texte === 'string' && reponse.texte.length > 0,
+      'Rétor répond au premier tour',
+      `${Date.now() - finParole} ms après la fin de parole · « ${reponse.texte.slice(0, 70)} »`,
+    )
+    verifier(!/[—–’]/.test(reponse.texte), 'sans tiret cadratin ni apostrophe courbe')
+    const monTour = depuis(avantUn, 'mon_tour').at(-1)
+    verifier(
+      monTour !== undefined && /relecture/i.test(monTour.texte) && /accord/i.test(monTour.texte),
+      "le tour écrit garde les deux moitiés, celle d'avant la pause et celle d'après",
+      monTour?.texte.slice(0, 110) ?? 'aucun tour',
+    )
+    await attendre('a_toi', avantUn)
+
+    // Tour 2 : on se tait, et le silence donne la parole tout seul.
+    const avantDeux = recus.length
+    await dire(parlerPcm(dossier, 't2', 'Et puis une relecture apprend quelque chose aux deux.'))
+    const debutSilence = Date.now()
+    await seTaire(4000)
+    const seul = depuis(avantDeux, 'a_retor')
+    verifier(seul.length === 1, 'un silence qui dure donne la parole, une seule fois')
+    verifier(
+      seul[0]?.raison === 'silence',
+      'et le serveur dit que c’est le silence',
+      `${Date.now() - debutSilence} ms après le dernier mot`,
+    )
+    const audio = await attendre('reponse_audio', avantDeux)
+    verifier(audio.fin === true || audio.donnees.length > 0, 'la voix de Rétor arrive')
+
+    // On lui coupe la parole pendant qu'il parle.
+    const avantReprise = recus.length
+    socket.send(JSON.stringify({ type: 'reprendre_parole' }))
+    await attendre('a_toi', avantReprise)
+    const apresReprise = recus.length
+    await new Promise((r) => setTimeout(r, 1200))
+    // The end-of-voice marker still closes the turn; what must stop is the voice itself.
+    verifier(
+      depuis(apresReprise, 'reponse_audio').every((m) => m.donnees === ''),
+      'lui couper la parole arrête sa voix et rend la main',
+    )
   } finally {
     rmSync(dossier, { recursive: true, force: true })
   }
@@ -202,7 +244,11 @@ try {
     'select numero, locuteur, texte from public.tours_debat where debat_id = $1 order by numero',
     [debatId],
   )
-  verifier(tours.length === 4, 'quatre tours sont écrits', tours.map((t) => t.locuteur).join(', '))
+  verifier(
+    tours.length === 4,
+    'quatre tours sont écrits, dans l’ordre où ils ont été dits',
+    tours.map((t) => t.locuteur).join(', '),
+  )
   verifier(
     tours.every((t, i) => t.numero === i + 1),
     'numérotés dans l’ordre',

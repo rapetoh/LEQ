@@ -2,7 +2,16 @@ import { describe, expect, it, vi } from 'vitest'
 import { pino } from 'pino'
 
 import { Conduite, type Canal, type DebatOuvert, type DepotDebat } from './conduite.js'
-import { AdversaireStub, TranscripteurFluxStub, VoixStub } from './fournisseurs.js'
+import {
+  AdversaireStub,
+  TranscripteurFluxStub,
+  VoixStub,
+  type FluxTranscription,
+  type OptionsFlux,
+  type TourTranscrit,
+  type TranscripteurFlux,
+  type Voix,
+} from './fournisseurs.js'
 import type { MessageSortant } from './protocole.js'
 
 // A whole debate, end to end, with no socket, no database and no provider key. What is checked
@@ -387,5 +396,230 @@ describe('quand un fournisseur ne répond jamais', () => {
     await conduite.attendre()
     expect(envoyes.some((m) => m.type === 'erreur' && m.code === 'interne')).toBe(true)
     expect(clotures).toEqual(['interrompue_par_nous'])
+  })
+})
+
+// --------------------------------------------------------------------------------------------
+// Qui a la parole
+// --------------------------------------------------------------------------------------------
+
+/**
+ * A transcriber the test drives: it counts what it was given and hands back whatever turn the
+ * test queued, so every assertion here is about the floor and never about a stub's wording.
+ */
+class TranscripteurPilote implements TranscripteurFlux {
+  readonly nom = 'pilote'
+  options: OptionsFlux | null = null
+  /** Chunks the flux accepted: what the server counted as part of a turn. */
+  recus: number[] = []
+  tours: TourTranscrit[] = []
+  terminaisons = 0
+
+  ouvrir(options: OptionsFlux): FluxTranscription {
+    this.options = options
+    return {
+      ecrire: (octets) => {
+        this.recus.push(octets.byteLength)
+      },
+      terminer: async () => {
+        this.terminaisons += 1
+        return this.tours.shift() ?? { texte: 'ce que la personne a dit', dureeS: 4 }
+      },
+      fermer: () => undefined,
+    }
+  }
+}
+
+/** A voice that takes its time, so a test can cut in while Rétor is still speaking. */
+class VoixLente implements Voix {
+  readonly nom = 'lente'
+  morceauxDits = 0
+  async *dire(): AsyncIterable<Uint8Array> {
+    for (let i = 0; i < 20; i += 1) {
+      await pause(3)
+      this.morceauxDits += 1
+      yield new Uint8Array([1, 2])
+    }
+  }
+}
+
+const pause = (ms: number) => new Promise((resoudre) => setTimeout(resoudre, ms))
+
+function monterAvecPilote(silenceMs = 60, voix: Voix = new VoixStub()) {
+  const envoyes: MessageSortant[] = []
+  const ecrits: Array<{ locuteur: string; texte: string }> = []
+  const transcripteur = new TranscripteurPilote()
+  const conduite = new Conduite(
+    {
+      depot: {
+        utilisateurDuJeton: async () => 'u1',
+        lireDebat: async () => ({ ...DEBAT, silence_fin_tour_ms: silenceMs }),
+        lireTours: async () => [],
+        prendreSession: async () => 's1',
+        ecrireTour: async (_id, _numero, locuteur, texte) => {
+          ecrits.push({ locuteur, texte })
+        },
+        cloturer: async () => undefined,
+        reprendre: async () => null,
+        demanderDebrief: async () => undefined,
+      },
+      transcripteur,
+      adversaire: new AdversaireStub(),
+      voix,
+      log,
+    },
+    { envoyer: (message) => envoyes.push(message), fermer: () => undefined },
+  )
+  const types = () => envoyes.map((message) => message.type)
+  return { conduite, envoyes, ecrits, transcripteur, types }
+}
+
+/** 100 ms of 16 kHz mono PCM16, with a voice in it or without: what the phone actually sends. */
+function trame(amplitude: number): string {
+  const octets = Buffer.alloc(3200)
+  for (let i = 0; i < 1600; i += 1) {
+    octets.writeInt16LE(i % 2 === 0 ? amplitude : -amplitude, i * 2)
+  }
+  return octets.toString('base64')
+}
+
+const AUDIO = JSON.stringify({ type: 'audio', donnees: trame(6000) })
+const MUET = JSON.stringify({ type: 'audio', donnees: trame(0) })
+
+/** Sends frames for a while, in real time, the way a phone streams them. */
+async function pendant(conduite: Conduite, ms: number, trameChoisie: string): Promise<void> {
+  const fin = Date.now() + ms
+  while (Date.now() < fin) {
+    await conduite.recevoir(trameChoisie)
+    await pause(50)
+  }
+}
+
+describe('la parole', () => {
+  it('est donnée à la personne dès que la session est prête, et le dit', async () => {
+    const { conduite, envoyes, types } = monterAvecPilote()
+    await conduite.recevoir(BONJOUR)
+    expect(types()).toEqual(['pret', 'a_toi'])
+    expect(envoyes[0]).toMatchObject({ silence_fin_tour_ms: 60, version: 2 })
+  })
+
+  // The bug Roch hit: a pause of 700 ms ended the turn, so a person pausing to think was
+  // answered in the middle of their own argument.
+  it('reste à la personne quand elle marque une pause pour réfléchir', async () => {
+    const { conduite, transcripteur, types } = monterAvecPilote(900)
+    await conduite.recevoir(BONJOUR)
+    await pendant(conduite, 200, AUDIO)
+    await pendant(conduite, 300, MUET) // elle cherche son mot
+    await pendant(conduite, 200, AUDIO) // et le trouve
+    await conduite.attendre()
+    expect(types()).not.toContain('a_retor')
+    expect(transcripteur.terminaisons).toBe(0)
+  })
+
+  it('passe à Rétor quand le silence dure, et prévient avant de le faire', async () => {
+    const { conduite, envoyes, types } = monterAvecPilote(500)
+    await conduite.recevoir(BONJOUR)
+    await pendant(conduite, 200, AUDIO)
+    await pendant(conduite, 1200, MUET)
+    await conduite.attendre()
+    expect(envoyes.find((message) => message.type === 'a_retor')).toMatchObject({
+      raison: 'silence',
+    })
+    // The app hears the silence start before it costs the floor, and is told how long it has.
+    const annonce = envoyes.filter((message) => message.type === 'parole').at(-1)
+    expect(annonce).toMatchObject({ actif: false })
+    expect(types().indexOf('parole')).toBeLessThan(types().indexOf('a_retor'))
+  })
+
+  it("ne passe pas à Rétor sur le silence de quelqu'un qui n'a pas encore parlé", async () => {
+    const { conduite, types } = monterAvecPilote(300)
+    await conduite.recevoir(BONJOUR)
+    await pendant(conduite, 900, MUET)
+    await conduite.attendre()
+    expect(types()).not.toContain('a_retor')
+    expect(types()).not.toContain('parole')
+  })
+
+  it('rend la parole à la personne une fois que Rétor a fini', async () => {
+    const { conduite, types } = monterAvecPilote()
+    await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(AUDIO)
+    await conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    await conduite.attendre()
+    expect(types().filter((type) => type === 'a_toi')).toHaveLength(2)
+    expect(types().indexOf('a_retor')).toBeLessThan(types().lastIndexOf('a_toi'))
+  })
+
+  it("dit que c'est le micro quand c'est le micro qui a coupé le tour", async () => {
+    const { conduite, envoyes } = monterAvecPilote()
+    await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(AUDIO)
+    await conduite.recevoir(JSON.stringify({ type: 'fin_tour', raison: 'micro' }))
+    await conduite.attendre()
+    expect(envoyes.find((message) => message.type === 'a_retor')).toMatchObject({
+      raison: 'micro',
+    })
+  })
+
+  it("n'écoute pas le micro pendant que Rétor a la parole", async () => {
+    const { conduite, transcripteur } = monterAvecPilote(1000, new VoixLente())
+    await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(AUDIO)
+    const avant = transcripteur.recus.length
+    // Frames already in flight when the floor passed: the phone stops sending on `a_retor`,
+    // and what left before it arrived must not become part of the next turn.
+    const finDuTour = conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    const enVol = [conduite.recevoir(AUDIO), conduite.recevoir(AUDIO)]
+    await Promise.all([finDuTour, ...enVol])
+    await conduite.attendre()
+    expect(transcripteur.recus.length).toBe(avant)
+  })
+
+  it('revient à la personne quand elle coupe Rétor, et arrête sa voix', async () => {
+    const voix = new VoixLente()
+    const { conduite, envoyes, types } = monterAvecPilote(1000, voix)
+    await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(AUDIO)
+    const tour = conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    await pause(20)
+    await conduite.recevoir(JSON.stringify({ type: 'reprendre_parole' }))
+    await tour
+    await conduite.attendre()
+    expect(types().filter((type) => type === 'a_toi')).toHaveLength(2)
+    expect(voix.morceauxDits).toBeLessThan(20)
+    // His answer stays in the exchange: he did say it, and the debrief reads the whole thing.
+    expect(envoyes.some((message) => message.type === 'reponse_texte')).toBe(true)
+  })
+
+  it("ne fait pas répondre Rétor à un tour où personne n'a rien dit", async () => {
+    const { conduite, ecrits, types, transcripteur } = monterAvecPilote()
+    await conduite.recevoir(BONJOUR)
+    transcripteur.tours.push({ texte: '   ', dureeS: 0 })
+    await conduite.recevoir(AUDIO)
+    await conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    await conduite.attendre()
+    expect(ecrits).toEqual([])
+    expect(types()).not.toContain('reponse_texte')
+    // A door, a cough, a phone in a pocket: the floor comes straight back.
+    expect(types().filter((type) => type === 'a_toi')).toHaveLength(2)
+  })
+
+  it('garde tout ce qui a été dit au fil des pauses dans un seul tour', async () => {
+    const { conduite, ecrits, transcripteur } = monterAvecPilote(900)
+    await conduite.recevoir(BONJOUR)
+    transcripteur.tours.push({
+      texte: "D'abord ceci. Ensuite cela. Et pour finir ce dernier point.",
+      dureeS: 22,
+    })
+    await pendant(conduite, 150, AUDIO)
+    await pendant(conduite, 250, MUET)
+    await pendant(conduite, 150, AUDIO)
+    await conduite.recevoir(JSON.stringify({ type: 'fin_tour' }))
+    await conduite.attendre()
+    expect(ecrits[0]).toMatchObject({
+      locuteur: 'utilisateur',
+      texte: "D'abord ceci. Ensuite cela. Et pour finir ce dernier point.",
+    })
+    expect(transcripteur.terminaisons).toBe(1)
   })
 })

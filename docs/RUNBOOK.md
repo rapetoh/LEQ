@@ -171,6 +171,14 @@ four turns in order, the outcome, the connection released, the month moved by on
 queued and written. It costs one session of the account's month and gives it back by deleting the
 row at the end.
 
+Since 2026-09-19 it speaks the way a person does, because that is where the feature broke: the
+first turn carries a pause of a second in the middle of the argument (sent as real silence, zeros
+at the same rate) and the script checks that the floor did not move, then that the written turn
+holds both halves; the second turn ends on silence alone and the server has to say so; then Rétor
+is cut off mid-sentence and the script checks his voice stops. A run against the deployed server
+is the only place the provider's own habits show: its endpointing stops reporting speech entirely
+after a turn closed by the button, which no unit test can know.
+
 ## Measuring what a face-à-face costs and how long each turn waits
 
 ```

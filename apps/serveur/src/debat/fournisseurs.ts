@@ -24,27 +24,43 @@ export interface SegmentTranscrit {
   definitif: boolean
 }
 
+/** What one turn of speech amounted to, once the floor has passed. */
+export interface TourTranscrit {
+  /** Everything the person said in that turn, pauses included. */
+  texte: string
+  /** Seconds of speech, silence excluded: the cap of a session counts speech (chapter 10). */
+  dureeS: number
+}
+
 /**
- * One person speaking, transcribed as they speak. `finDeTour` is the provider's endpointing:
- * it fires when the person has stopped, which is what starts the clock we must beat.
+ * One person speaking, transcribed as they speak.
+ *
+ * This interface does not decide when a turn ends, and that is the whole point: a provider's
+ * endpointing fires on a pause, and a pause in an argument is not the end of a turn. It reports
+ * what it hears (`surSegment`) and whether it hears anyone (`surParole`); the conductor decides
+ * when the floor moves and calls `terminer` to close the turn it has decided to close.
  */
 export interface FluxTranscription {
   /** One chunk of audio from the app. */
   ecrire(octets: Uint8Array): void
-  /** The app said the turn is over; flush whatever is left. */
-  terminer(): Promise<void>
+  /**
+   * Closes the current turn: flushes whatever the provider is still holding and answers what
+   * was said since the last turn. The next turn starts empty.
+   */
+  terminer(): Promise<TourTranscrit>
   fermer(): void
 }
 
 export interface OptionsFlux {
   langue: 'fr'
+  /** The turn so far, as it grows. `definitif` marks a piece the provider will not revise. */
   surSegment: (segment: SegmentTranscrit) => void
   /**
-   * The person stopped talking: here is everything they said, final, and how long they spoke,
-   * in seconds, when the provider's own voice detection knows it. The cap of a session counts
-   * speech and nothing else (chapter 10), so silence spent thinking is not in this number.
+   * Speech started, or speech stopped, from the provider's own voice detection. The conductor
+   * runs its end-of-turn clock on this, and the app draws the countdown from it, so a silence
+   * that is about to pass the floor is visible before it does.
    */
-  surFinDeTour: (texte: string, dureeS?: number) => void
+  surParole?: (actif: boolean) => void
   /** What the provider consumed, reported as it goes; the session adds it up. */
   surConsommation?: (partie: ConsommationTranscription) => void
 }
@@ -121,31 +137,60 @@ export interface Voix {
 /**
  * Transcribes by counting: every chunk becomes a word. Deterministic, instant, and enough to
  * run the protocol end to end on a simulator before any provider is chosen.
+ *
+ * It hears a chunk as speech and calls the silence when nothing has arrived for a moment, so a
+ * stubbed debate exercises the same floor rules as a real one: the turn ends on the silence or
+ * on the button, never on the provider's own idea of a sentence.
  */
 export class TranscripteurFluxStub implements TranscripteurFlux {
   readonly nom = 'stub'
 
-  constructor(private readonly log?: Logger) {}
+  constructor(
+    private readonly log?: Logger,
+    private readonly silenceMs = 250,
+  ) {}
 
   ouvrir(options: OptionsFlux): FluxTranscription {
     let morceaux = 0
     let ferme = false
+    let parle = false
+    let minuteur: ReturnType<typeof setTimeout> | null = null
     const texte = () => `Tour transcrit de ${morceaux} morceau${morceaux > 1 ? 'x' : ''}.`
+    const taire = () => {
+      if (!parle) return
+      parle = false
+      options.surParole?.(false)
+    }
     return {
       ecrire: () => {
         if (ferme) return
         morceaux += 1
+        if (!parle) {
+          parle = true
+          options.surParole?.(true)
+        }
+        if (minuteur) clearTimeout(minuteur)
+        minuteur = setTimeout(taire, this.silenceMs)
+        minuteur.unref?.()
         options.surSegment({ texte: texte(), definitif: false })
       },
       terminer: async () => {
-        if (ferme) return
-        options.surSegment({ texte: texte(), definitif: true })
+        if (minuteur) clearTimeout(minuteur)
+        minuteur = null
+        taire()
+        if (ferme) return { texte: '', dureeS: 0 }
+        const dit = texte()
+        options.surSegment({ texte: dit, definitif: true })
         options.surConsommation?.({ audio_entree_s: morceaux / 10 })
         // The stub hears every chunk as speech: a hundred milliseconds each, as the phone sends.
-        options.surFinDeTour(texte(), morceaux / 10)
+        const duree = morceaux / 10
+        morceaux = 0
+        return { texte: dit, dureeS: duree }
       },
       fermer: () => {
         ferme = true
+        if (minuteur) clearTimeout(minuteur)
+        minuteur = null
         this.log?.debug({ morceaux }, 'flux de transcription ferme')
       },
     }

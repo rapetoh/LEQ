@@ -67,6 +67,7 @@ Typed key/value edited by Rebecca, read by the app at startup.
 | plafond_duree_duel_complet_s | nombre | 180      | Durée maximale d'une prise de duel (Complet)                                                                           |
 | duree_face_a_face_gratuit_s  | nombre | 180      | Durée maximale d'un face-à-face (Gratuit)                                                                              |
 | duree_face_a_face_complet_s  | nombre | 480      | Durée maximale d'un face-à-face (Complet)                                                                              |
+| silence_fin_tour_debat_ms    | nombre | 2200     | Silence qui donne la parole à Rétor dans un face-à-face, en millisecondes                                              |
 | reprise_debat_minutes        | nombre | 30       | Fenêtre de reprise d'un débat interrompu                                                                               |
 
 ### drapeaux
@@ -474,7 +475,16 @@ The debate against Rétor, cahier chapter 10, shipped off behind the `face_a_fac
 
 ### Configuration keys used
 
-`quota_face_a_face_gratuit` (0: the face-à-face is a Complet entitlement, and the zero is a setting rather than a locked door), `quota_face_a_face_complet` (8), `duree_face_a_face_gratuit_s` (180), `duree_face_a_face_complet_s` (480), `reprise_debat_minutes` (30, which is also the delay after which an unresumed cut is counted).
+`quota_face_a_face_gratuit` (0: the face-à-face is a Complet entitlement, and the zero is a setting rather than a locked door), `quota_face_a_face_complet` (8), `duree_face_a_face_gratuit_s` (180), `duree_face_a_face_complet_s` (480), `reprise_debat_minutes` (30, which is also the delay after which an unresumed cut is counted), `silence_fin_tour_debat_ms` (2200).
+
+**Who holds the floor in a face-à-face (2026-09-19).** The server decides it, alone, and says so
+on the wire (`a_toi`, `a_retor`, protocol version 2 in `packages/domaine/src/debatProtocole.ts`).
+The turn ends when the person says it does, or after `silence_fin_tour_debat_ms` of silence, which
+the server hears on the frames themselves rather than asking the transcription provider: that
+provider ends a sentence at 700 ms, which is a breath and not the end of an argument, and after a
+turn closed by the button it stops reporting speech at all. The silence is announced while it runs
+(`parole`, with the milliseconds it has left) so the app draws the same countdown, and one word
+takes the floor back.
 
 ## Phase 7 additions (migration `0010_arene`)
 

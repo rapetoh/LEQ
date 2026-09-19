@@ -1375,6 +1375,51 @@ on the podium's first step, which build 35 did not: the entry card had it and th
 the medal bearing « 1 », the very thing that had been refused a screen earlier. It also carries the
 home tile's two empty states. Next build number: 37.
 
+## Le face-à-face coupait la parole, et l'écran ne le disait pas (2026-09-19)
+
+Roch, sur son téléphone : « je n'ai même pas fini de parler, l'IA commence à parler », et quand
+il reprend la parole « c'est le bordel complet ». Noté moins cinq sur dix. Lu dans le code, la
+cause est une seule et elle explique tout.
+
+**Deux décideurs pour un seul tour de parole.** La transcription tournait avec la détection de
+voix d'OpenAI réglée à 700 ms de silence. À chaque pause, le fournisseur fermait la phrase, le
+serveur prenait ça pour la fin du tour et Rétor répondait à un demi-argument. L'application, elle,
+n'était prévenue de rien : elle continuait d'afficher « À toi de parler » et d'envoyer du son que
+le serveur jetait, parce que le tour était fermé. Trois pauses, trois tours, trois réponses à des
+bouts de phrase. Rien dans l'écran ne permettait de le voir, et rien ne permettait de couper Rétor.
+
+Ce qui a changé :
+
+- **Le serveur décide seul, et le dit.** Protocole version 2 : `a_toi` et `a_retor` déplacent la
+  parole, `parole` annonce le silence en cours avec ce qu'il lui reste, `mon_tour` renvoie à
+  l'écran le tour de la personne tel qu'il a été écrit. La transcription ne ferme plus rien : elle
+  rapporte, et les morceaux s'additionnent dans un seul tour, pauses comprises.
+- **Le serveur écoute le silence lui-même**, sur les trames qu'il reçoit, avec un seuil qui suit le
+  bruit de la pièce. C'est la deuxième leçon de la journée : après un tour fermé au bouton, la
+  détection du fournisseur se tait complètement et n'annonce plus ni parole ni silence (déjà vu le
+  13 septembre, revu ce soir quand un deuxième tour n'est jamais passé). Une fonction qui dépend
+  de ça ne marche qu'un tour sur deux.
+- **2,2 secondes de silence donnent la parole**, réglables par Rebecca
+  (`silence_fin_tour_debat_ms`). Le silence se voit : il remplit le bouton « J'ai fini » pendant
+  qu'il court, et un mot le vide.
+- **On peut couper Rétor** pendant qu'il parle, comme on coupe quelqu'un : sa voix s'arrête là,
+  la parole revient, et ce qu'il avait dit reste dans l'échange.
+- **L'écran, refait.** Le fil montre les deux voix, l'onde dit que le micro entend, le temps de
+  parole restant est un anneau, la thèse est toujours sous les yeux, et terminer la session
+  demande confirmation au lieu d'être un bouton nu à côté des autres.
+- **Autour** : l'écran de préparation marque la thèse choisie d'une coche et met le ton de Rétor
+  dedans, le débrief ouvre la transcription du débat d'un geste.
+
+Vérifié contre le serveur déployé, avec les vrais fournisseurs
+(`node supabase/tests/verif-face-a-face.mjs`) : une pause d'une seconde au milieu d'un argument ne
+donne pas la parole ; le tour écrit garde la moitié d'avant et celle d'après ; le bouton donne la
+parole quand la personne le décide ; un silence qui dure la donne une seule fois et le serveur dit
+que c'est le silence ; Rétor répond 1,6 s après la fin de parole ; lui couper la parole arrête sa
+voix et rend la main ; quatre tours écrits dans l'ordre, session close, mois décompté d'une, débrief
+écrit. Tests : serveur 49 sur le face-à-face (dont dix sur la seule question de qui a la parole),
+mobile 125 (dont dix sur l'écran), plus typecheck, lint, strings et format. Déployé : migration
+`20260919020000_le_silence_qui_donne_la_parole` et Fly.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

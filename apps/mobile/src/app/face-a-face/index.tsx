@@ -13,13 +13,17 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { useBarreEtatClaire } from '@/components/BarreEtat'
 import { Bulle } from '@/components/Bulle'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
 import { PorteCompte } from '@/components/PorteCompte'
 import { Bouton } from '@/components/ui/Bouton'
-import { Carte } from '@/components/ui/Carte'
+import { Icone } from '@/components/ui/Icone'
 import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
+import { useActualisation } from '@/services/actualisation'
+import { useEstAnonyme, versCompte } from '@/services/compte'
+import { useConfiguration } from '@/services/configuration'
 import {
   abandonnerDebat,
   ErreurDebat,
@@ -31,16 +35,19 @@ import {
   useTheses,
   type These,
 } from '@/services/debat'
-import { useActualisation } from '@/services/actualisation'
-import { useEstAnonyme, versCompte } from '@/services/compte'
 import { compter } from '@/services/usage'
-import { useBarreEtatClaire } from '@/components/BarreEtat'
+import { FondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
-import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
+import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
 // E2 · Préparer le face-à-face. The bank first, one's own thesis second and quietly: most
 // people asked to invent a debate subject freeze, or pick something they cannot defend, and
 // the session is lost before it has started (cahier chapter 10).
+//
+// The choice is made on this screen and it has to look like a choice: the thesis you picked
+// carries a mark, and Rétor's tone sits inside it, because the tone belongs to the subject and
+// not to a row of pills at the bottom of a long page. What the session costs (one of the month,
+// so many minutes of speaking) is said where the button is, not in a footnote above it.
 
 const TONS = ['ferme', 'provocateur', 'academique', 'bienveillant'] as const
 type Ton = (typeof TONS)[number]
@@ -62,6 +69,7 @@ export default function PreparerDebat() {
   const theses = useTheses()
   const quota = useQuotaDebats()
   const reprise = useDebatAReprendre()
+  const configuration = useConfiguration()
   const anonyme = useEstAnonyme()
 
   const [choisie, setChoisie] = useState<These | null>(null)
@@ -90,6 +98,11 @@ export default function PreparerDebat() {
   const banqueVide = (theses.data?.length ?? 0) === 0
   // With no bank there is only one way in, so the screen opens it rather than asking twice.
   const ecrireVraiment = ecrireLaSienne || banqueVide
+  const secondes =
+    quota.data?.formule === 'gratuit'
+      ? (configuration.data?.duree_face_a_face_gratuit_s ?? 180)
+      : (configuration.data?.duree_face_a_face_complet_s ?? 480)
+  const minutes = Math.max(1, Math.round(secondes / 60))
 
   const commencer = async (abandonnerLAutre = false) => {
     setEnvoi(true)
@@ -126,188 +139,356 @@ export default function PreparerDebat() {
   }
 
   const pret = ecrireVraiment ? personnelle.trim().length > 0 : choisie !== null
+  const tonChoisi = (these: These | null): Ton | null =>
+    ton ?? (these?.ton_suggere as Ton | undefined) ?? null
 
-  return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={actualisation}
-          onRefresh={() => void actualiser()}
-          tintColor={couleurs.blanc}
-        />
-      }
-      style={{ backgroundColor: theme.hero }}
-      contentContainerStyle={[
-        styles.contenu,
-        { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xxl },
-      ]}
-    >
-      <View style={styles.entete}>
-        <Bulle taille="moyenne" visage="parle" />
-        <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-          {t('debat.titre')}
-        </Text>
-        <Titre niveau="ecran" surFondSombre centre>
-          {t('debat.preparerTitre')}
-        </Titre>
-        <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {t('debat.preparerCorps')}
-        </Text>
-      </View>
-
-      {aReprendre ? (
-        <Carte teinte="voix" style={styles.bloc}>
-          <Titre niveau="carte">{t('debat.repriseTitre')}</Titre>
-          <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
-            {t('debat.repriseCorps')}
-          </Text>
-          <Bouton
-            libelle={t('debat.reprendre')}
-            onPress={() => router.replace(`/face-a-face/${aReprendre.id}`)}
-          />
-        </Carte>
-      ) : null}
-
-      {banqueVide ? (
-        <Carte teinte="sombre" style={styles.bloc}>
-          <Titre niveau="carte" surFondSombre>
-            {t('debat.banqueVide')}
-          </Titre>
-          <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-            {t('debat.banqueVideCorps')}
-          </Text>
-        </Carte>
-      ) : (
-        <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-          {t('debat.choisirSujet')}
-        </Text>
-      )}
-      {theses.data?.map((these) => {
-        const active = !ecrireVraiment && choisie?.id === these.id
+  const rangeeTons = (these: These | null) => (
+    <View style={styles.tons}>
+      {TONS.map((cle) => {
+        const actif = tonChoisi(these) === cle
         return (
           <Pressable
-            key={these.id}
+            key={cle}
             accessibilityRole="radio"
-            accessibilityState={{ selected: active }}
-            onPress={() => {
-              setEcrireLaSienne(false)
-              setChoisie(these)
-              setTon(null)
-            }}
+            accessibilityState={{ selected: actif }}
+            onPress={() => setTon(cle)}
+            style={[
+              styles.pilule,
+              {
+                backgroundColor: actif ? couleurs.or : 'transparent',
+                borderColor: actif ? couleurs.or : theme.heroBordure,
+              },
+            ]}
           >
-            <Carte teinte="sombre" style={[styles.these, active && { borderColor: theme.voix }]}>
-              <Text style={[typographie.corpsFort, { color: theme.heroTexte }]}>{these.texte}</Text>
-            </Carte>
+            <Text
+              style={[
+                typographie.petit,
+                { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
+              ]}
+            >
+              {t(LIBELLE_TON[cle])}
+            </Text>
           </Pressable>
         )
       })}
+    </View>
+  )
 
-      {banqueVide ? null : (
-        <Pressable
-          accessibilityRole="radio"
-          accessibilityState={{ selected: ecrireLaSienne }}
-          onPress={() => setEcrireLaSienne(true)}
+  return (
+    <FondSombre>
+      <View style={[styles.ecran, { backgroundColor: theme.hero }]}>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={actualisation}
+              onRefresh={() => void actualiser()}
+              tintColor={couleurs.blanc}
+            />
+          }
+          contentContainerStyle={[
+            styles.contenu,
+            { paddingTop: insets.top + espaces.m, paddingBottom: espaces.xl },
+          ]}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={[typographie.petit, styles.lien, { color: theme.voix }]}>
-            {t('debat.monSujet')}
-          </Text>
-        </Pressable>
-      )}
-
-      {ecrireVraiment ? (
-        <Carte teinte="sombre" style={styles.bloc}>
-          <Text style={[typographie.etiquette, { color: theme.heroTexteSecondaire }]}>
-            {t('debat.monSujetChamp')}
-          </Text>
-          <TextInput
-            value={personnelle}
-            onChangeText={setPersonnelle}
-            multiline
-            placeholder={t('debat.monSujetAide')}
-            placeholderTextColor={theme.heroTexteSecondaire}
-            style={[
-              typographie.corps,
-              styles.champ,
-              { color: theme.heroTexte, borderColor: theme.heroBordure },
-            ]}
-          />
-        </Carte>
-      ) : null}
-
-      <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-        {t('debat.ton')}
-      </Text>
-      <View style={styles.tons}>
-        {TONS.map((cle) => {
-          const actif =
-            ton === cle || (ton === null && !ecrireLaSienne && choisie?.ton_suggere === cle)
-          return (
+          <View style={styles.entete}>
             <Pressable
-              key={cle}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: actif }}
-              onPress={() => setTon(cle)}
-              style={[
-                styles.pilule,
-                {
-                  backgroundColor: actif ? couleurs.or : 'transparent',
-                  borderColor: actif ? couleurs.or : theme.heroBordure,
-                },
-              ]}
+              accessibilityRole="button"
+              accessibilityLabel={t('commun.retour')}
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={({ pressed }) => [styles.retour, pressed && styles.presse]}
             >
-              <Text
+              <Icone
+                sf="chevron.left"
+                material="chevron-left"
+                taille={18}
+                couleur={theme.heroTexteSecondaire}
+              />
+            </Pressable>
+            <Text style={[styles.surtitre, { color: theme.voix }]}>{t('debat.titre')}</Text>
+            <View style={[styles.jeton, { borderColor: theme.heroBordure }]}>
+              <Icone sf="bolt.fill" material="bolt" taille={13} couleur={couleurs.or} />
+              <Text style={[styles.jetonTexte, { color: theme.heroTexte }]}>
+                {restantes === 0
+                  ? t('debat.sessionAucuneCourt')
+                  : restantes === 1
+                    ? t('debat.sessionUneCourt')
+                    : t('debat.sessionsCourt', { restantes })}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.titres}>
+            <Titre niveau="ecran">{t('debat.preparerTitre')}</Titre>
+            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+              {t('debat.preparerCorps')}
+            </Text>
+          </View>
+
+          {aReprendre ? (
+            <View style={[styles.reprise, { borderColor: couleurs.or }]}>
+              <Bulle taille="minuscule" visage="attend" calme />
+              <View style={styles.repriseTexte}>
+                <Text style={[typographie.corpsFort, { color: couleurs.blanc }]}>
+                  {t('debat.repriseTitre')}
+                </Text>
+                <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+                  {t('debat.repriseCorps')}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.replace(`/face-a-face/${aReprendre.id}`)}
+                style={({ pressed }) => [styles.repriseBouton, pressed && styles.presse]}
+              >
+                <Text style={[styles.repriseLibelle, { color: couleurs.bleuNuit }]}>
+                  {t('debat.reprendreCourt')}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {banqueVide ? (
+            <View style={[styles.carteVide, { borderColor: theme.heroBordure }]}>
+              <Text style={[typographie.corpsFort, { color: couleurs.blanc }]}>
+                {t('debat.banqueVide')}
+              </Text>
+              <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+                {t('debat.banqueVideCorps')}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+              {t('debat.choisirSujet')}
+            </Text>
+          )}
+
+          {theses.data?.map((these) => {
+            const active = !ecrireVraiment && choisie?.id === these.id
+            return (
+              <Pressable
+                key={these.id}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+                onPress={() => {
+                  setEcrireLaSienne(false)
+                  setChoisie(these)
+                  setTon(null)
+                }}
+                style={({ pressed }) => [pressed && styles.presse]}
+              >
+                <View
+                  style={[
+                    styles.these,
+                    {
+                      borderColor: active ? couleurs.or : theme.heroBordure,
+                      backgroundColor: active ? 'rgba(255, 189, 89, 0.10)' : 'transparent',
+                    },
+                  ]}
+                >
+                  <View style={styles.theseHaut}>
+                    <View
+                      style={[
+                        styles.coche,
+                        {
+                          borderColor: active ? couleurs.or : theme.heroBordure,
+                          backgroundColor: active ? couleurs.or : 'transparent',
+                        },
+                      ]}
+                    >
+                      {active ? (
+                        <Icone
+                          sf="checkmark"
+                          material="check"
+                          taille={12}
+                          couleur={couleurs.bleuNuit}
+                        />
+                      ) : null}
+                    </View>
+                    <Text style={[styles.theseTexte, { color: couleurs.blanc }]}>
+                      {these.texte}
+                    </Text>
+                  </View>
+                  {active ? (
+                    <View style={styles.tonBloc}>
+                      <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+                        {t('debat.ton')}
+                      </Text>
+                      {rangeeTons(these)}
+                    </View>
+                  ) : null}
+                </View>
+              </Pressable>
+            )
+          })}
+
+          {banqueVide ? null : (
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ selected: ecrireLaSienne }}
+              onPress={() => {
+                setEcrireLaSienne(true)
+                setChoisie(null)
+              }}
+              style={({ pressed }) => [pressed && styles.presse]}
+            >
+              <View
                 style={[
-                  typographie.petit,
-                  { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
+                  styles.sienne,
+                  {
+                    borderColor: ecrireVraiment ? couleurs.or : theme.heroBordure,
+                    backgroundColor: ecrireVraiment ? 'rgba(255, 189, 89, 0.10)' : 'transparent',
+                  },
                 ]}
               >
-                {t(LIBELLE_TON[cle])}
-              </Text>
+                <Icone
+                  sf="square.and.pencil"
+                  material="edit"
+                  taille={16}
+                  couleur={ecrireVraiment ? couleurs.or : theme.heroTexteSecondaire}
+                />
+                <Text
+                  style={[
+                    typographie.corpsFort,
+                    { color: ecrireVraiment ? couleurs.or : theme.heroTexteSecondaire },
+                  ]}
+                >
+                  {t('debat.monSujet')}
+                </Text>
+              </View>
             </Pressable>
-          )
-        })}
-      </View>
+          )}
 
-      <View style={styles.actions}>
-        <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
-          {restantes === 1
-            ? t('debat.sessionRestante')
-            : restantes > 0
-              ? t('debat.sessionsRestantes', { restantes })
-              : t('debat.aucuneSession')}
-        </Text>
-        <Bouton
-          libelle={t('debat.commencer')}
-          chargement={envoi}
-          desactive={!anonyme && (!pret || restantes <= 0)}
-          onPress={() =>
-            anonyme ? router.push(versCompte('debat')) : void commencer(aReprendre !== null)
-          }
-        />
-        {anonyme ? <PorteCompte raison="debat" surFondSombre /> : null}
-        <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {t('debat.conservation')}
-        </Text>
-        <Bouton
-          libelle={t('commun.retour')}
-          variante="texte"
-          surFondSombre
-          onPress={() => router.back()}
-        />
+          {ecrireVraiment ? (
+            <View style={[styles.champBloc, { borderColor: theme.heroBordure }]}>
+              <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+                {t('debat.monSujetChamp')}
+              </Text>
+              <TextInput
+                value={personnelle}
+                onChangeText={setPersonnelle}
+                multiline
+                placeholder={t('debat.monSujetAide')}
+                placeholderTextColor={theme.heroTexteSecondaire}
+                style={[typographie.corps, styles.champ, { color: theme.heroTexte }]}
+              />
+              <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+                {t('debat.ton')}
+              </Text>
+              {rangeeTons(null)}
+            </View>
+          ) : null}
+        </ScrollView>
+
+        <View
+          style={[
+            styles.pied,
+            { paddingBottom: insets.bottom + espaces.s, borderTopColor: theme.heroBordure },
+          ]}
+        >
+          <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
+            {restantes === 0 ? t('debat.aucuneSession') : t('debat.duree', { minutes })}
+          </Text>
+          <Bouton
+            libelle={t('debat.commencer')}
+            chargement={envoi}
+            desactive={!anonyme && (!pret || restantes <= 0)}
+            onPress={() =>
+              anonyme ? router.push(versCompte('debat')) : void commencer(aReprendre !== null)
+            }
+          />
+          {anonyme ? <PorteCompte raison="debat" /> : null}
+          <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
+            {t('debat.conservation')}
+          </Text>
+        </View>
       </View>
-    </ScrollView>
+    </FondSombre>
   )
 }
 
 const styles = StyleSheet.create({
-  contenu: { flexGrow: 1, paddingHorizontal: espaces.xl, gap: espaces.s },
-  entete: { alignItems: 'center', gap: espaces.xs, marginBottom: espaces.s },
-  centre: { textAlign: 'center' },
-  majuscules: { textTransform: 'uppercase' },
-  bloc: { gap: espaces.xs },
-  these: { borderWidth: 1, borderColor: 'transparent' },
-  lien: { textDecorationLine: 'underline', paddingVertical: espaces.xs },
-  champ: { minHeight: 72, borderWidth: 1, borderRadius: rayons.m, padding: espaces.s },
+  ecran: { flex: 1 },
+  contenu: { paddingHorizontal: espaces.l, gap: espaces.xs },
+  entete: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  retour: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  surtitre: {
+    flex: 1,
+    fontFamily: polices.extraBold,
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  jeton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: rayons.pilule,
+    borderWidth: 1,
+  },
+  jetonTexte: { fontFamily: polices.bold, fontSize: 12, lineHeight: 16 },
+  titres: { gap: espaces.xxs, paddingTop: espaces.m, paddingBottom: espaces.xs },
+  etiquette: {
+    fontFamily: polices.bold,
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  reprise: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espaces.s,
+    padding: espaces.s,
+    borderRadius: rayons.l,
+    borderWidth: 1.5,
+    marginBottom: espaces.xs,
+  },
+  repriseTexte: { flex: 1, gap: 1 },
+  repriseBouton: {
+    paddingHorizontal: espaces.s,
+    paddingVertical: espaces.xs,
+    borderRadius: rayons.pilule,
+    backgroundColor: couleurs.or,
+  },
+  repriseLibelle: { fontFamily: polices.extraBold, fontSize: 13, lineHeight: 17 },
+  carteVide: {
+    gap: espaces.xxs,
+    padding: espaces.m,
+    borderRadius: rayons.l,
+    borderWidth: 1,
+    marginBottom: espaces.xs,
+  },
+  these: {
+    borderWidth: 1.5,
+    borderRadius: rayons.l,
+    paddingHorizontal: espaces.m,
+    paddingVertical: espaces.s,
+    gap: espaces.s,
+  },
+  theseHaut: { flexDirection: 'row', alignItems: 'flex-start', gap: espaces.s },
+  coche: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  theseTexte: { flex: 1, fontFamily: polices.bold, fontSize: 15, lineHeight: 21 },
+  tonBloc: { gap: espaces.xs, paddingLeft: 30 },
   tons: { flexDirection: 'row', flexWrap: 'wrap', gap: espaces.xs },
   pilule: {
     paddingHorizontal: espaces.s,
@@ -315,5 +496,31 @@ const styles = StyleSheet.create({
     borderRadius: rayons.pilule,
     borderWidth: 1,
   },
-  actions: { marginTop: 'auto', paddingTop: espaces.l, gap: espaces.s },
+  sienne: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espaces.xs,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: rayons.l,
+    paddingHorizontal: espaces.m,
+    paddingVertical: espaces.s,
+    marginTop: espaces.xxs,
+  },
+  champBloc: {
+    borderWidth: 1,
+    borderRadius: rayons.l,
+    padding: espaces.m,
+    gap: espaces.xs,
+    marginTop: espaces.xxs,
+  },
+  champ: { minHeight: 64, textAlignVertical: 'top' },
+  pied: {
+    paddingHorizontal: espaces.l,
+    paddingTop: espaces.s,
+    gap: espaces.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  centre: { textAlign: 'center' },
+  presse: { opacity: 0.85 },
 })
