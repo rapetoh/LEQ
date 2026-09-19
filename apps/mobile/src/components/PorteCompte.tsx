@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text } from 'react-native'
 import { Icone } from '@/components/ui/Icone'
 import { t } from '@/i18n/fr'
 import { versCompte, type RaisonCompte } from '@/services/compte'
+import { useFondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, polices } from '@/theme/tokens'
 
@@ -13,14 +14,16 @@ import { couleurs, polices } from '@/theme/tokens'
 
 export function PorteCompte({
   raison,
-  surFondSombre = false,
+  surFondSombre,
 }: {
   raison: RaisonCompte
+  /** Read from the ground when omitted. */
   surFondSombre?: boolean
 }) {
   const theme = useTheme()
   const router = useRouter()
-  const couleur = surFondSombre ? couleurs.encre3 : theme.texteTertiaire
+  const fondSombre = useFondSombre()
+  const couleur = (surFondSombre ?? fondSombre) ? couleurs.encre3 : theme.texteTertiaire
   return (
     <Pressable
       accessibilityRole="button"

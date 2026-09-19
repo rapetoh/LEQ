@@ -1,6 +1,7 @@
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 import type { ReactNode } from 'react'
 
+import { FondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, rayons } from '@/theme/tokens'
 
@@ -39,7 +40,8 @@ export function Carte({ children, teinte = 'carte', style }: Props) {
         style,
       ]}
     >
-      {children}
+      {/* The card says what ground its children are on, so a button never has to be told. */}
+      <FondSombre sombre={teinte === 'sombre'}>{children}</FondSombre>
     </View>
   )
 }

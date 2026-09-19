@@ -14,6 +14,7 @@ import { urlAvatar } from '@/services/photo'
 import { messageRefus, usePodium } from '@/services/arene'
 import { HAUTEURS, maLigne, marches, reste, type Marche } from '@/services/podiumVue'
 import { useBarreEtatClaire } from '@/components/BarreEtat'
+import { FondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -45,142 +46,154 @@ export default function Podium() {
   const suite = reste(classement)
 
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={actualisation}
-          onRefresh={() => void actualiser()}
-          tintColor={couleurs.blanc}
-        />
-      }
-      style={{ backgroundColor: theme.hero }}
-      contentContainerStyle={[
-        styles.contenu,
-        { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xxl },
-      ]}
-    >
-      <View style={styles.entete}>
-        <Bulle taille="moyenne" visage="sourit" calme />
-        <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-          {t('arene.podiumSurtitre')}
-        </Text>
-        <Titre niveau="ecran" surFondSombre centre>
-          {t('arene.podiumTitre')}
-        </Titre>
-        <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {t('arene.podiumSousTitre')}
-        </Text>
-      </View>
-
-      {sujet ? (
-        <Carte teinte="sombre" style={styles.bloc}>
+    <FondSombre>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={actualisation}
+            onRefresh={() => void actualiser()}
+            tintColor={couleurs.blanc}
+          />
+        }
+        style={{ backgroundColor: theme.hero }}
+        contentContainerStyle={[
+          styles.contenu,
+          { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xxl },
+        ]}
+      >
+        <View style={styles.entete}>
+          <Bulle taille="moyenne" visage="sourit" calme />
           <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-            {t('arene.podiumSujet')}
+            {t('arene.podiumSurtitre')}
           </Text>
-          <Titre niveau="section" surFondSombre>
-            {sujet.texte}
+          <Titre niveau="ecran" surFondSombre centre>
+            {t('arene.podiumTitre')}
           </Titre>
-        </Carte>
-      ) : null}
-
-      {classement.length === 0 ? (
-        <Carte teinte="sombre" style={styles.bloc}>
-          <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-            {t('arene.podiumVide')}
+          <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
+            {t('arene.podiumSousTitre')}
           </Text>
-        </Carte>
-      ) : (
-        <View style={styles.podium}>
-          {marches(classement).map((marche) => (
-            <MarchePodium key={marche.rang} marche={marche} />
-          ))}
         </View>
-      )}
 
-      <Carte teinte={mienne ? 'voix' : 'sombre'} style={styles.bloc}>
-        <Text
-          style={[
-            typographie.etiquette,
-            styles.majuscules,
-            { color: mienne ? theme.texteSecondaire : theme.voix },
-          ]}
-        >
-          {t('arene.podiumTaPlace')}
-        </Text>
-        {mienne ? (
-          <>
-            <Text style={[typographie.chiffre, { color: theme.texte }]}>
-              {mienne.rang === 1
-                ? t('arene.podiumRangPremier', { total: classement.length })
-                : t('arene.podiumRang', { rang: mienne.rang, total: classement.length })}
+        {sujet ? (
+          <Carte teinte="sombre" style={styles.bloc}>
+            <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
+              {t('arene.podiumSujet')}
             </Text>
-            <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
-              {mienne.votes === 0
-                ? t('arene.podiumPasDeVoix')
-                : mienne.votes === 1
-                  ? t('arene.podiumVotesUn')
-                  : t('arene.podiumVotes', { votes: mienne.votes })}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Titre niveau="carte" surFondSombre>
-              {t('arene.podiumPasParle')}
+            <Titre niveau="section" surFondSombre>
+              {sujet.texte}
             </Titre>
-            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-              {t('arene.podiumPasParleCorps')}
-            </Text>
-          </>
-        )}
-      </Carte>
-
-      {suite.length > 0 ? (
-        <View style={styles.bloc}>
-          <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-            {t('arene.podiumSuite')}
-          </Text>
-          <Carte teinte="sombre" style={styles.liste}>
-            {suite.map((ligne, index) => (
-              <View
-                key={ligne.prise_id}
-                style={[
-                  styles.ligne,
-                  index > 0 && {
-                    borderTopWidth: StyleSheet.hairlineWidth,
-                    borderTopColor: theme.heroBordure,
-                  },
-                ]}
-              >
-                <Text
-                  style={[typographie.corpsFort, styles.rang, { color: theme.heroTexteSecondaire }]}
-                >
-                  {ligne.rang}
-                </Text>
-                <Avatar
-                  prenom={ligne.pseudonyme ? null : ligne.nom}
-                  uri={urlAvatar(ligne.avatar)}
-                  taille={30}
-                />
-                <Text style={[typographie.corpsFort, styles.nom, { color: theme.heroTexte }]}>
-                  {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
-                </Text>
-                <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
-                  {ligne.votes === 1 ? t('arene.voteUn') : t('arene.votes', { votes: ligne.votes })}
-                </Text>
-              </View>
-            ))}
           </Carte>
+        ) : null}
+
+        {classement.length === 0 ? (
+          <Carte teinte="sombre" style={styles.bloc}>
+            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+              {t('arene.podiumVide')}
+            </Text>
+          </Carte>
+        ) : (
+          <View style={styles.podium}>
+            {marches(classement).map((marche) => (
+              <MarchePodium key={marche.rang} marche={marche} />
+            ))}
+          </View>
+        )}
+
+        <Carte teinte={mienne ? 'voix' : 'sombre'} style={styles.bloc}>
+          <Text
+            style={[
+              typographie.etiquette,
+              styles.majuscules,
+              { color: mienne ? theme.texteSecondaire : theme.voix },
+            ]}
+          >
+            {t('arene.podiumTaPlace')}
+          </Text>
+          {mienne ? (
+            <>
+              <Text style={[typographie.chiffre, { color: theme.texte }]}>
+                {mienne.rang === 1
+                  ? t('arene.podiumRangPremier', { total: classement.length })
+                  : t('arene.podiumRang', { rang: mienne.rang, total: classement.length })}
+              </Text>
+              <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
+                {mienne.votes === 0
+                  ? t('arene.podiumPasDeVoix')
+                  : mienne.votes === 1
+                    ? t('arene.podiumVotesUn')
+                    : t('arene.podiumVotes', { votes: mienne.votes })}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Titre niveau="carte" surFondSombre>
+                {t('arene.podiumPasParle')}
+              </Titre>
+              <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+                {t('arene.podiumPasParleCorps')}
+              </Text>
+            </>
+          )}
+        </Carte>
+
+        {suite.length > 0 ? (
+          <View style={styles.bloc}>
+            <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
+              {t('arene.podiumSuite')}
+            </Text>
+            <Carte teinte="sombre" style={styles.liste}>
+              {suite.map((ligne, index) => (
+                <View
+                  key={ligne.prise_id}
+                  style={[
+                    styles.ligne,
+                    index > 0 && {
+                      borderTopWidth: StyleSheet.hairlineWidth,
+                      borderTopColor: theme.heroBordure,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      typographie.corpsFort,
+                      styles.rang,
+                      { color: theme.heroTexteSecondaire },
+                    ]}
+                  >
+                    {ligne.rang}
+                  </Text>
+                  <Avatar
+                    prenom={ligne.pseudonyme ? null : ligne.nom}
+                    uri={urlAvatar(ligne.avatar)}
+                    taille={30}
+                  />
+                  <Text style={[typographie.corpsFort, styles.nom, { color: theme.heroTexte }]}>
+                    {ligne.moi ? t('arene.ligneToi', { nom: ligne.nom }) : ligne.nom}
+                  </Text>
+                  <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+                    {ligne.votes === 1
+                      ? t('arene.voteUn')
+                      : t('arene.votes', { votes: ligne.votes })}
+                  </Text>
+                </View>
+              ))}
+            </Carte>
+          </View>
+        ) : null}
+
+        <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
+          {t('arene.podiumAudio')}
+        </Text>
+
+        <View style={styles.actions}>
+          <Bouton
+            libelle={t('commun.retour')}
+            variante="secondaire"
+            onPress={() => router.back()}
+          />
         </View>
-      ) : null}
-
-      <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
-        {t('arene.podiumAudio')}
-      </Text>
-
-      <View style={styles.actions}>
-        <Bouton libelle={t('commun.retour')} variante="secondaire" onPress={() => router.back()} />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </FondSombre>
   )
 }
 

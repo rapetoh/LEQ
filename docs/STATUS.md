@@ -1245,6 +1245,33 @@ the same Mac, with no mouse and no window brought forward, and the outcome was r
 archive's own `Distributions.uploadEvent` record rather than from a screenshot
 (docs/RUNBOOK.md). Next build number: 32.
 
+## Bleu nuit sur bleu nuit, pour la sixième fois : le fond répond lui-même (2026-09-19)
+
+Roch, on the Arena tab: what is that card under the subject, and why is part of it unreadable.
+Both answers were mine to own.
+
+- **The unreadable line** was the button « Voir le podium de la semaine dernière ». On a
+  `Carte teinte="sombre"` (#0D2A4E) a `variante="secondaire"` button draws its label in
+  `theme.texte`, bleu nuit, unless the caller passes `surFondSombre`. Nobody had. That is the
+  sixth instance of the same fault: three were fixed on 2026-09-17 on the face-à-face screens,
+  and three more were sitting in the app (this one, « Retour » on the podium screen, « Retour »
+  on the debrief).
+- **So the prop is no longer the answer.** `Carte` now declares the ground it paints through a
+  context (`theme/FondSombre.tsx`), and `Bouton`, `Titre` and `PorteCompte` read it when the
+  caller says nothing. A dark card makes its children light, a light card inside a dark screen
+  puts the ink back, and a caller who states it explicitly still wins. The two dark screens whose
+  buttons live outside any card declare the ground themselves. Four tests hold it
+  (`__tests__/fondSombre.test.tsx`), which is what was missing: a colour on a colour is invisible
+  to every check we had.
+- **The card itself was placeholder-grade**: a label, a line of subject and an outlined button,
+  for one gesture. It is a row now, the whole of it tappable, with a gold crown at the left, « Le
+  podium de la semaine dernière » above the subject in guillemets, and a chevron. No button
+  inside a card that is itself the button.
+
+Verified: mobile 106 (four new), server 119, web 37, domaine 50, moteur 33; strings, lint and
+format green. The debrief's « Retour » is in the other session's files; fixed there too and told
+them. **Build 32** carries it.
+
 ## Next
 
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four

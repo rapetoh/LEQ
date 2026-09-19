@@ -548,7 +548,7 @@ export const fr = {
     podiumPasParleCorps: 'Le sujet suivant est déjà ouvert.',
     podiumVide: "Personne n'a parlé cette semaine.",
     podiumSuite: 'Le reste du classement',
-    podiumEntree: 'Voir le podium de la semaine dernière',
+    podiumSemaineDerniere: 'Le podium de la semaine dernière',
     podiumAucun: "Aucune semaine terminée pour l'instant.",
     podiumAudio: 'Les enregistrements de la semaine ont été supprimés. Le classement est conservé.',
   },

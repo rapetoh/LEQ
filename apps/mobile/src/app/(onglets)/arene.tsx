@@ -469,7 +469,11 @@ function Rang({ rang }: { rang: number }) {
   )
 }
 
-/** C8 entry: the week that just closed, one tap away, as long as one has closed. */
+/**
+ * C8 entry: the week that just closed, one tap away, as long as one has closed. A row, not a
+ * card with a button in it: the whole thing is the gesture, the crown says what it opens, and
+ * the subject says which week. The outlined button it replaces drew bleu nuit on bleu nuit.
+ */
 function PodiumPasse() {
   const theme = useTheme()
   const router = useRouter()
@@ -477,17 +481,27 @@ function PodiumPasse() {
   const sujet = dernier.data
   if (!sujet) return null
   return (
-    <Carte teinte="sombre" style={styles.bloc}>
-      <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-        {t('arene.podiumSurtitre')}
-      </Text>
-      <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>{sujet.texte}</Text>
-      <Bouton
-        libelle={t('arene.podiumEntree')}
-        variante="secondaire"
-        onPress={() => router.push(`/arene/podium/${sujet.id}`)}
-      />
-    </Carte>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${t('arene.podiumSemaineDerniere')} : ${sujet.texte}`}
+      onPress={() => router.push(`/arene/podium/${sujet.id}`)}
+      style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+    >
+      <Carte teinte="sombre" style={styles.podium}>
+        <View style={[styles.couronnePodium, { backgroundColor: couleurs.or }]}>
+          <Icone sf="crown.fill" material="emoji-events" taille={18} couleur={couleurs.bleuNuit} />
+        </View>
+        <View style={{ flex: 1, gap: 3 }}>
+          <Text style={[styles.podiumSurtitre, { color: theme.voix }]}>
+            {t('arene.podiumSemaineDerniere')}
+          </Text>
+          <Text style={styles.podiumSujet} numberOfLines={2}>
+            {`«\u202f${sujet.texte}\u202f»`}
+          </Text>
+        </View>
+        <Icone sf="chevron.right" material="chevron-right" taille={16} couleur={couleurs.encre3} />
+      </Carte>
+    </Pressable>
   )
 }
 
@@ -809,6 +823,33 @@ const styles = StyleSheet.create({
   },
   libelleEtat: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
   porte: { gap: espaces.s },
+  podium: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espaces.s,
+    paddingVertical: 14,
+    paddingHorizontal: espaces.m,
+  },
+  couronnePodium: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  podiumSurtitre: {
+    fontFamily: polices.extraBold,
+    fontSize: 10.5,
+    lineHeight: 14,
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+  },
+  podiumSujet: {
+    fontFamily: polices.extraBold,
+    fontSize: 15,
+    lineHeight: 20,
+    color: couleurs.blanc,
+  },
   etiquetteListe: {
     fontFamily: polices.bold,
     fontSize: 11,

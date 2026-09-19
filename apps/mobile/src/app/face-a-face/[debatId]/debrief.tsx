@@ -11,6 +11,7 @@ import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { messageRefus, useDebat } from '@/services/debat'
 import { useBarreEtatClaire } from '@/components/BarreEtat'
+import { FondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
 import { espaces, typographie } from '@/theme/tokens'
 
@@ -51,72 +52,74 @@ export default function Debrief() {
   }
 
   return (
-    <ScrollView
-      style={{ backgroundColor: theme.hero }}
-      contentContainerStyle={[
-        styles.contenu,
-        { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xxl },
-      ]}
-    >
-      <View style={styles.entete}>
-        <Bulle taille="moyenne" visage={debrief ? 'sourit' : 'attend'} calme />
-        <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-          {t('debat.titre')}
-        </Text>
-        <Titre niveau="ecran" surFondSombre centre>
-          {debrief ? t('debat.debriefTitre') : t('debat.debriefEnCours')}
-        </Titre>
-        <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {debat.data.these_texte}
-        </Text>
-      </View>
+    <FondSombre>
+      <ScrollView
+        style={{ backgroundColor: theme.hero }}
+        contentContainerStyle={[
+          styles.contenu,
+          { paddingTop: insets.top + espaces.xl, paddingBottom: insets.bottom + espaces.xxl },
+        ]}
+      >
+        <View style={styles.entete}>
+          <Bulle taille="moyenne" visage={debrief ? 'sourit' : 'attend'} calme />
+          <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
+            {t('debat.titre')}
+          </Text>
+          <Titre niveau="ecran" surFondSombre centre>
+            {debrief ? t('debat.debriefTitre') : t('debat.debriefEnCours')}
+          </Titre>
+          <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
+            {debat.data.these_texte}
+          </Text>
+        </View>
 
-      {!debrief ? (
-        <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {essais >= ESSAIS_MAX ? t('debat.debriefTarde') : t('debat.debriefEnCoursDetail')}
-        </Text>
-      ) : debrief.provisoire ? (
-        <Carte teinte="sombre" style={styles.bloc}>
-          <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-            {t('debat.debriefProvisoire')}
+        {!debrief ? (
+          <Text style={[typographie.corps, styles.centre, { color: theme.heroTexteSecondaire }]}>
+            {essais >= ESSAIS_MAX ? t('debat.debriefTarde') : t('debat.debriefEnCoursDetail')}
           </Text>
-        </Carte>
-      ) : debrief.moments.length === 0 ? (
-        <Carte teinte="sombre" style={styles.bloc}>
-          <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-            {t('debat.debriefVide')}
-          </Text>
-        </Carte>
-      ) : (
-        <>
-          <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-            {t('debat.debriefMoments')}
-          </Text>
-          {debrief.moments.map((moment, index) => (
-            <Carte key={index} teinte="sombre" style={styles.bloc}>
-              <Text style={[typographie.corps, { color: theme.heroTexte }]}>{moment}</Text>
-            </Carte>
-          ))}
-          <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
-            {t('debat.debriefAxe')}
-          </Text>
-          <Carte teinte="voix" style={styles.bloc}>
-            <Text style={[typographie.corpsFort, { color: theme.texte }]}>{debrief.axe}</Text>
+        ) : debrief.provisoire ? (
+          <Carte teinte="sombre" style={styles.bloc}>
+            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+              {t('debat.debriefProvisoire')}
+            </Text>
           </Carte>
-        </>
-      )}
+        ) : debrief.moments.length === 0 ? (
+          <Carte teinte="sombre" style={styles.bloc}>
+            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
+              {t('debat.debriefVide')}
+            </Text>
+          </Carte>
+        ) : (
+          <>
+            <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
+              {t('debat.debriefMoments')}
+            </Text>
+            {debrief.moments.map((moment, index) => (
+              <Carte key={index} teinte="sombre" style={styles.bloc}>
+                <Text style={[typographie.corps, { color: theme.heroTexte }]}>{moment}</Text>
+              </Carte>
+            ))}
+            <Text style={[typographie.etiquette, styles.majuscules, { color: theme.voix }]}>
+              {t('debat.debriefAxe')}
+            </Text>
+            <Carte teinte="voix" style={styles.bloc}>
+              <Text style={[typographie.corpsFort, { color: theme.texte }]}>{debrief.axe}</Text>
+            </Carte>
+          </>
+        )}
 
-      <View style={styles.actions}>
-        <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
-          {t('debat.debriefSource')}
-        </Text>
-        <Bouton
-          libelle={t('commun.retour')}
-          variante="secondaire"
-          onPress={() => router.replace('/(onglets)/moi')}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.actions}>
+          <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
+            {t('debat.debriefSource')}
+          </Text>
+          <Bouton
+            libelle={t('commun.retour')}
+            variante="secondaire"
+            onPress={() => router.replace('/(onglets)/moi')}
+          />
+        </View>
+      </ScrollView>
+    </FondSombre>
   )
 }
 

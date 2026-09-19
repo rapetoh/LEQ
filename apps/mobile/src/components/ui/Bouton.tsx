@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 
+import { useFondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, rayons, typographie } from '@/theme/tokens'
 
@@ -24,7 +25,7 @@ type Props = {
   libelle: string
   onPress: () => void
   variante?: VarianteBouton
-  /** On a bleu nuit hero screen the outline and text turn white. */
+  /** On a bleu nuit ground the outline and text turn white. Read from the ground when omitted. */
   surFondSombre?: boolean
   desactive?: boolean
   chargement?: boolean
@@ -40,7 +41,7 @@ export function Bouton({
   libelle,
   onPress,
   variante = 'principal',
-  surFondSombre = false,
+  surFondSombre,
   desactive = false,
   chargement = false,
   accessibilityHint,
@@ -48,6 +49,8 @@ export function Bouton({
   style,
 }: Props) {
   const theme = useTheme()
+  const fondSombre = useFondSombre()
+  const sombre = surFondSombre ?? fondSombre
   const inactif = desactive || chargement
 
   const couleurTexte =
@@ -57,7 +60,7 @@ export function Bouton({
         ? couleurs.bleuNuit
         : variante === 'nuit'
           ? couleurs.blanc
-          : surFondSombre
+          : sombre
             ? theme.heroTexte
             : variante === 'texte'
               ? theme.lien
@@ -72,7 +75,7 @@ export function Bouton({
           ? {
               backgroundColor: couleurs.blanc,
               borderWidth: 1.5,
-              borderColor: surFondSombre ? couleurs.blanc : theme.bordure,
+              borderColor: sombre ? couleurs.blanc : theme.bordure,
             }
           : variante === 'or'
             ? { backgroundColor: couleurs.or }
@@ -80,7 +83,7 @@ export function Bouton({
               ? {
                   backgroundColor: 'transparent',
                   borderWidth: 1.5,
-                  borderColor: surFondSombre ? theme.heroBordure : theme.bordure,
+                  borderColor: sombre ? theme.heroBordure : theme.bordure,
                 }
               : { backgroundColor: 'transparent', minHeight: 44 }
 
