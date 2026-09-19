@@ -1269,8 +1269,10 @@ Both answers were mine to own.
   inside a card that is itself the button.
 
 Verified: mobile 106 (four new), server 119, web 37, domaine 50, moteur 33; strings, lint and
-format green. The debrief's « Retour » is in the other session's files; fixed there too and told
-them. **Build 32** carries it.
+format green. The debrief's « Retour » is in the other session's files; fixed there too, told
+them, and they kept it. **Build 32 is uploaded** (« Upload completed with warnings », the usual
+dSYM notes, its `Distributions.uploadEvent` record clean), driven through the accessibility
+interface with no mouse. Next build number: 33.
 
 ## Next
 
