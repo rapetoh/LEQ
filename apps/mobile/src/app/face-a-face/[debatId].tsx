@@ -85,6 +85,8 @@ export default function FaceAFace() {
   const [silenceRestant, setSilenceRestant] = useState<number | null>(null)
   /** Why the last turn ended, so the panel says what happened instead of « Rétor réfléchit ». */
   const [raisonFin, setRaisonFin] = useState<RaisonFinTour | null>(null)
+  /** Off by default: the floor stays the person's until they say they have finished. */
+  const [mainsLibres, setMainsLibres] = useState(false)
   // The server runs on stubs until the providers are wired. A stubbed transcript reads exactly
   // like a broken one, so the screen says which it is.
   const [provisoire, setProvisoire] = useState(false)
@@ -92,73 +94,95 @@ export default function FaceAFace() {
   const audio = useRef(new AudioDebat())
   const client = useRef<ClientDebat | null>(null)
   const defilement = useRef<ScrollView | null>(null)
+  /** Counts down the voice still to be heard, when the server hands the floor back early. */
+  const minuteurVoix = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const surMessage = useCallback((message: MessageSortant) => {
-    switch (message.type) {
-      case 'pret':
-        setProvisoire(message.provisoire)
-        setThese(message.these)
-        setLignes(message.tours)
-        setDureeMax(message.duree_max_s)
-        setRestantes(Math.max(0, message.duree_max_s - message.secondes_parlees))
-        setSilenceMs(message.silence_fin_tour_ms || SILENCE_PAR_DEFAUT_MS)
-        return
-      case 'a_toi':
-        setPhase('a_toi')
-        setSilenceDepuis(null)
-        setRaisonFin(null)
-        setPartiel('')
-        audio.current.taire()
-        audio.current.ecouter(true)
-        return
-      case 'parole':
-        // A word cancels the countdown, a silence starts it, and the server says how long that
-        // silence still has. The floor itself moves on `a_retor` and never here, so the person
-        // can always take it back by speaking.
-        setSilenceRestant(message.restant_ms ?? null)
-        setSilenceDepuis(message.actif ? null : maintenant())
-        return
-      case 'a_retor':
-        audio.current.ecouter(false)
-        setSilenceDepuis(null)
-        setRaisonFin(message.raison)
-        setPhase('reflexion')
-        return
-      case 'transcription':
-        setPartiel(message.texte)
-        return
-      case 'mon_tour':
-        setLignes((courantes) => [
-          ...courantes,
-          { numero: message.numero, locuteur: 'utilisateur', texte: message.texte },
-        ])
-        setPartiel('')
-        return
-      case 'temps':
-        setRestantes(message.secondes_restantes)
-        return
-      case 'reponse_texte':
-        setLignes((courantes) => [
-          ...courantes,
-          { numero: message.numero, locuteur: 'retor', texte: message.texte },
-        ])
-        setPhase('retor')
-        return
-      case 'reponse_audio':
-        if (!message.fin) audio.current.jouer(message.donnees)
-        return
-      case 'termine':
-        setPhase('termine')
-        return
-      case 'interrompu':
-        setPhase('interrompu')
-        return
-      case 'erreur':
-        setErreur(message.message)
-        setPhase('interrompu')
-        return
+  const prendreLaParole = useCallback(() => {
+    if (minuteurVoix.current) {
+      clearTimeout(minuteurVoix.current)
+      minuteurVoix.current = null
     }
+    setPhase('a_toi')
+    setSilenceDepuis(null)
+    setRaisonFin(null)
+    setPartiel('')
+    audio.current.ecouter(true)
   }, [])
+
+  const surMessage = useCallback(
+    (message: MessageSortant) => {
+      switch (message.type) {
+        case 'pret':
+          setProvisoire(message.provisoire)
+          setThese(message.these)
+          setLignes(message.tours)
+          setDureeMax(message.duree_max_s)
+          setRestantes(Math.max(0, message.duree_max_s - message.secondes_parlees))
+          setSilenceMs(message.silence_fin_tour_ms || SILENCE_PAR_DEFAUT_MS)
+          return
+        case 'a_toi': {
+          // The server has finished sending Rétor's voice; the phone has not finished saying it.
+          // Taking the floor here would cut him off mid-sentence, and clearing the queue did
+          // exactly that until 2026-09-19. The microphone opens when he has actually stopped.
+          const reste = audio.current.resteAJouerMs()
+          if (reste <= 0) {
+            prendreLaParole()
+            return
+          }
+          if (minuteurVoix.current) clearTimeout(minuteurVoix.current)
+          minuteurVoix.current = setTimeout(prendreLaParole, reste)
+          return
+        }
+        case 'parole':
+          // A word cancels the countdown, a silence starts it, and the server says how long that
+          // silence still has. The floor itself moves on `a_retor` and never here, so the person
+          // can always take it back by speaking.
+          setSilenceRestant(message.restant_ms ?? null)
+          setSilenceDepuis(message.actif ? null : maintenant())
+          return
+        case 'a_retor':
+          audio.current.ecouter(false)
+          setSilenceDepuis(null)
+          setRaisonFin(message.raison)
+          setPhase('reflexion')
+          return
+        case 'transcription':
+          setPartiel(message.texte)
+          return
+        case 'mon_tour':
+          setLignes((courantes) => [
+            ...courantes,
+            { numero: message.numero, locuteur: 'utilisateur', texte: message.texte },
+          ])
+          setPartiel('')
+          return
+        case 'temps':
+          setRestantes(message.secondes_restantes)
+          return
+        case 'reponse_texte':
+          setLignes((courantes) => [
+            ...courantes,
+            { numero: message.numero, locuteur: 'retor', texte: message.texte },
+          ])
+          setPhase('retor')
+          return
+        case 'reponse_audio':
+          if (!message.fin) audio.current.jouer(message.donnees)
+          return
+        case 'termine':
+          setPhase('termine')
+          return
+        case 'interrompu':
+          setPhase('interrompu')
+          return
+        case 'erreur':
+          setErreur(message.message)
+          setPhase('interrompu')
+          return
+      }
+    },
+    [prendreLaParole],
+  )
 
   useEffect(() => {
     const sonore = audio.current
@@ -221,6 +245,10 @@ export default function FaceAFace() {
     void connecter()
     return () => {
       vivant = false
+      if (minuteurVoix.current) {
+        clearTimeout(minuteurVoix.current)
+        minuteurVoix.current = null
+      }
       client.current?.fermer()
       client.current = null
       void sonore.arreter()
@@ -259,9 +287,23 @@ export default function FaceAFace() {
     client.current?.envoyer({ type: 'fin_tour', raison: 'bouton' })
   }
 
+  const basculerMainsLibres = () => {
+    const actif = !mainsLibres
+    setMainsLibres(actif)
+    setSilenceDepuis(null)
+    client.current?.envoyer({ type: 'mains_libres', actif })
+  }
+
   const reprendreLaParole = () => {
     if (phase !== 'retor') return
     audio.current.taire()
+    // The server may already have handed the floor back and the phone be playing the tail of
+    // his answer. Asking for it again would be refused, and the screen would wait for an
+    // `a_toi` that never comes: it takes the floor itself, which is what it is waiting for.
+    if (minuteurVoix.current) {
+      prendreLaParole()
+      return
+    }
     client.current?.envoyer({ type: 'reprendre_parole' })
   }
 
@@ -417,6 +459,9 @@ export default function FaceAFace() {
               <Text style={[typographie.corps, styles.texteCentre, { color: couleurs.encre3 }]}>
                 {t('debat.premierMot')}
               </Text>
+              <Text style={[typographie.petit, styles.texteCentre, { color: couleurs.encre2 }]}>
+                {t('debat.regleParole')}
+              </Text>
             </View>
           ) : null}
           {lignes.map((ligne) => (
@@ -434,6 +479,8 @@ export default function FaceAFace() {
           silenceMs={silenceRestant ?? silenceMs}
           microCoupe={microCoupe}
           raisonFin={raisonFin}
+          mainsLibres={mainsLibres}
+          onMainsLibres={basculerMainsLibres}
           serre={serre}
           onFini={finirMonTour}
           onReprendre={reprendreLaParole}
@@ -491,6 +538,8 @@ function PanneauParole({
   silenceMs,
   microCoupe,
   raisonFin,
+  mainsLibres,
+  onMainsLibres,
   serre,
   onFini,
   onReprendre,
@@ -502,6 +551,8 @@ function PanneauParole({
   silenceMs: number
   microCoupe: boolean
   raisonFin: RaisonFinTour | null
+  mainsLibres: boolean
+  onMainsLibres: () => void
   serre: boolean
   onFini: () => void
   onReprendre: () => void
@@ -526,6 +577,31 @@ function PanneauParole({
                   ? t('debat.retorVaRepondre')
                   : t('debat.jeTEcoute')}
             </Text>
+            {/* Off, a silence costs nothing and the person ends their turn themselves. On, it
+                passes the floor, and the button shows it coming. Their choice, in one tap. */}
+            <Pressable
+              accessibilityRole="switch"
+              accessibilityState={{ checked: mainsLibres }}
+              accessibilityLabel={t('debat.mainsLibres')}
+              onPress={onMainsLibres}
+              hitSlop={8}
+              style={[
+                styles.mains,
+                {
+                  borderColor: mainsLibres ? couleurs.or : theme.heroBordure,
+                  backgroundColor: mainsLibres ? couleurs.or : 'transparent',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.mainsTexte,
+                  { color: mainsLibres ? couleurs.bleuNuit : theme.heroTexteSecondaire },
+                ]}
+              >
+                {t('debat.mainsLibres')}
+              </Text>
+            </Pressable>
           </View>
           <Onde niveaux={niveaux} hauteur={serre ? 38 : 52} />
           <Pressable
@@ -746,6 +822,13 @@ const styles = StyleSheet.create({
   etat: { flexDirection: 'row', alignItems: 'center', gap: espaces.xs, minHeight: 26 },
   point: { width: 8, height: 8, borderRadius: 4 },
   etatTexte: { fontFamily: polices.bold, fontSize: 14, lineHeight: 19, flex: 1 },
+  mains: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: rayons.pilule,
+    borderWidth: 1,
+  },
+  mainsTexte: { fontFamily: polices.bold, fontSize: 11, lineHeight: 15 },
   respire: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 26 },
   barre: { width: 6, borderRadius: 3 },
   bouton: {

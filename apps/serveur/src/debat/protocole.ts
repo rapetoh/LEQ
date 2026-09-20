@@ -14,6 +14,7 @@ export type {
   MessageAToi,
   MessageARetor,
   MessageInterrompu,
+  MessageMainsLibres,
   MessageMonTour,
   MessageParole,
   MessagePret,
@@ -73,6 +74,10 @@ export function lireMessageEntrant(brut: string): MessageEntrant | null {
       return raison === 'micro' || raison === 'bouton'
         ? { type: 'fin_tour', raison }
         : { type: 'fin_tour' }
+    }
+    case 'mains_libres': {
+      const actif = valeur['actif']
+      return typeof actif === 'boolean' ? { type: 'mains_libres', actif } : null
     }
     case 'reprendre_parole':
       return { type: 'reprendre_parole' }

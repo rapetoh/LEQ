@@ -79,6 +79,8 @@ export class AudioDebat {
   private abandonne = false
   private surInterruption: EcouteurInterruption | null = null
   private reclamation: ReclamationAudio | null = null
+  /** When the audio queued so far will have finished playing, as a clock reading. */
+  private finDeVoix = 0
 
   async demarrer(
     surTrame: EcouteurTrame,
@@ -182,11 +184,22 @@ export class AudioDebat {
     const tampon = contexte.createBuffer(1, echantillons.length, FREQUENCE_VOIX_HZ)
     tampon.copyToChannel(echantillons, 0)
     file.enqueueBuffer(tampon)
+    // When this chunk will have been heard. The server sends a whole answer in a second or two;
+    // saying it out loud takes ten. Anything that treats « sent » as « said » cuts Rétor off
+    // after two words, which is what happened on Roch's phone on 2026-09-19.
+    const duree = (echantillons.length / FREQUENCE_VOIX_HZ) * 1000
+    this.finDeVoix = Math.max(this.finDeVoix, Date.now()) + duree
   }
 
-  /** Drops whatever is still queued, when a turn is cut short. */
+  /** How much of Rétor's voice is still to be heard, in milliseconds. */
+  resteAJouerMs(): number {
+    return Math.max(0, this.finDeVoix - Date.now())
+  }
+
+  /** Drops whatever is still queued: the person cut in, and a voice cut off stops at once. */
   taire(): void {
     this.fileVoix?.clearBuffers()
+    this.finDeVoix = 0
   }
 
   async arreter(): Promise<void> {
@@ -212,6 +225,7 @@ export class AudioDebat {
     }
     this.fileVoix = null
     this.contexte = null
+    this.finDeVoix = 0
     try {
       AudioManager.observeAudioInterruptions(false)
       await rendreSessionAudio(this.reclamation)

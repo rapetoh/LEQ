@@ -211,9 +211,21 @@ try {
     )
     await attendre('a_toi', avantUn)
 
-    // Tour 2 : on se tait, et le silence donne la parole tout seul.
+    // Tour 2 : par défaut, se taire ne donne rien du tout. C'est le cœur de la correction du
+    // 19 septembre au soir : personne ne se fait couper la parole sans l'avoir demandé.
+    const avantDefaut = recus.length
+    await dire(parlerPcm(dossier, 't2a', 'Une relecture apprend quelque chose aux deux.'))
+    await seTaire(4000)
+    verifier(
+      depuis(avantDefaut, 'a_retor').length === 0,
+      'sans les mains libres, aucun silence ne donne la parole',
+      '4 s de silence, et la parole reste à la personne',
+    )
+
+    // Mains libres : là, le silence la donne, et le serveur dit que c'est lui.
     const avantDeux = recus.length
-    await dire(parlerPcm(dossier, 't2', 'Et puis une relecture apprend quelque chose aux deux.'))
+    socket.send(JSON.stringify({ type: 'mains_libres', actif: true }))
+    await dire(parlerPcm(dossier, 't2b', "Et puis c'est un échange, pas une vérification."))
     const debutSilence = Date.now()
     await seTaire(4000)
     const seul = depuis(avantDeux, 'a_retor')

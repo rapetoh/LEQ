@@ -19,6 +19,7 @@ const mockAudio = {
   ecouter: jest.fn(),
   jouer: jest.fn(),
   taire: jest.fn(),
+  resteAJouerMs: jest.fn(() => 0),
 }
 
 jest.mock('expo-router', () => ({
@@ -102,6 +103,26 @@ describe("l'écran du face-à-face", () => {
     expect(ecran.getByText('« Le télétravail a tué la vie de bureau. »')).toBeTruthy()
   })
 
+  it('garde la parole à la personne tant qu’elle ne dit pas qu’elle a fini', async () => {
+    const ecran = await ouvrir({ type: 'a_toi' })
+    expect(ecran.getByText("Je t'écoute")).toBeTruthy()
+    // Nothing on this screen counts against a silence: the server only starts a countdown when
+    // the person asked for hands free, and it is off.
+    expect(ecran.getByText('Mains libres')).toBeTruthy()
+    expect(mockEnvoyes.some((m) => m.type === 'mains_libres')).toBe(false)
+  })
+
+  it('demande les mains libres au serveur quand la personne les allume', async () => {
+    const ecran = await ouvrir({ type: 'a_toi' })
+    await act(async () => fireEvent.press(ecran.getByText('Mains libres')))
+    expect(mockEnvoyes.at(-1)).toEqual({ type: 'mains_libres', actif: true })
+    expect(ecran.getByLabelText('Mains libres').props.accessibilityState).toMatchObject({
+      checked: true,
+    })
+    await act(async () => fireEvent.press(ecran.getByText('Mains libres')))
+    expect(mockEnvoyes.at(-1)).toEqual({ type: 'mains_libres', actif: false })
+  })
+
   it('dit que le silence va donner la parole, sans la donner', async () => {
     const ecran = await ouvrir({ type: 'a_toi' })
     await act(async () => mockRecevoir?.({ type: 'parole', actif: false }))
@@ -179,6 +200,38 @@ describe("l'écran du face-à-face", () => {
     const ecran = await ouvrir({ type: 'a_toi' })
     await act(async () => mockRecevoir?.({ type: 'a_retor', raison: 'plafond' }))
     expect(ecran.getByText('Ton temps de parole est écoulé.')).toBeTruthy()
+  })
+
+  it('laisse Rétor finir sa phrase avant de reprendre le micro', async () => {
+    mockAudio.resteAJouerMs.mockReturnValue(4000)
+    const ecran = await ouvrir({ type: 'a_toi' })
+    await act(async () => {
+      mockRecevoir?.({ type: 'a_retor', raison: 'bouton' })
+      mockRecevoir?.({ type: 'reponse_texte', numero: 2, texte: 'Les bureaux sont vides.' })
+      mockRecevoir?.({ type: 'a_toi' })
+    })
+    // The server has finished sending his voice; the phone has four seconds of it left to say.
+    expect(ecran.getByText('Rétor te répond')).toBeTruthy()
+    expect(mockAudio.taire).not.toHaveBeenCalled()
+    expect(mockAudio.ecouter).toHaveBeenLastCalledWith(false)
+    mockAudio.resteAJouerMs.mockReturnValue(0)
+  })
+
+  it('rend la main tout de suite quand on coupe la fin de sa phrase', async () => {
+    mockAudio.resteAJouerMs.mockReturnValue(4000)
+    const ecran = await ouvrir({ type: 'a_toi' })
+    await act(async () => {
+      mockRecevoir?.({ type: 'a_retor', raison: 'bouton' })
+      mockRecevoir?.({ type: 'reponse_texte', numero: 2, texte: 'Les bureaux sont vides.' })
+      mockRecevoir?.({ type: 'a_toi' })
+    })
+    // The floor is already the person's on the server's side: asking for it again would be
+    // refused, and the screen would wait for an answer that never comes.
+    await act(async () => fireEvent.press(ecran.getByText('Reprendre la parole')))
+    expect(mockAudio.taire).toHaveBeenCalled()
+    expect(mockEnvoyes.some((m) => m.type === 'reprendre_parole')).toBe(false)
+    expect(ecran.getByText("Je t'écoute")).toBeTruthy()
+    mockAudio.resteAJouerMs.mockReturnValue(0)
   })
 
   it('dit le temps de parole qui reste', async () => {

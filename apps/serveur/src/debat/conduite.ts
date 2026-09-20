@@ -182,6 +182,12 @@ export class Conduite {
   private repriseDemandee = false
   /** How long a silence lasts before it passes the floor, for this session. */
   private silenceMs = SILENCE_FIN_TOUR_MS
+  /**
+   * Whether a silence passes the floor at all. Off unless the person asks for it: a hand-over
+   * they did not ask for answers them in the middle of their own argument, which is what
+   * 2026-09-19 was about. Off, they keep the floor until they say they have finished.
+   */
+  private mainsLibres = false
   /** Set while a turn is being flushed, so two `fin_tour` frames cannot flush it twice. */
   private finDeTourEnCours = false
   /** The identifier this connection writes with, from the moment it claimed the debate. */
@@ -272,6 +278,11 @@ export class Conduite {
         this.flux.ecrire(octets)
         return
       }
+      case 'mains_libres':
+        this.mainsLibres = message.actif
+        // Turning it off mid-silence must not let a countdown already running take the floor.
+        if (!message.actif) this.arreterLeSilence()
+        return
       case 'fin_tour':
         // Handled on arrival, never here: the floor cannot wait behind a queue.
         return
@@ -377,7 +388,9 @@ export class Conduite {
       if (!this.enParole) {
         this.enParole = true
         this.arreterLeSilence()
-        this.canal.envoyer({ type: 'parole', actif: true })
+        // `parole` exists to drive the countdown; with no countdown running there is nothing
+        // for it to say, and the screen has the wave for « I hear you ».
+        if (this.mainsLibres) this.canal.envoyer({ type: 'parole', actif: true })
       }
       this.direLeTemps()
       return
@@ -389,6 +402,9 @@ export class Conduite {
     const quiet = instant - this.dernierMotMs
     if (quiet < SILENCE_ANNONCE_MS) return
     this.enParole = false
+    // Not hands free: the silence is just a silence. The person keeps the floor until they say
+    // they have finished, and nothing on the screen starts counting against them.
+    if (!this.mainsLibres) return
     const restant = Math.max(0, this.silenceMs - quiet)
     this.canal.envoyer({ type: 'parole', actif: false, restant_ms: restant })
     this.arreterLeSilence()

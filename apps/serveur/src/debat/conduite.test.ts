@@ -512,6 +512,7 @@ describe('la parole', () => {
   it('reste à la personne quand elle marque une pause pour réfléchir', async () => {
     const { conduite, transcripteur, types } = monterAvecPilote(900)
     await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(JSON.stringify({ type: 'mains_libres', actif: true }))
     await pendant(conduite, 200, AUDIO)
     await pendant(conduite, 300, MUET) // elle cherche son mot
     await pendant(conduite, 200, AUDIO) // et le trouve
@@ -520,9 +521,21 @@ describe('la parole', () => {
     expect(transcripteur.terminaisons).toBe(0)
   })
 
-  it('passe à Rétor quand le silence dure, et prévient avant de le faire', async () => {
+  it('ne donne jamais la parole sur un silence quand la personne ne l’a pas demandé', async () => {
+    const { conduite, types } = monterAvecPilote(300)
+    await conduite.recevoir(BONJOUR)
+    await pendant(conduite, 200, AUDIO)
+    await pendant(conduite, 1200, MUET)
+    await conduite.attendre()
+    // Hands free is off unless asked for: a person building an argument out loud keeps the floor.
+    expect(types()).not.toContain('a_retor')
+    expect(types()).not.toContain('parole')
+  })
+
+  it('passe à Rétor quand le silence dure, en mains libres, et prévient avant de le faire', async () => {
     const { conduite, envoyes, types } = monterAvecPilote(500)
     await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(JSON.stringify({ type: 'mains_libres', actif: true }))
     await pendant(conduite, 200, AUDIO)
     await pendant(conduite, 1200, MUET)
     await conduite.attendre()
@@ -538,6 +551,7 @@ describe('la parole', () => {
   it("ne passe pas à Rétor sur le silence de quelqu'un qui n'a pas encore parlé", async () => {
     const { conduite, types } = monterAvecPilote(300)
     await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(JSON.stringify({ type: 'mains_libres', actif: true }))
     await pendant(conduite, 900, MUET)
     await conduite.attendre()
     expect(types()).not.toContain('a_retor')
@@ -552,6 +566,18 @@ describe('la parole', () => {
     await conduite.attendre()
     expect(types().filter((type) => type === 'a_toi')).toHaveLength(2)
     expect(types().indexOf('a_retor')).toBeLessThan(types().lastIndexOf('a_toi'))
+  })
+
+  it('rend le silence inoffensif dès qu’on quitte les mains libres', async () => {
+    const { conduite, types } = monterAvecPilote(600)
+    await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(JSON.stringify({ type: 'mains_libres', actif: true }))
+    await pendant(conduite, 150, AUDIO)
+    await pendant(conduite, 450, MUET)
+    await conduite.recevoir(JSON.stringify({ type: 'mains_libres', actif: false }))
+    await pendant(conduite, 600, MUET)
+    await conduite.attendre()
+    expect(types()).not.toContain('a_retor')
   })
 
   it("dit que c'est le micro quand c'est le micro qui a coupé le tour", async () => {
@@ -611,6 +637,7 @@ describe('la parole', () => {
   it('garde tout ce qui a été dit au fil des pauses dans un seul tour', async () => {
     const { conduite, ecrits, transcripteur } = monterAvecPilote(900)
     await conduite.recevoir(BONJOUR)
+    await conduite.recevoir(JSON.stringify({ type: 'mains_libres', actif: true }))
     transcripteur.tours.push({
       texte: "D'abord ceci. Ensuite cela. Et pour finir ce dernier point.",
       dureeS: 22,

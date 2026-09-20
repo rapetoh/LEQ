@@ -52,6 +52,20 @@ export interface MessageFinTour {
   raison?: RaisonFinTour
 }
 
+/**
+ * Hands free, or not. Off, the floor stays the person's until they say they have finished: a
+ * silence, however long, costs them nothing. On, a silence of `silence_fin_tour_ms` passes it.
+ *
+ * Off is the default, and that is the whole lesson of 2026-09-19: an automatic hand-over cuts
+ * people off while they are building an argument out loud, and a debate where you are answered
+ * mid-sentence is not a debate. Whoever wants the hands-free rhythm turns it on and sees it
+ * coming, because the countdown is drawn while it runs.
+ */
+export interface MessageMainsLibres {
+  type: 'mains_libres'
+  actif: boolean
+}
+
 /** The person takes the floor back while Rétor is speaking. His voice stops where it is. */
 export interface MessageReprendreParole {
   type: 'reprendre_parole'
@@ -62,7 +76,12 @@ export interface MessageTerminer {
 }
 
 export type MessageEntrant =
-  MessageBonjour | MessageAudio | MessageFinTour | MessageReprendreParole | MessageTerminer
+  | MessageBonjour
+  | MessageAudio
+  | MessageMainsLibres
+  | MessageFinTour
+  | MessageReprendreParole
+  | MessageTerminer
 
 // --------------------------------------------------------------------------------------------
 // Server to app
@@ -86,8 +105,9 @@ export interface MessagePret {
   /** Everything said so far. Empty on a fresh session, the whole debate on a resume. */
   tours: TourPublie[]
   /**
-   * How long a silence lasts before the floor passes to Rétor, in milliseconds. The app draws
-   * the countdown with this number, so the person watches the same clock as the server.
+   * How long a silence lasts before the floor passes to Rétor, in milliseconds, for a session
+   * running hands free. The app draws the countdown with this number, so the person watches the
+   * same clock as the server.
    */
   silence_fin_tour_ms: number
   /**

@@ -676,6 +676,9 @@ export const fr = {
     connexion: 'Connexion en cours',
     theseDeRetor: 'Rétor défend',
     premierMot: 'Contredis la thèse. Rétor te répondra.',
+    regleParole:
+      "Tu gardes la parole tant que tu veux. Appuie sur « J'ai fini » quand tu as terminé.",
+    mainsLibres: 'Mains libres',
     jeTEcoute: "Je t'écoute",
     retorVaRepondre: 'Rétor va répondre',
     retorReflechit: 'Rétor réfléchit',

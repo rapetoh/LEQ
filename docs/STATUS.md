@@ -1430,6 +1430,34 @@ personne parlait. **Build 38 est parti** (18:34, « Upload succeeded ») avec la
 chaînes neuves ont été relues dans le paquet archivé, en UTF-16 comme Hermes range tout ce qui
 porte un accent. Prochain numéro : 39.
 
+## Le face-à-face, deuxième passe : la parole ne se prend plus toute seule (2026-09-19, soir)
+
+Roch, sur le build de l'après-midi, captures à l'appui : Rétor répond au milieu d'une phrase, et
+surtout **Rétor ne dit que ses deux premiers mots** avant de s'arrêter. Deux causes, dont une
+posée le matin même.
+
+- **La voix coupée, c'était moi.** Le serveur envoie la réponse de Rétor en une seconde ou deux ;
+  la dire à voix haute en prend dix. En rendant la parole, l'écran vidait la file de lecture
+  (`taire()`), donc la phrase s'arrêtait là où elle en était. L'application sait maintenant
+  combien de voix il lui reste à dire, garde la main de Rétor jusqu'au bout, et n'ouvre le micro
+  qu'à ce moment. Vider la file redevient ce qu'elle doit être : le geste de quelqu'un qui coupe
+  la parole.
+- **Le silence ne prend plus la parole, sauf si on le lui demande.** 2,2 s suffisaient à couper
+  quelqu'un qui cherche son mot, et personne ne devrait avoir à surveiller un compte à rebours en
+  argumentant. Par défaut, **la parole reste à la personne jusqu'à ce qu'elle dise qu'elle a
+  fini**. Une pilule « Mains libres » dans le panneau rend le passage automatique à qui le veut,
+  et l'écran l'annonce alors comme avant. La règle est écrite sur l'écran, au premier tour :
+  « Tu gardes la parole tant que tu veux. Appuie sur « J'ai fini » quand tu as terminé. »
+- **Rétor ne commente plus la forme.** Sur des tours coupés il répondait « tu évites le fond »,
+  « dire OK ne répond pas », « ton argument ne vaut rien ». Son prompt le lui interdit maintenant
+  nommément, et lui demande, quand la personne n'a rien avancé, une seule question courte sur le
+  sujet.
+
+Vérifié contre le serveur déployé : sans les mains libres, quatre secondes de silence ne donnent
+rien ; avec, le silence donne la parole une fois et le serveur dit que c'est lui ; le reste de la
+chaîne (pause d'une seconde, bouton, horloge, coupure de Rétor, débrief) est repassé entier.
+Mobile 132 tests, serveur 53 sur le face-à-face.
+
 ## Next
 
 **À remettre avant la boutique (2026-09-19).** Les limites sont levées sur le projet hébergé pour
