@@ -1512,7 +1512,8 @@ Vérifié : dix tests sur cet écran, qui n'en avait aucun (la thèse lue en ent
 jamais en montrer deux, le ton dit et emporté, la voix emportée, la banque vide qui ouvre sur le
 champ, le temps et la formule, et l'absence de points, de tours et de thèmes). Mobile 142 au
 total, tout le reste vert. Au passage : dans cette version de la bibliothèque de test, `render`
-est asynchrone, et ne pas l'attendre donne un objet sans aucune requête.
+est asynchrone, et ne pas l'attendre donne un objet sans aucune requête. **Build 41 est parti**
+(09:10, « Upload succeeded »). Prochain numéro : 42.
 
 ## Next
 
