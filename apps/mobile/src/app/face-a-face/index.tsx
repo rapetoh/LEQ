@@ -14,12 +14,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useBarreEtatClaire } from '@/components/BarreEtat'
-import { Bulle } from '@/components/Bulle'
 import { EcranChargement, EcranErreur } from '@/components/EcransEtat'
+import { MarqueRetor } from '@/components/MarqueRetor'
 import { PorteCompte } from '@/components/PorteCompte'
 import { Bouton } from '@/components/ui/Bouton'
 import { Icone } from '@/components/ui/Icone'
-import { Titre } from '@/components/ui/Titre'
 import { t } from '@/i18n/fr'
 import { useActualisation } from '@/services/actualisation'
 import { useEstAnonyme, versCompte } from '@/services/compte'
@@ -35,22 +34,41 @@ import {
   useTheses,
   type These,
 } from '@/services/debat'
+import { nomFormule, useFormules } from '@/services/formules'
 import { compter } from '@/services/usage'
 import { FondSombre } from '@/theme/FondSombre'
 import { useTheme } from '@/theme/ThemeProvider'
 import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 
-// E2 · Préparer le face-à-face. The bank first, one's own thesis second and quietly: most
-// people asked to invent a debate subject freeze, or pick something they cannot defend, and
-// the session is lost before it has started (cahier chapter 10).
+// E2 · Préparer le face-à-face.
 //
-// The choice is made on this screen and it has to look like a choice: the thesis you picked
-// carries a mark, and Rétor's tone sits inside it, because the tone belongs to the subject and
-// not to a row of pills at the bottom of a long page. What the session costs (one of the month,
-// so many minutes of speaking) is said where the button is, not in a footnote above it.
+// The screen carries one decision and two settings, in that order, and nothing else. The
+// decision is the thesis: one at a time, in full, in quotes, because a person reads a thesis to
+// know whether they can argue against it, and three side by side is a list to skim rather than
+// a sentence to weigh. The settings are Rétor's, and they sit with him: his tone, said in his
+// own words, and his voice.
+//
+// Everything on it is real. There is no theme on a thesis in the database, so no theme filter;
+// a debate pays no points, so no points; turns are not capped, so no turn count. A number
+// nobody computes is worse than no number: the person believes it.
 
 const TONS = ['ferme', 'provocateur', 'academique', 'bienveillant'] as const
 type Ton = (typeof TONS)[number]
+
+const LIBELLE_TON: Record<Ton, Parameters<typeof t>[0]> = {
+  ferme: 'debat.tonFerme',
+  provocateur: 'debat.tonProvocateur',
+  academique: 'debat.tonAcademique',
+  bienveillant: 'debat.tonBienveillant',
+}
+
+/** What each tone actually changes, in the words the server sends to Rétor. */
+const DETAIL_TON: Record<Ton, Parameters<typeof t>[0]> = {
+  ferme: 'debat.tonFermeDetail',
+  provocateur: 'debat.tonProvocateurDetail',
+  academique: 'debat.tonAcademiqueDetail',
+  bienveillant: 'debat.tonBienveillantDetail',
+}
 
 const VOIX = ['homme', 'femme'] as const
 type Voix = (typeof VOIX)[number]
@@ -60,12 +78,8 @@ const LIBELLE_VOIX: Record<Voix, Parameters<typeof t>[0]> = {
   femme: 'debat.voixFemme',
 }
 
-const LIBELLE_TON: Record<Ton, Parameters<typeof t>[0]> = {
-  ferme: 'debat.tonFerme',
-  provocateur: 'debat.tonProvocateur',
-  academique: 'debat.tonAcademique',
-  bienveillant: 'debat.tonBienveillant',
-}
+/** Enough of the bank to choose from without asking for it again. */
+const THESES_CHARGEES = 12
 
 export default function PreparerDebat() {
   const theme = useTheme()
@@ -74,13 +88,15 @@ export default function PreparerDebat() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const clientRequetes = useQueryClient()
-  const theses = useTheses()
+  const theses = useTheses(THESES_CHARGEES)
   const quota = useQuotaDebats()
   const reprise = useDebatAReprendre()
   const configuration = useConfiguration()
+  const formules = useFormules()
   const anonyme = useEstAnonyme()
 
-  const [choisie, setChoisie] = useState<These | null>(null)
+  /** Which thesis of the bank is on screen. */
+  const [rang, setRang] = useState(0)
   const [personnelle, setPersonnelle] = useState('')
   const [ecrireLaSienne, setEcrireLaSienne] = useState(false)
   const [ton, setTon] = useState<Ton | null>(null)
@@ -102,16 +118,20 @@ export default function PreparerDebat() {
     )
   }
 
+  const banque = theses.data ?? []
   const restantes = quota.data?.restants ?? 0
   const aReprendre = reprise.data ?? null
-  const banqueVide = (theses.data?.length ?? 0) === 0
   // With no bank there is only one way in, so the screen opens it rather than asking twice.
-  const ecrireVraiment = ecrireLaSienne || banqueVide
+  const ecrireVraiment = ecrireLaSienne || banque.length === 0
+  const choisie: These | null = ecrireVraiment ? null : (banque[rang % banque.length] ?? null)
+  const tonEffectif: Ton = ton ?? (choisie?.ton_suggere as Ton | undefined) ?? 'ferme'
   const secondes =
     quota.data?.formule === 'gratuit'
       ? (configuration.data?.duree_face_a_face_gratuit_s ?? 180)
       : (configuration.data?.duree_face_a_face_complet_s ?? 480)
   const minutes = Math.max(1, Math.round(secondes / 60))
+  const formule = nomFormule(formules.data, quota.data?.formule ?? 'gratuit')
+  const pret = ecrireVraiment ? personnelle.trim().length > 0 : choisie !== null
 
   const commencer = async (abandonnerLAutre = false) => {
     setEnvoi(true)
@@ -120,11 +140,11 @@ export default function PreparerDebat() {
       const debat = await ouvrirDebat({
         theseId: ecrireVraiment ? null : (choisie?.id ?? null),
         theseTexte: ecrireVraiment ? personnelle.trim() : null,
-        ton: ton ?? null,
+        ton: tonEffectif,
         voix,
       })
       invaliderDebats(clientRequetes)
-      compter('debat_ouvert', { ton: ton ?? 'defaut', voix, these_personnelle: ecrireVraiment })
+      compter('debat_ouvert', { ton: tonEffectif, voix, these_personnelle: ecrireVraiment })
       router.replace(`/face-a-face/${debat.id}`)
     } catch (erreur) {
       // A refusal used to be one orange line at the bottom of a long page, where it was missed.
@@ -148,74 +168,6 @@ export default function PreparerDebat() {
     }
   }
 
-  const pret = ecrireVraiment ? personnelle.trim().length > 0 : choisie !== null
-  const tonChoisi = (these: These | null): Ton | null =>
-    ton ?? (these?.ton_suggere as Ton | undefined) ?? null
-
-  const rangeeVoix = () => (
-    <View style={styles.tons}>
-      {VOIX.map((cle) => {
-        const actif = voix === cle
-        return (
-          <Pressable
-            key={cle}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: actif }}
-            onPress={() => setVoix(cle)}
-            style={[
-              styles.pilule,
-              {
-                backgroundColor: actif ? couleurs.or : 'transparent',
-                borderColor: actif ? couleurs.or : theme.heroBordure,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                typographie.petit,
-                { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
-              ]}
-            >
-              {t(LIBELLE_VOIX[cle])}
-            </Text>
-          </Pressable>
-        )
-      })}
-    </View>
-  )
-
-  const rangeeTons = (these: These | null) => (
-    <View style={styles.tons}>
-      {TONS.map((cle) => {
-        const actif = tonChoisi(these) === cle
-        return (
-          <Pressable
-            key={cle}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: actif }}
-            onPress={() => setTon(cle)}
-            style={[
-              styles.pilule,
-              {
-                backgroundColor: actif ? couleurs.or : 'transparent',
-                borderColor: actif ? couleurs.or : theme.heroBordure,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                typographie.petit,
-                { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
-              ]}
-            >
-              {t(LIBELLE_TON[cle])}
-            </Text>
-          </Pressable>
-        )
-      })}
-    </View>
-  )
-
   return (
     <FondSombre>
       <View style={[styles.ecran, { backgroundColor: theme.hero }]}>
@@ -229,9 +181,10 @@ export default function PreparerDebat() {
           }
           contentContainerStyle={[
             styles.contenu,
-            { paddingTop: insets.top + espaces.m, paddingBottom: espaces.xl },
+            { paddingTop: insets.top + espaces.m, paddingBottom: espaces.l },
           ]}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.entete}>
             <Pressable
@@ -261,174 +214,213 @@ export default function PreparerDebat() {
             </View>
           </View>
 
-          <View style={styles.titres}>
-            <Titre niveau="ecran">{t('debat.preparerTitre')}</Titre>
-            <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
-              {t('debat.preparerCorps')}
-            </Text>
-          </View>
+          {/* The promise is Rétor's card's job, one screen down: saying it twice is the failure
+              docs/STRINGS.md calls reviewing the screen rather than the string. */}
+          <Text style={[styles.titre, { color: couleurs.blanc }]}>{t('debat.preparerTitre')}</Text>
 
           {aReprendre ? (
-            <View style={[styles.reprise, { borderColor: couleurs.or }]}>
-              <Bulle taille="minuscule" visage="attend" calme />
-              <View style={styles.repriseTexte}>
-                <Text style={[typographie.corpsFort, { color: couleurs.blanc }]}>
-                  {t('debat.repriseTitre')}
-                </Text>
-                <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
-                  {t('debat.repriseCorps')}
-                </Text>
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.replace(`/face-a-face/${aReprendre.id}`)}
-                style={({ pressed }) => [styles.repriseBouton, pressed && styles.presse]}
-              >
-                <Text style={[styles.repriseLibelle, { color: couleurs.bleuNuit }]}>
-                  {t('debat.reprendreCourt')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          {banqueVide ? (
-            <View style={[styles.carteVide, { borderColor: theme.heroBordure }]}>
-              <Text style={[typographie.corpsFort, { color: couleurs.blanc }]}>
-                {t('debat.banqueVide')}
-              </Text>
-              <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
-                {t('debat.banqueVideCorps')}
-              </Text>
-            </View>
-          ) : (
-            <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
-              {t('debat.choisirSujet')}
-            </Text>
-          )}
-
-          {theses.data?.map((these) => {
-            const active = !ecrireVraiment && choisie?.id === these.id
-            return (
-              <Pressable
-                key={these.id}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active }}
-                onPress={() => {
-                  setEcrireLaSienne(false)
-                  setChoisie(these)
-                  setTon(null)
-                }}
-                style={({ pressed }) => [pressed && styles.presse]}
-              >
-                <View
-                  style={[
-                    styles.these,
-                    {
-                      borderColor: active ? couleurs.or : theme.heroBordure,
-                      backgroundColor: active ? 'rgba(255, 189, 89, 0.10)' : 'transparent',
-                    },
-                  ]}
-                >
-                  <View style={styles.theseHaut}>
-                    <View
-                      style={[
-                        styles.coche,
-                        {
-                          borderColor: active ? couleurs.or : theme.heroBordure,
-                          backgroundColor: active ? couleurs.or : 'transparent',
-                        },
-                      ]}
-                    >
-                      {active ? (
-                        <Icone
-                          sf="checkmark"
-                          material="check"
-                          taille={12}
-                          couleur={couleurs.bleuNuit}
-                        />
-                      ) : null}
-                    </View>
-                    <Text style={[styles.theseTexte, { color: couleurs.blanc }]}>
-                      {these.texte}
-                    </Text>
-                  </View>
-                  {active ? (
-                    <View style={styles.tonBloc}>
-                      <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
-                        {t('debat.ton')}
-                      </Text>
-                      {rangeeTons(these)}
-                      <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
-                        {t('debat.voix')}
-                      </Text>
-                      {rangeeVoix()}
-                    </View>
-                  ) : null}
-                </View>
-              </Pressable>
-            )
-          })}
-
-          {banqueVide ? null : (
             <Pressable
-              accessibilityRole="radio"
-              accessibilityState={{ selected: ecrireLaSienne }}
-              onPress={() => {
-                setEcrireLaSienne(true)
-                setChoisie(null)
-              }}
+              accessibilityRole="button"
+              onPress={() => router.replace(`/face-a-face/${aReprendre.id}`)}
               style={({ pressed }) => [pressed && styles.presse]}
             >
-              <View
-                style={[
-                  styles.sienne,
-                  {
-                    borderColor: ecrireVraiment ? couleurs.or : theme.heroBordure,
-                    backgroundColor: ecrireVraiment ? 'rgba(255, 189, 89, 0.10)' : 'transparent',
-                  },
-                ]}
-              >
+              <View style={[styles.reprise, { borderColor: couleurs.or }]}>
+                <View style={styles.repriseTexte}>
+                  <Text style={[typographie.corpsFort, { color: couleurs.blanc }]}>
+                    {t('debat.repriseTitre')}
+                  </Text>
+                  <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+                    {t('debat.repriseCorps')}
+                  </Text>
+                </View>
                 <Icone
-                  sf="square.and.pencil"
-                  material="edit"
-                  taille={16}
-                  couleur={ecrireVraiment ? couleurs.or : theme.heroTexteSecondaire}
+                  sf="arrow.right"
+                  material="arrow-forward"
+                  taille={18}
+                  couleur={couleurs.or}
                 />
-                <Text
-                  style={[
-                    typographie.corpsFort,
-                    { color: ecrireVraiment ? couleurs.or : theme.heroTexteSecondaire },
-                  ]}
-                >
-                  {t('debat.monSujet')}
-                </Text>
               </View>
             </Pressable>
-          )}
+          ) : null}
+
+          {/* The decision: one thesis, read in full. */}
+          <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+            {ecrireVraiment ? t('debat.monSujetChamp') : t('debat.theseQuIlDefend')}
+          </Text>
 
           {ecrireVraiment ? (
-            <View style={[styles.champBloc, { borderColor: theme.heroBordure }]}>
-              <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
-                {t('debat.monSujetChamp')}
-              </Text>
+            <View style={[styles.carteThese, { borderColor: couleurs.or }]}>
               <TextInput
                 value={personnelle}
                 onChangeText={setPersonnelle}
                 multiline
+                autoFocus={banque.length > 0}
                 placeholder={t('debat.monSujetAide')}
                 placeholderTextColor={theme.heroTexteSecondaire}
-                style={[typographie.corps, styles.champ, { color: theme.heroTexte }]}
+                style={[styles.theseTexte, styles.champ, { color: couleurs.blanc }]}
               />
+              {banque.length > 0 ? (
+                <View style={styles.actionsThese}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setEcrireLaSienne(false)}
+                    style={({ pressed }) => [styles.actionThese, pressed && styles.presse]}
+                  >
+                    <Icone
+                      sf="tray.full"
+                      material="inbox"
+                      taille={15}
+                      couleur={theme.heroTexteSecondaire}
+                    />
+                    <Text style={[styles.actionTexte, { color: theme.heroTexteSecondaire }]}>
+                      {t('debat.revenirBanque')}
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+                  {t('debat.banqueVideCorps')}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <View style={[styles.carteThese, { borderColor: theme.heroBordure }]}>
+              <Text style={[styles.theseTexte, { color: couleurs.blanc }]}>
+                {`« ${choisie?.texte ?? ''} »`}
+              </Text>
+              <View style={[styles.actionsThese, { borderTopColor: theme.heroBordure }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={banque.length < 2}
+                  onPress={() => {
+                    setRang((precedent) => precedent + 1)
+                    setTon(null)
+                  }}
+                  style={({ pressed }) => [styles.actionThese, pressed && styles.presse]}
+                >
+                  <Icone
+                    sf="arrow.triangle.2.circlepath"
+                    material="autorenew"
+                    taille={15}
+                    couleur={banque.length < 2 ? theme.heroTexteSecondaire : couleurs.or}
+                  />
+                  <Text
+                    style={[
+                      styles.actionTexte,
+                      { color: banque.length < 2 ? theme.heroTexteSecondaire : couleurs.or },
+                    ]}
+                  >
+                    {t('debat.uneAutre')}
+                  </Text>
+                </Pressable>
+                <View style={[styles.separateur, { backgroundColor: theme.heroBordure }]} />
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setEcrireLaSienne(true)}
+                  style={({ pressed }) => [styles.actionThese, pressed && styles.presse]}
+                >
+                  <Icone
+                    sf="square.and.pencil"
+                    material="edit"
+                    taille={15}
+                    couleur={theme.heroTexteSecondaire}
+                  />
+                  <Text style={[styles.actionTexte, { color: theme.heroTexteSecondaire }]}>
+                    {t('debat.monSujet')}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
+          {/* Rétor, and the two things about him the person decides. */}
+          <View style={[styles.carteRetor, { borderColor: theme.heroBordure }]}>
+            <View style={styles.retorHaut}>
+              <MarqueRetor taille={44} />
+              <View style={styles.retorNoms}>
+                <Text style={[styles.etiquette, { color: theme.voix }]}>
+                  {t('debat.contradicteur')}
+                </Text>
+                <Text style={[styles.retorNom, { color: couleurs.blanc }]}>{t('debat.retor')}</Text>
+              </View>
+            </View>
+            <Text style={[typographie.petit, { color: theme.heroTexteSecondaire }]}>
+              {t('debat.retorQuiEst')}
+            </Text>
+
+            <View style={[styles.reglage, { borderTopColor: theme.heroBordure }]}>
               <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
                 {t('debat.ton')}
               </Text>
-              {rangeeTons(null)}
+              <View style={styles.pilules}>
+                {TONS.map((cle) => {
+                  const actif = tonEffectif === cle
+                  return (
+                    <Pressable
+                      key={cle}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: actif }}
+                      onPress={() => setTon(cle)}
+                      style={[
+                        styles.pilule,
+                        {
+                          backgroundColor: actif ? couleurs.or : 'transparent',
+                          borderColor: actif ? couleurs.or : theme.heroBordure,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.piluleTexte,
+                          { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
+                        ]}
+                      >
+                        {t(LIBELLE_TON[cle])}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+              <Text style={[typographie.petit, styles.detail, { color: couleurs.encre3 }]}>
+                {t(DETAIL_TON[tonEffectif])}
+              </Text>
+            </View>
+
+            <View style={[styles.reglage, { borderTopColor: theme.heroBordure }]}>
               <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
                 {t('debat.voix')}
               </Text>
-              {rangeeVoix()}
+              <View style={styles.pilules}>
+                {VOIX.map((cle) => {
+                  const actif = voix === cle
+                  return (
+                    <Pressable
+                      key={cle}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: actif }}
+                      onPress={() => setVoix(cle)}
+                      style={[
+                        styles.pilule,
+                        {
+                          backgroundColor: actif ? couleurs.or : 'transparent',
+                          borderColor: actif ? couleurs.or : theme.heroBordure,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.piluleTexte,
+                          { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
+                        ]}
+                      >
+                        {t(LIBELLE_VOIX[cle])}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
             </View>
-          ) : null}
+          </View>
         </ScrollView>
 
         <View
@@ -438,7 +430,9 @@ export default function PreparerDebat() {
           ]}
         >
           <Text style={[typographie.petit, styles.centre, { color: theme.heroTexteSecondaire }]}>
-            {restantes === 0 ? t('debat.aucuneSession') : t('debat.duree', { minutes })}
+            {restantes === 0
+              ? t('debat.aucuneSession')
+              : t('debat.dureeEtFormule', { minutes, formule })}
           </Text>
           <Bouton
             libelle={t('debat.commencer')}
@@ -488,12 +482,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   jetonTexte: { fontFamily: polices.bold, fontSize: 12, lineHeight: 16 },
-  titres: { gap: espaces.xxs, paddingTop: espaces.m, paddingBottom: espaces.xs },
+  titre: {
+    fontFamily: polices.extraBold,
+    fontSize: 24,
+    lineHeight: 29,
+    letterSpacing: -0.5,
+    paddingTop: espaces.s,
+    paddingBottom: espaces.xs,
+  },
   etiquette: {
     fontFamily: polices.bold,
     fontSize: 10,
     lineHeight: 14,
-    letterSpacing: 0.8,
+    letterSpacing: 0.9,
     textTransform: 'uppercase',
   },
   reprise: {
@@ -506,65 +507,58 @@ const styles = StyleSheet.create({
     marginBottom: espaces.xs,
   },
   repriseTexte: { flex: 1, gap: 1 },
-  repriseBouton: {
-    paddingHorizontal: espaces.s,
-    paddingVertical: espaces.xs,
-    borderRadius: rayons.pilule,
-    backgroundColor: couleurs.or,
-  },
-  repriseLibelle: { fontFamily: polices.extraBold, fontSize: 13, lineHeight: 17 },
-  carteVide: {
-    gap: espaces.xxs,
-    padding: espaces.m,
-    borderRadius: rayons.l,
-    borderWidth: 1,
-    marginBottom: espaces.xs,
-  },
-  these: {
+  carteThese: {
     borderWidth: 1.5,
-    borderRadius: rayons.l,
+    borderRadius: rayons.xl,
     paddingHorizontal: espaces.m,
-    paddingVertical: espaces.s,
+    paddingTop: espaces.m,
     gap: espaces.s,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
-  theseHaut: { flexDirection: 'row', alignItems: 'flex-start', gap: espaces.s },
-  coche: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 1,
-  },
-  theseTexte: { flex: 1, fontFamily: polices.bold, fontSize: 15, lineHeight: 21 },
-  tonBloc: { gap: espaces.xs, paddingLeft: 30 },
-  tons: { flexDirection: 'row', flexWrap: 'wrap', gap: espaces.xs },
-  pilule: {
-    paddingHorizontal: espaces.s,
-    paddingVertical: espaces.xs,
-    borderRadius: rayons.pilule,
-    borderWidth: 1,
-  },
-  sienne: {
+  theseTexte: { fontFamily: polices.bold, fontSize: 18, lineHeight: 25 },
+  champ: { minHeight: 78, textAlignVertical: 'top' },
+  actionsThese: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: espaces.xs,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderRadius: rayons.l,
-    paddingHorizontal: espaces.m,
-    paddingVertical: espaces.s,
-    marginTop: espaces.xxs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: -espaces.m,
+    paddingHorizontal: espaces.xs,
   },
-  champBloc: {
+  actionThese: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: espaces.s,
+  },
+  actionTexte: { fontFamily: polices.bold, fontSize: 13, lineHeight: 18 },
+  separateur: { width: StyleSheet.hairlineWidth, height: 20 },
+  carteRetor: {
+    marginTop: espaces.xs,
     borderWidth: 1,
-    borderRadius: rayons.l,
+    borderRadius: rayons.xl,
     padding: espaces.m,
     gap: espaces.xs,
-    marginTop: espaces.xxs,
   },
-  champ: { minHeight: 64, textAlignVertical: 'top' },
+  retorHaut: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  retorNoms: { gap: 1 },
+  retorNom: { fontFamily: polices.extraBold, fontSize: 18, lineHeight: 23 },
+  reglage: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: espaces.s,
+    marginTop: espaces.xs,
+    gap: espaces.xs,
+  },
+  pilules: { flexDirection: 'row', flexWrap: 'wrap', gap: espaces.xs },
+  pilule: {
+    paddingHorizontal: espaces.s,
+    paddingVertical: 7,
+    borderRadius: rayons.pilule,
+    borderWidth: 1,
+  },
+  piluleTexte: { fontFamily: polices.bold, fontSize: 13, lineHeight: 17 },
+  detail: { fontStyle: 'italic' },
   pied: {
     paddingHorizontal: espaces.l,
     paddingTop: espaces.s,

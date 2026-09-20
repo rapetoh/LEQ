@@ -128,7 +128,8 @@ function useRequete<T>(
   })
 }
 
-export const useTheses = () => useRequete(CLE_THESES, () => chargerTheses())
+export const useTheses = (nombre = 3) =>
+  useRequete([...CLE_THESES, String(nombre)], () => chargerTheses(nombre))
 export const useQuotaDebats = () => useRequete(CLE_QUOTA_DEBATS, chargerQuota)
 export const useDebatAReprendre = () => useRequete(CLE_DEBAT_REPRISE, chargerDebatAReprendre)
 export function useDebat(debatId: string) {

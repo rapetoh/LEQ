@@ -1480,6 +1480,40 @@ inconnue ne bloque rien), trois tests sur la correspondance voix demandée / voi
 fournisseur, et tout le reste vert. Déployé sur Fly. **Build 40 est parti** (06:30, « Upload
 succeeded »). Prochain numéro : 41.
 
+## L'écran d'avant le débat, refait (2026-09-20)
+
+Roch : moins dix sur dix, avec en référence deux écrans qu'il note lui-même cinq sur dix. Ce qu'il
+y a à prendre dedans, c'est la hiérarchie : une seule décision à la fois, le contradicteur présenté
+comme un personnage, et ce que la session coûte dit là où on appuie. Ce qu'il n'y a pas à prendre,
+c'est ce que nous ne faisons pas.
+
+L'écran porte maintenant une décision et deux réglages, dans cet ordre.
+
+- **Une thèse à la fois, lue en entier**, entre guillemets, avec « Une autre » et « Écrire la
+  mienne » sous elle. Trois cartes côte à côte, c'est une liste qu'on survole ; une thèse, c'est
+  une phrase qu'on pèse pour savoir si on saura la contredire. La banque est chargée à douze et
+  tourne sur place.
+- **Rétor a sa carte et sa marque** (`components/MarqueRetor.tsx`) : la bulle de Bulle retournée,
+  la queue à droite, en or sur bleu nuit et sans visage. Bulle est LEQ qui parle à la personne ;
+  Rétor est la voix d'en face, et ce n'est pas une mascotte.
+- **Son ton est dit dans les mots que le serveur lui envoie** : choisir « Académique » affiche
+  « Il demande des définitions et distingue les notions », qui est exactement la consigne
+  transmise. Le ton suggéré par Rebecca sur la thèse est celui qui s'applique tant que la personne
+  n'en choisit pas un autre.
+- **Sa voix** est là aussi, homme ou femme.
+- **Le pied** dit le temps de parole, la formule, puis le bouton, puis la promesse sur la voix.
+
+Rien d'inventé, et c'est la moitié du travail : pas de thème sur une thèse (la table n'en a pas),
+pas de points pour un débat (un débat n'en rapporte pas), pas de nombre de tours (rien ne les
+plafonne). La promesse qui était dite deux fois sur le même écran est dite une fois, dans la carte
+de Rétor. Cinq chaînes mortes sont sorties de `fr.ts`.
+
+Vérifié : dix tests sur cet écran, qui n'en avait aucun (la thèse lue en entier, une autre sans
+jamais en montrer deux, le ton dit et emporté, la voix emportée, la banque vide qui ouvre sur le
+champ, le temps et la formule, et l'absence de points, de tours et de thèmes). Mobile 142 au
+total, tout le reste vert. Au passage : dans cette version de la bibliothèque de test, `render`
+est asynchrone, et ne pas l'attendre donne un objet sans aucune requête.
+
 ## Next
 
 **À remettre avant la boutique (2026-09-19).** Les limites sont levées sur le projet hébergé pour
