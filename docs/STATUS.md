@@ -1456,7 +1456,8 @@ posée le matin même.
 Vérifié contre le serveur déployé : sans les mains libres, quatre secondes de silence ne donnent
 rien ; avec, le silence donne la parole une fois et le serveur dit que c'est lui ; le reste de la
 chaîne (pause d'une seconde, bouton, horloge, coupure de Rétor, débrief) est repassé entier.
-Mobile 132 tests, serveur 53 sur le face-à-face.
+Mobile 132 tests, serveur 53 sur le face-à-face. **Build 39 est parti** (19:15, « Upload
+succeeded »). Prochain numéro : 40.
 
 ## Next
 
