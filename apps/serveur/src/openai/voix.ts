@@ -5,8 +5,26 @@
 // chunk: the app starts playing the first words while the last are still being made, which is
 // most of the two-second budget.
 import type { ConsommationVoix } from '../debat/consommation.js'
-import type { Voix } from '../debat/fournisseurs.js'
+import type { QuiParle, Voix } from '../debat/fournisseurs.js'
 import { appeler, type ConfigOpenAI } from './client.js'
+
+/**
+ * The two voices, and how each is asked to speak. The provider ships eleven presets; these two
+ * are the ones that hold a French debate without sounding like a news bulletin. The name of a
+ * preset never leaves this file: the rest of the code says « homme » or « femme ».
+ */
+const VOIX: Record<QuiParle, { preset: string; consigne: string }> = {
+  homme: {
+    preset: 'onyx',
+    consigne:
+      "Voix d'homme française, naturelle, posée, celle d'un contradicteur sûr de lui dans un débat. Débit de conversation, pas de ton de présentateur, pas d'emphase à la fin des phrases.",
+  },
+  femme: {
+    preset: 'sage',
+    consigne:
+      "Voix de femme française, naturelle, posée, celle d'une contradictrice sûre d'elle dans un débat. Débit de conversation, pas de ton de présentatrice, pas d'emphase à la fin des phrases.",
+  },
+}
 
 export class VoixOpenAI implements Voix {
   readonly nom = 'openai:tts'
@@ -16,18 +34,19 @@ export class VoixOpenAI implements Voix {
   async *dire(
     texte: string,
     surConsommation?: (partie: ConsommationVoix) => void,
+    qui: QuiParle = 'homme',
   ): AsyncIterable<Uint8Array> {
+    const voix = VOIX[qui] ?? VOIX.homme
     let octets = 0
     const reponse = await appeler(this.config, '/v1/audio/speech', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4o-mini-tts',
-        voice: 'onyx',
+        voice: voix.preset,
         input: texte,
         response_format: 'pcm',
-        instructions:
-          "Voix française naturelle, posée, celle d'un contradicteur sûr de lui dans un débat. Pas de ton de présentateur.",
+        instructions: voix.consigne,
       }),
       delaiMs: 30_000,
     })

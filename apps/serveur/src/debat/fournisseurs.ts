@@ -118,6 +118,9 @@ export interface Debrief {
 // The voice
 // --------------------------------------------------------------------------------------------
 
+/** Who the person hears. The provider's own voice names stay inside the provider. */
+export type QuiParle = 'homme' | 'femme'
+
 export interface Voix {
   readonly nom: string
   /**
@@ -127,6 +130,7 @@ export interface Voix {
   dire(
     texte: string,
     surConsommation?: (partie: ConsommationVoix) => void,
+    qui?: QuiParle,
   ): AsyncIterable<Uint8Array>
 }
 

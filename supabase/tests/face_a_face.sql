@@ -168,10 +168,15 @@ select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utili
 select throws_ok($$ select public.ouvrir_debat(null, '   ') $$, '23514', 'these_requise',
   'an empty thesis is refused before anything else is even looked at');
 select lives_ok($$ select public.abandonner_debat() $$, 'the person chooses to start another one instead');
-create temp table debat2 as select * from public.ouvrir_debat(null, 'Les notes à l''école sont inutiles.', 'academique');
+create temp table debat2 as
+  select * from public.ouvrir_debat(null, 'Les notes à l''école sont inutiles.', 'academique', 'martien');
 grant select on debat2 to authenticated;
 select is((select origine_these from debat2), 'personnelle', 'a thesis of one''s own is allowed, and named as such');
 select is((select ton_adversaire from debat2), 'academique', 'the chosen tone applies');
+-- La voix (2026-09-20) : la personne choisit qui elle a en face, et une valeur qu'on ne connaît
+-- pas ne refuse pas un débat, elle retombe sur la voix par défaut.
+select is((select voix_adversaire from debat2), 'homme',
+  'a voice nobody knows falls back on the default rather than refusing the debate');
 reset role; select tests_leq.deconnecter();
 select lives_ok($$ select public.enregistrer_tour((select id from debat2), 1, 'utilisateur', 'Les notes ne mesurent rien.', 20) $$,
   'the person speaks in it');
@@ -231,8 +236,11 @@ reset role; select tests_leq.deconnecter();
 -- Both wrote turn n+1, and the upsert on (debat_id, numero) let the loser replace the live turn.
 update public.formules set debats_par_mois = 8 where cle = 'complet';
 select tests_leq.connecter('11111111-1111-4111-8111-111111111111', false, 'utilisateur');
-create temp table debat5 as select * from public.ouvrir_debat(null, 'Le silence est une réponse.');
+create temp table debat5 as
+  select * from public.ouvrir_debat(null, 'Le silence est une réponse.', 'ferme', 'femme');
 grant select on debat5 to authenticated;
+-- La voix choisie (2026-09-20) est celle que le serveur lira.
+select is((select voix_adversaire from debat5), 'femme', 'the chosen voice is the one kept');
 reset role; select tests_leq.deconnecter();
 create temp table sessions as
   select public.prendre_session_debat((select id from debat5)) as premiere,

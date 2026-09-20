@@ -14,6 +14,14 @@ export const TONS_ADVERSAIRE = ['ferme', 'provocateur', 'academique', 'bienveill
 export const TonAdversaireSchema = z.enum(TONS_ADVERSAIRE)
 export type TonAdversaire = z.infer<typeof TonAdversaireSchema>
 
+/**
+ * Who the person hears. Two voices, kept as what they are rather than as the provider's own
+ * names, so changing supplier or voice is a line of code and no data migration.
+ */
+export const VOIX_ADVERSAIRE = ['homme', 'femme'] as const
+export const VoixAdversaireSchema = z.enum(VOIX_ADVERSAIRE)
+export type VoixAdversaire = z.infer<typeof VoixAdversaireSchema>
+
 export const TheseSchema = z.object({
   id: UuidSchema,
   cle: z.string().min(1),
@@ -71,6 +79,7 @@ export const DebatSchema = z.object({
   these_texte: z.string().min(1),
   origine_these: OrigineTheseSchema,
   ton_adversaire: z.string().min(1),
+  voix_adversaire: VoixAdversaireSchema,
   duree_max_s: z.int().positive(),
   statut: StatutDebatSchema,
   issue: IssueDebatSchema.nullable(),

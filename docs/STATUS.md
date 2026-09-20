@@ -1459,6 +1459,26 @@ chaîne (pause d'une seconde, bouton, horloge, coupure de Rétor, débrief) est 
 Mobile 132 tests, serveur 53 sur le face-à-face. **Build 39 est parti** (19:15, « Upload
 succeeded »). Prochain numéro : 40.
 
+## La voix de Rétor se choisit (2026-09-20)
+
+Roch a demandé d'où venait la voix et si on pouvait en avoir d'autres. Elle venait de mon choix
+en écrivant le code : la voix « onyx » du modèle de synthèse d'OpenAI, avec une consigne de
+diction. Rien ne l'imposait.
+
+La personne choisit maintenant, sur l'écran de préparation, à côté du sujet et du ton : un homme
+ou une femme. La colonne `debats.voix_adversaire` garde ce qu'elle a demandé, pas le nom de la
+voix du fournisseur, et une valeur inconnue retombe sur la voix par défaut au lieu de refuser un
+débat. Ça ne coûte pas un centime de plus : même modèle, même facturation.
+
+Sur le fond de sa question, une voix qui sonne humaine ne se fabrique pas avec de la synthèse :
+c'est un modèle qui entend et répond directement en voix. Le chiffrage est parti à Rebecca dans un
+document à part, et la surprise est qu'en version économique ce serait au prix d'aujourd'hui.
+
+Vérifié : pgTAP `face_a_face.sql` 94 assertions contre le projet hébergé avec la migration
+`20260920000000_la_voix_de_retor_se_choisit` (la voix choisie est celle qui est gardée, une voix
+inconnue ne bloque rien), trois tests sur la correspondance voix demandée / voix appelée chez le
+fournisseur, et tout le reste vert.
+
 ## Next
 
 **À remettre avant la boutique (2026-09-19).** Les limites sont levées sur le projet hébergé pour

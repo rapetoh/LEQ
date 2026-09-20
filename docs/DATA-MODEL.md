@@ -477,6 +477,12 @@ The debate against Rétor, cahier chapter 10, shipped off behind the `face_a_fac
 
 `quota_face_a_face_gratuit` (0: the face-à-face is a Complet entitlement, and the zero is a setting rather than a locked door), `quota_face_a_face_complet` (8), `duree_face_a_face_gratuit_s` (180), `duree_face_a_face_complet_s` (480), `reprise_debat_minutes` (30, which is also the delay after which an unresumed cut is counted), `silence_fin_tour_debat_ms` (2200).
 
+**The voice of Rétor (2026-09-20).** `debats.voix_adversaire` holds `homme` or `femme`, chosen on
+the preparation screen beside the tone and passed to `ouvrir_debat(p_voix)`; a value nobody knows
+falls back on `homme` rather than refusing a debate. The column keeps what the person asked for,
+never the provider's own preset name, so changing voice or supplier is a line of code and no data
+migration. It costs nothing: same model, same billing.
+
 **Who holds the floor in a face-à-face (2026-09-19).** The server decides it, alone, and says so
 on the wire (`a_toi`, `a_retor`, protocol version 2 in `packages/domaine/src/debatProtocole.ts`).
 The turn ends when the person says it does, or after `silence_fin_tour_debat_ms` of silence, which

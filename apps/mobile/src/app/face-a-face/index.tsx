@@ -52,6 +52,14 @@ import { couleurs, espaces, polices, rayons, typographie } from '@/theme/tokens'
 const TONS = ['ferme', 'provocateur', 'academique', 'bienveillant'] as const
 type Ton = (typeof TONS)[number]
 
+const VOIX = ['homme', 'femme'] as const
+type Voix = (typeof VOIX)[number]
+
+const LIBELLE_VOIX: Record<Voix, Parameters<typeof t>[0]> = {
+  homme: 'debat.voixHomme',
+  femme: 'debat.voixFemme',
+}
+
 const LIBELLE_TON: Record<Ton, Parameters<typeof t>[0]> = {
   ferme: 'debat.tonFerme',
   provocateur: 'debat.tonProvocateur',
@@ -76,6 +84,7 @@ export default function PreparerDebat() {
   const [personnelle, setPersonnelle] = useState('')
   const [ecrireLaSienne, setEcrireLaSienne] = useState(false)
   const [ton, setTon] = useState<Ton | null>(null)
+  const [voix, setVoix] = useState<Voix>('homme')
   const [envoi, setEnvoi] = useState(false)
 
   if (theses.isPending || quota.isPending || reprise.isPending) return <EcranChargement />
@@ -112,9 +121,10 @@ export default function PreparerDebat() {
         theseId: ecrireVraiment ? null : (choisie?.id ?? null),
         theseTexte: ecrireVraiment ? personnelle.trim() : null,
         ton: ton ?? null,
+        voix,
       })
       invaliderDebats(clientRequetes)
-      compter('debat_ouvert', { ton: ton ?? 'defaut', these_personnelle: ecrireVraiment })
+      compter('debat_ouvert', { ton: ton ?? 'defaut', voix, these_personnelle: ecrireVraiment })
       router.replace(`/face-a-face/${debat.id}`)
     } catch (erreur) {
       // A refusal used to be one orange line at the bottom of a long page, where it was missed.
@@ -141,6 +151,38 @@ export default function PreparerDebat() {
   const pret = ecrireVraiment ? personnelle.trim().length > 0 : choisie !== null
   const tonChoisi = (these: These | null): Ton | null =>
     ton ?? (these?.ton_suggere as Ton | undefined) ?? null
+
+  const rangeeVoix = () => (
+    <View style={styles.tons}>
+      {VOIX.map((cle) => {
+        const actif = voix === cle
+        return (
+          <Pressable
+            key={cle}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: actif }}
+            onPress={() => setVoix(cle)}
+            style={[
+              styles.pilule,
+              {
+                backgroundColor: actif ? couleurs.or : 'transparent',
+                borderColor: actif ? couleurs.or : theme.heroBordure,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                typographie.petit,
+                { color: actif ? couleurs.bleuNuit : theme.heroTexteSecondaire },
+              ]}
+            >
+              {t(LIBELLE_VOIX[cle])}
+            </Text>
+          </Pressable>
+        )
+      })}
+    </View>
+  )
 
   const rangeeTons = (these: These | null) => (
     <View style={styles.tons}>
@@ -316,6 +358,10 @@ export default function PreparerDebat() {
                         {t('debat.ton')}
                       </Text>
                       {rangeeTons(these)}
+                      <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+                        {t('debat.voix')}
+                      </Text>
+                      {rangeeVoix()}
                     </View>
                   ) : null}
                 </View>
@@ -377,6 +423,10 @@ export default function PreparerDebat() {
                 {t('debat.ton')}
               </Text>
               {rangeeTons(null)}
+              <Text style={[styles.etiquette, { color: theme.heroTexteSecondaire }]}>
+                {t('debat.voix')}
+              </Text>
+              {rangeeVoix()}
             </View>
           ) : null}
         </ScrollView>

@@ -83,11 +83,13 @@ export async function ouvrirDebat(options: {
   theseId?: string | null
   theseTexte?: string | null
   ton?: string | null
+  voix?: string | null
 }): Promise<Debat> {
   const { data, error } = await supabase.rpc('ouvrir_debat', {
     p_these_id: options.theseId ?? null,
     p_these_texte: options.theseTexte ?? null,
     p_ton: options.ton ?? null,
+    p_voix: options.voix ?? null,
   })
   if (error) echouer(error.message)
   const ligne = Array.isArray(data) ? data[0] : data

@@ -58,6 +58,8 @@ export interface DebatOuvert {
   duree_max_s: number
   secondes_parlees: number
   statut: string
+  /** The voice the person chose for Rétor: « homme » or « femme ». */
+  voix_adversaire?: string
   /** Rebecca's value for the silence that passes the floor; the default stands in when absent. */
   silence_fin_tour_ms?: number
 }
@@ -540,7 +542,11 @@ export class Conduite {
   private async direAVoixHaute(numero: number, texte: string): Promise<void> {
     try {
       for await (const morceau of parMorceau(
-        this.deps.voix.dire(texte, (partie) => this.consommation.voix(partie)),
+        this.deps.voix.dire(
+          texte,
+          (partie) => this.consommation.voix(partie),
+          this.debat?.voix_adversaire === 'femme' ? 'femme' : 'homme',
+        ),
         this.delais.morceauVoixMs,
         'voix',
       )) {

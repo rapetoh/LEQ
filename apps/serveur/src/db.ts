@@ -988,6 +988,8 @@ export interface DebatOuvertLigne {
   id: string
   these_texte: string
   ton_adversaire: string
+  /** The voice the person chose for Rétor: « homme » or « femme ». */
+  voix_adversaire: string
   duree_max_s: number
   secondes_parlees: number
   statut: string
@@ -1002,7 +1004,7 @@ export async function lireDebatOuvert(
   utilisateurId: string,
 ): Promise<DebatOuvertLigne | null> {
   const { rows } = await ex.query(
-    `select id, these_texte, ton_adversaire, duree_max_s, secondes_parlees, statut
+    `select id, these_texte, ton_adversaire, voix_adversaire, duree_max_s, secondes_parlees, statut
        from public.debats
       where id = $1 and utilisateur_id = $2`,
     [debatId, utilisateurId],
@@ -1016,6 +1018,7 @@ export async function lireDebatOuvert(
     id: String(ligne['id']),
     these_texte: String(ligne['these_texte']),
     ton_adversaire: String(ligne['ton_adversaire']),
+    voix_adversaire: String(ligne['voix_adversaire'] ?? 'homme'),
     duree_max_s: Number(ligne['duree_max_s']),
     secondes_parlees: Number(ligne['secondes_parlees']),
     statut: String(ligne['statut']),
@@ -1076,7 +1079,7 @@ export async function reprendreDebat(
   debatId: string,
 ): Promise<DebatOuvertLigne | null> {
   const { rows } = await ex.query(
-    `select id, these_texte, ton_adversaire, duree_max_s, secondes_parlees, statut
+    `select id, these_texte, ton_adversaire, voix_adversaire, duree_max_s, secondes_parlees, statut
        from public.reprendre_debat($1)`,
     [debatId],
   )
@@ -1086,6 +1089,7 @@ export async function reprendreDebat(
     id: String(ligne['id']),
     these_texte: String(ligne['these_texte']),
     ton_adversaire: String(ligne['ton_adversaire']),
+    voix_adversaire: String(ligne['voix_adversaire'] ?? 'homme'),
     duree_max_s: Number(ligne['duree_max_s']),
     secondes_parlees: Number(ligne['secondes_parlees']),
     statut: String(ligne['statut']),
