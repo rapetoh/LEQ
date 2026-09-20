@@ -1477,7 +1477,8 @@ document à part, et la surprise est qu'en version économique ce serait au prix
 Vérifié : pgTAP `face_a_face.sql` 94 assertions contre le projet hébergé avec la migration
 `20260920000000_la_voix_de_retor_se_choisit` (la voix choisie est celle qui est gardée, une voix
 inconnue ne bloque rien), trois tests sur la correspondance voix demandée / voix appelée chez le
-fournisseur, et tout le reste vert.
+fournisseur, et tout le reste vert. Déployé sur Fly. **Build 40 est parti** (06:30, « Upload
+succeeded »). Prochain numéro : 41.
 
 ## Next
 
