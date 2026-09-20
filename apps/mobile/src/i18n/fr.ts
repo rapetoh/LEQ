@@ -643,7 +643,14 @@ export const fr = {
     // E0 · La porte, sur Moi.
     titre: 'Le face-à-face',
     porte: 'Débattre contre Rétor',
-    porteDetail: 'Une IA qui argumente contre toi, en direct.',
+    porteDetail:
+      'Il défend une thèse, tu la contredis. Il répond à ce que tu viens de dire, en direct.',
+    mesDebats: 'Tes face-à-face',
+    debatLigne: '{{date}} · {{minutes}} min de parole',
+    commentCaMarche: 'Comment ça se passe',
+    etape1: 'Tu choisis une thèse dans la banque, ou tu écris la tienne. Rétor la défend.',
+    etape2: 'Tu parles autant que tu veux, il répond à ce que tu viens de dire.',
+    etape3: 'À la fin, un débrief écrit à partir du texte du débat.',
     sessionsRestantes: 'Il te reste {{restantes}} sessions ce mois-ci.',
     sessionRestante: 'Il te reste 1 session ce mois-ci.',
     aucuneSession: 'Tu as utilisé tes sessions du mois.',

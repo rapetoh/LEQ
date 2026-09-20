@@ -30,6 +30,7 @@ export const CLE_THESES = ['theses'] as const
 export const CLE_QUOTA_DEBATS = ['quota_debats'] as const
 export const CLE_DEBAT_REPRISE = ['debat_a_reprendre'] as const
 export const CLE_DEBAT = ['debat'] as const
+export const CLE_MES_DEBATS = ['mes_debats'] as const
 
 export class ErreurDebat extends Error {
   constructor(
@@ -114,6 +115,20 @@ export async function chargerTranscription(debatId: string): Promise<TourDebat[]
   return TranscriptionDebatSchema.parse(data ?? [])
 }
 
+/**
+ * The person's own sessions, newest first. A debate is read by nobody but the person who held
+ * it, admin included (migration 0015), so this is a plain read of their own rows.
+ */
+export async function chargerMesDebats(limite = 5): Promise<Debat[]> {
+  const { data, error } = await supabase
+    .from('debats')
+    .select('*')
+    .order('commence_le', { ascending: false })
+    .limit(limite)
+  if (error) echouer(error.message)
+  return z.array(DebatSchema).parse(data ?? [])
+}
+
 function useRequete<T>(
   cle: readonly string[],
   charger: () => Promise<T>,
@@ -136,8 +151,10 @@ export function useDebat(debatId: string) {
   return useRequete([...CLE_DEBAT, debatId], () => chargerDebat(debatId), debatId !== '')
 }
 
+export const useMesDebats = () => useRequete(CLE_MES_DEBATS, () => chargerMesDebats())
+
 export function invaliderDebats(client: QueryClient): void {
-  for (const cle of [CLE_THESES, CLE_QUOTA_DEBATS, CLE_DEBAT_REPRISE, CLE_DEBAT]) {
+  for (const cle of [CLE_THESES, CLE_QUOTA_DEBATS, CLE_DEBAT_REPRISE, CLE_DEBAT, CLE_MES_DEBATS]) {
     void client.invalidateQueries({ queryKey: cle })
   }
 }

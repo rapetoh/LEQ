@@ -10,6 +10,7 @@ import { useEspaceBarreOnglets } from '@/components/BarreOnglets'
 import { CartePlaceholder } from '@/components/CartePlaceholder'
 import { ControleLecture } from '@/components/ControleLecture'
 import { Couronne } from '@/components/Couronne'
+import { MarqueRetor } from '@/components/MarqueRetor'
 import { EnteteEcran } from '@/components/EnteteEcran'
 import { Bouton } from '@/components/ui/Bouton'
 import { Carte } from '@/components/ui/Carte'
@@ -30,7 +31,7 @@ import {
 } from '@/services/arene'
 import { useActualisation } from '@/services/actualisation'
 import { useEstAnonyme, versCompte } from '@/services/compte'
-import { useQuotaDebats } from '@/services/debat'
+import { useDebatAReprendre, useMesDebats, useQuotaDebats } from '@/services/debat'
 import { useConfiguration, useDrapeaux } from '@/services/configuration'
 import { dureeCourte, maintenant } from '@/services/delai'
 import { badgeDuel, ligneEtat, nomAdversaire } from '@/services/duelVue'
@@ -504,23 +505,60 @@ function PodiumPasse() {
   )
 }
 
-/** The door to the face-à-face, where people actually look for it. E0's own screen prepares it. */
-function PorteFaceAFace() {
+/**
+ * The door to the face-à-face, inside the Arena, where people look for it. The screen behind the
+ * button prepares a session; this one answers « what is this, and what have I done with it ».
+ *
+ * It used to be a pale card, a sentence and a button, with two thirds of the screen empty under
+ * them. Everything on it now is the person's own: the sessions their month has left, a session
+ * still open, and the debates they have held, each opening its own debrief. Someone who has
+ * never held one reads instead what happens in three lines, and that is the only text that goes
+ * away as soon as it is no longer true for them.
+ */
+export function PorteFaceAFace() {
   const theme = useTheme()
   const router = useRouter()
   const anonyme = useEstAnonyme()
   const quota = useQuotaDebats()
+  const reprise = useDebatAReprendre()
+  const mesDebats = useMesDebats()
   const restantes = quota.data?.restants ?? null
+  const aReprendre = reprise.data ?? null
+  // A session still open is the one on the resume card, not a past debate.
+  const passes = (mesDebats.data ?? []).filter((debat) => debat.statut !== 'ouverte')
 
   return (
     <>
-      <Carte teinte="douce" style={styles.porte}>
-        <Titre niveau="section">{t('debat.porte')}</Titre>
-        <Text style={[typographie.corps, { color: theme.texteSecondaire }]}>
+      <Carte teinte="sombre" style={styles.retorCarte}>
+        <View style={styles.retorHaut}>
+          <MarqueRetor taille={46} />
+          <View style={styles.retorNoms}>
+            <Text style={[styles.etiquetteOr, { color: couleurs.or }]}>
+              {t('debat.contradicteur')}
+            </Text>
+            <Text style={[styles.retorNom, { color: couleurs.blanc }]}>{t('debat.retor')}</Text>
+          </View>
+        </View>
+        <Text style={[typographie.corps, { color: theme.heroTexteSecondaire }]}>
           {t('debat.porteDetail')}
         </Text>
+        <Bouton
+          libelle={aReprendre ? t('debat.reprendre') : t('debat.commencer')}
+          onPress={() =>
+            router.push(
+              anonyme
+                ? versCompte('debat')
+                : aReprendre
+                  ? `/face-a-face/${aReprendre.id}`
+                  : '/face-a-face',
+            )
+          }
+          desactive={!anonyme && restantes === 0 && aReprendre === null}
+        />
         {restantes !== null ? (
-          <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+          <Text
+            style={[typographie.petit, styles.texteCentre, { color: theme.heroTexteSecondaire }]}
+          >
             {restantes === 0
               ? t('debat.aucuneSession')
               : restantes === 1
@@ -529,14 +567,77 @@ function PorteFaceAFace() {
           </Text>
         ) : null}
       </Carte>
-      <Bouton
-        libelle={t('debat.commencer')}
-        onPress={() => router.push(anonyme ? versCompte('debat') : '/face-a-face')}
-        desactive={!anonyme && restantes === 0}
-      />
+
       {anonyme ? <PorteCompte raison="debat" /> : null}
+
+      {aReprendre ? (
+        <Text style={[typographie.petit, { color: theme.texteSecondaire }]}>
+          {t('debat.repriseCorps')}
+        </Text>
+      ) : null}
+
+      {passes.length > 0 ? (
+        <>
+          <Text style={[styles.etiquetteListe, { color: theme.texteSecondaire }]}>
+            {t('debat.mesDebats')}
+          </Text>
+          {passes.map((debat) => (
+            <Pressable
+              key={debat.id}
+              accessibilityRole="button"
+              onPress={() => router.push(`/face-a-face/${debat.id}/debrief`)}
+              style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+            >
+              <Carte style={styles.debatPasse}>
+                <View style={styles.debatTexte}>
+                  <Text style={[typographie.corpsFort, { color: theme.texte }]} numberOfLines={2}>
+                    {`«\u202f${debat.these_texte}\u202f»`}
+                  </Text>
+                  <Text style={[typographie.petit, { color: theme.texteTertiaire }]}>
+                    {t('debat.debatLigne', {
+                      date: dateCourte(debat.commence_le),
+                      minutes: String(Math.max(1, Math.round(debat.secondes_parlees / 60))),
+                    })}
+                  </Text>
+                </View>
+                <Icone
+                  sf="chevron.right"
+                  material="chevron-right"
+                  taille={16}
+                  couleur={couleurs.encre2}
+                />
+              </Carte>
+            </Pressable>
+          ))}
+        </>
+      ) : !anonyme ? (
+        <>
+          <Text style={[styles.etiquetteListe, { color: theme.texteSecondaire }]}>
+            {t('debat.commentCaMarche')}
+          </Text>
+          {(['etape1', 'etape2', 'etape3'] as const).map((cle, index) => (
+            <View key={cle} style={styles.etape}>
+              <View style={[styles.etapeNumero, { borderColor: theme.bordure }]}>
+                <Text style={[styles.etapeChiffre, { color: theme.lien }]}>{index + 1}</Text>
+              </View>
+              <Text
+                style={[typographie.corps, styles.etapeTexte, { color: theme.texteSecondaire }]}
+              >
+                {t(`debat.${cle}`)}
+              </Text>
+            </View>
+          ))}
+        </>
+      ) : null}
     </>
   )
+}
+
+/** « 19 septembre », as a person writes a date they are scanning. */
+function dateCourte(iso: string): string {
+  const quand = new Date(iso)
+  if (Number.isNaN(quand.getTime())) return ''
+  return quand.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
 }
 
 /** C4: the duels in progress and the finished ones, each with the person on the other side. */
@@ -821,7 +922,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   libelleEtat: { fontFamily: polices.bold, fontSize: 15, lineHeight: 20 },
-  porte: { gap: espaces.s },
+  retorCarte: { gap: espaces.s },
+  texteCentre: { textAlign: 'center' },
+  retorHaut: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  retorNoms: { gap: 1 },
+  retorNom: { fontFamily: polices.extraBold, fontSize: 19, lineHeight: 24 },
+  etiquetteOr: {
+    fontFamily: polices.bold,
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+  },
+  debatPasse: { flexDirection: 'row', alignItems: 'center', gap: espaces.s },
+  debatTexte: { flex: 1, gap: 2 },
+  etape: { flexDirection: 'row', alignItems: 'flex-start', gap: espaces.s },
+  etapeNumero: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  etapeChiffre: { fontFamily: polices.extraBold, fontSize: 12, lineHeight: 16 },
+  etapeTexte: { flex: 1 },
   podium: {
     flexDirection: 'row',
     alignItems: 'center',

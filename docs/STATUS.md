@@ -1513,7 +1513,16 @@ jamais en montrer deux, le ton dit et emporté, la voix emportée, la banque vid
 champ, le temps et la formule, et l'absence de points, de tours et de thèmes). Mobile 142 au
 total, tout le reste vert. Au passage : dans cette version de la bibliothèque de test, `render`
 est asynchrone, et ne pas l'attendre donne un objet sans aucune requête. **Build 41 est parti**
-(09:10, « Upload succeeded »). Prochain numéro : 42.
+(09:10, « Upload succeeded »).
+
+**Ce n'était pas cet écran.** Roch parlait de l'onglet Face-à-face dans L'Arène, la porte : une
+carte bleu pâle, une phrase, un bouton, et les deux tiers de l'écran vides dessous. Refaite avec
+ce que la personne possède déjà : la carte de Rétor avec sa marque, ce qu'il fait, le bouton et
+les sessions du mois ; puis ses face-à-face tenus, chacun ouvrant son débrief (lecture directe de
+ses propres lignes, personne d'autre ne les lit, migration 0015) ; et pour qui n'en a jamais tenu,
+ce qui va se passer en trois lignes, le seul texte qui disparaît dès qu'il n'est plus vrai. Une
+session encore ouverte transforme le bouton en « Reprendre le débat » et sort de la liste des
+débats passés. Six tests sur cette porte, 148 au total. Prochain numéro : 42.
 
 ## Next
 
