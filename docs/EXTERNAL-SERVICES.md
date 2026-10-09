@@ -36,7 +36,8 @@ Prices and plan limits were read on 2026-09-06 and change; the note says where t
 ## Fly.io
 
 - Purpose: runs `apps/serveur` as two process groups from one image.
-- Account: Roch. CLI installed at `/opt/homebrew/bin/fly`, not logged in.
+- Account: Roch, **rochapetoh@hotmail.com, signed in through GitHub** (found on 2026-10-08 after three attempts). Two other Fly accounts exist and hold nothing of LEQ: join.leq@gmail.com (empty) and rapetohsenyo@gmail.com through Google (empty, trial ended). On a new machine: `fly auth login` and choose GitHub. CLI at `/opt/homebrew/bin/fly`.
+- Custom domain (2026-10-08): certificate created for `app.liebeneloquence.com` (`fly certs add`). Rebecca's DNS is at Hostinger and her mailbox at Google; the app address needs one record, `CNAME app → 1pwyo9o.leq-serveur.fly.dev`, which touches neither. Until it resolves, every link keeps the Fly hostname.
 - Status: app not created, nothing deployed.
 - Region: `cdg` (Paris). Same city as the database, so the worker's chatty queries stay low latency.
 - Data protection: the worker holds audio in memory and on the machine's ephemeral disk during analysis, then discards it. Fly publishes a DPA on its legal pages (the page refused an automated read on 2026-09-06; open https://fly.io/legal/ in a browser and verify). Secrets stay in Fly secrets. No persistent volume is planned.
