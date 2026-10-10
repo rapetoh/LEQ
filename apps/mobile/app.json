@@ -17,7 +17,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "usesAppleSignIn": true,
-      "buildNumber": "42"
+      "buildNumber": "43"
     },
     "android": {
       "package": "com.leqapp.mobile",
@@ -75,7 +75,8 @@
         {
           "photosPermission": "Pour choisir ta photo de profil."
         }
-      ]
+      ],
+      "./plugins/avecScenes.js"
     ],
     "experiments": {
       "typedRoutes": false,

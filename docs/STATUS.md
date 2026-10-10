@@ -1524,6 +1524,26 @@ ce qui va se passer en trois lignes, le seul texte qui disparaît dès qu'il n'e
 session encore ouverte transforme le bouton en « Reprendre le débat » et sort de la liste des
 débats passés. Six tests sur cette porte, 148 au total. Prochain numéro : 42.
 
+## iOS 27 refusait d'ouvrir LEQ (2026-10-10)
+
+Roch, iPhone en iOS 27.0.1, build 42 : l'app se fermait avant le premier écran. Les deux rapports
+de plantage, tirés directement du téléphone (`xcrun devicectl … systemCrashLogs`), disent la même
+chose : `EXC_BREAKPOINT` dans `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`.
+iOS 27 refuse de lancer une app qui n'a pas adopté le cycle de vie par scènes, et LEQ ouvrait encore
+sa fenêtre depuis l'app delegate. Rien dans notre code : le modèle natif d'Expo.
+
+- Expo passe de 57.0.20 à 57.0.27, qui apporte `ExpoAppSceneDelegate` (« Required by iOS 27 »).
+- Le modèle de SDK 57 ne le branche pas : `apps/mobile/plugins/avecScenes.js` le fait à chaque
+  prebuild. Info.plist déclare une scène dont le délégué est celui d'Expo ; l'app delegate crée
+  toujours la fabrique de React Native, se déclare fournisseur, et n'ouvre plus de fenêtre lui-même.
+  Chaque modification s'accroche au texte du modèle et casse le prebuild si le modèle change, plutôt
+  que de livrer une app qui ne démarre pas.
+- Les liens (connexion Google, liens profonds) passent toujours : le délégué de scène les renvoie à
+  l'app delegate.
+
+Vérifié : l'app construite en Release démarre sur un simulateur iOS 27.0 et affiche l'accueil ; 148
+tests mobiles et le reste verts. La preuve sur le téléphone de Roch passe par le build 43.
+
 ## Next
 
 **À remettre avant la boutique (2026-09-19).** Les limites sont levées sur le projet hébergé pour
