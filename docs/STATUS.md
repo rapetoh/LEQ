@@ -1533,6 +1533,11 @@ et Complet sont à volonté (`formules.etapes_par_jour` = 0, `debats_par_mois` =
 `node supabase/tests/activer-essai.mjs --eteindre`. Tant que ce n'est pas fait, aucune formule ne
 veut dire ce qu'elle vend.
 
+**En attente, décidé le 2026-10-10.** Les e-mails de l'app (codes de connexion, fin de duel)
+partiront de bonjour@liebeneloquence.com par Resend (gratuit jusqu'à 3 000 par mois) : un compte
+créé avec join.leq@gmail.com, sa clé API, puis trois enregistrements que Rebecca ajoute chez
+Hostinger. Remis à plus tard ; d'ici là le Gmail de test suffit pour essayer l'app.
+
 Phases 0 to 8 are built, deployed and covered. What is left is not more code: it is the four
 inputs that were never ours to invent, and the accounts that gate the release.
 
